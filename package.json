@@ -1,0 +1,12 @@
+{
+  "name": "yt-media-controller",
+  "version": "1.0.0",
+  "description": "YT-media-controller",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
