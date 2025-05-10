@@ -4,9 +4,8 @@
   "description": "",
   "main": "dist/background.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json && npm run copy-manifest",
-    "copy-manifest": "copy .\\src\\manifest.json .\\build\\manifest.json",
-    "package":"powershell -c \"Compress-Archive -Path .\\build\\* -DestinationPath .\\dist\\yt-extension.zip\""
+    "build": "webpack --mode production",
+    "package": "powershell -c \"Compress-Archive -Path .\\build\\* -DestinationPath .\\dist\\yt-extension.zip\""
   },
   "keywords": [],
   "author": "",
@@ -20,6 +19,9 @@
     "@types/chrome": "^0.0.321",
     "babel-loader": "^9.2.1",
     "copy-webpack-plugin": "^12.0.2",
-    "typescript": "^5.8.3"
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.8",
+    "webpack-cli": "^6.0.1"
   }
 }

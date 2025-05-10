@@ -1,6 +1,3 @@
-import "@types/chrome";
-
-
 export class ChromeFrontEndRuntime {
   constructor(){
     chrome.runtime.sendMessage({action: "ytFrontendRuntimeLoaded"});

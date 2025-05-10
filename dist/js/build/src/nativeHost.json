@@ -1,0 +1,11 @@
+{
+  "name": "com.YTNativeHost.app",
+  "manifest_version": 3,
+  "version": "1.0",
+  "description": "YT Native Host",
+  "path": "..\\backend\\YTMediaControllerSrv\\ChromeNativeMessagingHost\\bin\\Debug\\ChromeNativeMessagingHost.exe",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://hpbodmakbhoadedknjhgemnkjjdbogfh/"
+  ]
+}

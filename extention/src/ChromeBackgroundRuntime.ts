@@ -1,9 +1,5 @@
 import settings from "./settings.json";
-import "@types/chrome";
 import { createSocket, SocketInterface } from "./helpers/createSocket";
-
-
-
 export class ChromeBackgroundRuntime {
   private clientSocket?: SocketInterface;
   private ytTabs = new Set<number>();
