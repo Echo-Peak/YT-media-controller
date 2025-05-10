@@ -1,0 +1,51 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace YTMediaControllerSrv.Server
+{
+    internal class CreateHttpServer
+    {
+        private HttpListener listener = new HttpListener();
+        public delegate void OnRequestHandler(HttpListenerContext context, HttpListenerRequest request, HttpListenerResponse response);
+        public event OnRequestHandler OnRequest;
+
+        public CreateHttpServer(string hostIp, int port)
+        {
+            string url = $"http://{hostIp}:{port}";
+            Console.WriteLine($"Server started at {url}");
+
+            listener.Prefixes.Add($"{url}/");
+            listener.Prefixes.Add($"http://localhost:{port}/");
+            listener.Start();
+            Task.Run(() => HandleRequests(listener));
+        }
+
+        public void Stop()
+        {
+            listener.Stop();
+        }
+
+        async private void HandleRequests(HttpListener listener)
+        {
+            while (listener.IsListening)
+            {
+                try
+                {
+                    HttpListenerContext context = await listener.GetContextAsync();
+                    HttpListenerRequest request = context.Request;
+                    HttpListenerResponse response = context.Response;
+
+                    OnRequest(context, request, response);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
+    }
+}
