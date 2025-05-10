@@ -1,6 +1,6 @@
 ﻿using System.Net.WebSockets;
 using System.Threading.Tasks;
-using YTMediaControllerSrv.Controller;
+
 
 
 namespace YTMediaControllerSrv.Server
@@ -27,7 +27,6 @@ namespace YTMediaControllerSrv.Server
             {
                 case "enterFullScreen":
                     {
-                        SystemController.EnterFullScreen();
                         break;
                     }
             }
