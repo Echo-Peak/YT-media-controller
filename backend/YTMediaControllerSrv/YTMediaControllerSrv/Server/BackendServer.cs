@@ -19,6 +19,7 @@ namespace YTMediaControllerSrv.Server
 
         public BackendServer(string host, int port, PlaybackManager playbackManager)
         {
+            this.playbackManager = playbackManager;
             this.endpoint = $"http://{host}:{port}/";
         }
 
@@ -49,7 +50,7 @@ namespace YTMediaControllerSrv.Server
 
         private async Task ReturnInvalidHttpMethod(HttpListenerResponse response)
         {
-            response.StatusCode = 404;
+            response.StatusCode = 405;
             byte[] buffer = Encoding.UTF8.GetBytes("<html><body><h1>405 Method not supported</h1></body></html>");
             response.ContentLength64 = buffer.Length;
             response.ContentType = "text/html";
