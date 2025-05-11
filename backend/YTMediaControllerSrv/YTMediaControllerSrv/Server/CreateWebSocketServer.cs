@@ -15,7 +15,7 @@ namespace YTMediaControllerSrv.Server
     internal class CreateWebSockerServer
     {
         private HttpListener listener = new HttpListener();
-        private readonly ConcurrentDictionary<WebSocket, object> _clients;
+        public readonly ConcurrentDictionary<WebSocket, object> Clients;
         public event Action<WebSocket> OnConnect;
         public event Action<WebSocket, string> OnMessage;
 
@@ -23,7 +23,7 @@ namespace YTMediaControllerSrv.Server
         {
             string url = $"http://{hostIP}:{port}";
             Console.WriteLine($"Web socket server started at {url}");
-            _clients = new ConcurrentDictionary<WebSocket, object>();
+            Clients = new ConcurrentDictionary<WebSocket, object>();
             listener.Prefixes.Add($"{url}/");
         }
 
@@ -58,11 +58,11 @@ namespace YTMediaControllerSrv.Server
         private async Task HandleWebSocket(HttpListenerWebSocketContext wsContext)
         {
             WebSocket webSocket = wsContext.WebSocket;
-            _clients.TryAdd(webSocket, null);
+            Clients.TryAdd(webSocket, null);
             Console.WriteLine("Client connected");
             OnConnect?.Invoke(webSocket);
 
-            _ = Task.Run(async () =>
+            await Task.Run(async () =>
             {
                 byte[] buffer = new byte[1024 * 4];
 
@@ -108,7 +108,7 @@ namespace YTMediaControllerSrv.Server
                 finally
                 {
                     // Ensure client removal and clean closure
-                    _clients.TryRemove(webSocket, out _);
+                    Clients.TryRemove(webSocket, out _);
                     if (webSocket.State == WebSocketState.Open || webSocket.State == WebSocketState.CloseSent)
                     {
                         await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
@@ -117,7 +117,5 @@ namespace YTMediaControllerSrv.Server
                 }
             });
         }
-
-
     }
 }

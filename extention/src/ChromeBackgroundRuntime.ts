@@ -28,14 +28,7 @@ export class ChromeBackgroundRuntime {
         }});
         break;
       }
-      case "playbackElapsed":{
-        this.clientSocket?.send({event: "playbackElapsed", data: {
-          videoId: message.videoId, 
-          elapsedTime: message.elapsedTime,
-          duration: message.duration,
-        }});
-        break;
-      }
+      
       case "playbackStarted": {
         this.clientSocket?.send({event: "playbackStated", data: {videoId: message.videoId}});
         break;
