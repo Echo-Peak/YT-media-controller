@@ -4,7 +4,9 @@
   "description": "YT-media-controller",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build-service":"node backend/scripts/build.js",
+    "build-browser-extension":"cd .\\extention && npm run build",
+    "package": "npm run build-service && npm run build-browser-extension && node packager/build.js"
   },
   "keywords": [],
   "author": "",
