@@ -13,13 +13,9 @@ namespace YTMediaControllerSrv.Server
         public delegate void OnRequestHandler(HttpListenerContext context, HttpListenerRequest request, HttpListenerResponse response);
         public event OnRequestHandler OnRequest;
 
-        public CreateHttpServer(string hostIp, int port)
+        public CreateHttpServer(string url)
         {
-            string url = $"http://{hostIp}:{port}";
-            Console.WriteLine($"Server started at {url}");
-
-            listener.Prefixes.Add($"{url}/");
-            listener.Prefixes.Add($"http://localhost:{port}/");
+            listener.Prefixes.Add(url);
             listener.Start();
             Task.Run(() => HandleRequests(listener));
         }

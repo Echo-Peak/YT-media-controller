@@ -8,31 +8,44 @@ using System.Threading.Tasks;
 
 namespace YTMediaControllerSrv
 {
-    internal class SettingsJSON
+    internal class AppSettingsJson
     {
-        public int UIPort { get; set; }
-        public int APIServerPort { get; set; }
-
-        public SettingsJSON()
-        {
-            UIPort = 8080;
-            APIServerPort = 9000;
-        }
+        public int BackgroundServerPort { get; set; }
+        public int ControlServerPort { get; set; }
     }
 
-    internal class ReadSettings
+    internal class AppSettings
     {
-        public SettingsJSON settings = new SettingsJSON();
+        public int BackgroundServerPort { get; set; } = 9200;
+        public int ControlServerPort { get; set; } = 9300;
 
-        public ReadSettings()
+        public AppSettings(string settingsFilePath)
         {
             try
             {
-                var installDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "YTMediaControllerSrv");
-                string settingsFile = Path.Combine(installDir, "settings.json");
-                string content = File.ReadAllText(settingsFile);
+                string content = File.ReadAllText(settingsFilePath);
 
-                settings = JsonConvert.DeserializeObject<SettingsJSON>(content);
+                var settings = JsonConvert.DeserializeObject<AppSettingsJson>(content);
+                if (settings != null)
+                {
+                    if (settings.BackgroundServerPort > 0)
+                    {
+                        BackgroundServerPort = settings.BackgroundServerPort;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Could not find BackgroundServerPort property in settings.json. Defaulting to {BackgroundServerPort}");
+                    }
+
+                    if (settings.ControlServerPort > 0)
+                    {
+                        ControlServerPort = settings.ControlServerPort;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Could not find ControlServerPort property in settings.json. Defaulting to {ControlServerPort}");
+                    }
+                }
             }
             catch (Exception err)
             {

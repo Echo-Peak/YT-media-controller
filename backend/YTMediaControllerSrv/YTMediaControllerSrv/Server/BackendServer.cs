@@ -14,14 +14,19 @@ namespace YTMediaControllerSrv.Server
     internal class BackendServer
     {
         public CreateHttpServer server { get; set; }
-        private SettingsJSON settings { get; set; }
         private PlaybackManager playbackManager { get; set; }
+        private string endpoint = string.Empty;
 
         public BackendServer(string host, int port, PlaybackManager playbackManager)
         {
-            this.settings = settings;
-            server = new CreateHttpServer(host, port);
+            this.endpoint = $"http://{host}:{port}/";
+        }
+
+        public void Start()
+        {
+            server = new CreateHttpServer(endpoint);
             server.OnRequest += HandleRequest;
+            Console.WriteLine($"Backend server started at {endpoint}");
         }
 
         public void Stop()

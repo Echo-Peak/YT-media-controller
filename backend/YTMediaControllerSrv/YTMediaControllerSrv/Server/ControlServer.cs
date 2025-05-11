@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Net;
 using System.Net.WebSockets;
+using System.Security.Policy;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +14,23 @@ namespace YTMediaControllerSrv.Server
     internal class ControlServer
     {
         public CreateWebSockerServer server { get; set; }
+        private string endpoint = string.Empty;
+
         public ControlServer(string host, int port)
         {
-            server = new CreateWebSockerServer(host, port);
+            this.endpoint = $"http://{host}:{port}/";
+
+            server = new CreateWebSockerServer(endpoint);
             server.OnMessage += OnMessage;
 
-            Task.Run(() => server.Start());
+        }
+        public void Start()
+        {
+            Task.Run(async () =>
+            {
+                Console.WriteLine($"Control server started at {endpoint}");
+                await server.Start();
+            });
         }
 
         public void Stop()

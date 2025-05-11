@@ -19,18 +19,15 @@ namespace YTMediaControllerSrv.Server
         public event Action<WebSocket> OnConnect;
         public event Action<WebSocket, string> OnMessage;
 
-        public CreateWebSockerServer(string hostIP, int port)
+        public CreateWebSockerServer(string url)
         {
-            string url = $"http://{hostIP}:{port}";
-            Console.WriteLine($"Web socket server started at {url}");
             Clients = new ConcurrentDictionary<WebSocket, object>();
-            listener.Prefixes.Add($"{url}/");
+            listener.Prefixes.Add(url);
         }
 
         public async Task Start()
         {
             listener.Start();
-            Console.WriteLine("WebSocket server started...");
             while (true)
             {
                 HttpListenerContext context = await listener.GetContextAsync();
