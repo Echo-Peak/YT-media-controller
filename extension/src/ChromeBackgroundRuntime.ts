@@ -1,11 +1,10 @@
-import settings from "./settings.json";
 import { createSocket, SocketInterface } from "./helpers/createSocket";
 export class ChromeBackgroundRuntime {
   private clientSocket?: SocketInterface;
   private ytTabs = new Set<number>();
   constructor(){
 
-      this.clientSocket = createSocket(`http://localhost:${settings.socketPort}`);
+      this.clientSocket = createSocket(`http://localhost:56546`);
       this.clientSocket.on("PlayEvent", this.handlePlayEvent);
     
     chrome.runtime.onMessage.addListener(this.handleMessage);
