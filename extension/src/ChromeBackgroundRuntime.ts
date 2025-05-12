@@ -15,7 +15,11 @@ export class ChromeBackgroundRuntime {
       chrome.tabs.sendMessage(firstYtTab, { action: "playEvent", data });
   }
 
-  private handleMessage = (message: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+  private sendNativeMessage(data: Record<string, unknown>, callback: (response: any) => void) {
+    chrome.runtime.sendNativeMessage("com.ytmediacontroller.app", data, callback);
+  }
+
+  private handleMessage = (message: Record<string, string | number>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
     switch (message.action) {
       case "getBackendSettings":{
         chrome.storage.local.get(["backendServerPort", "controlServerPort"], (result) => {
@@ -26,19 +30,15 @@ export class ChromeBackgroundRuntime {
       }
 
       case "updateBackendServerPort": {
-        // execute native host command to update the backend server port on C# side
-        const newPort = 23233;
-        sendResponse({ success: true, port: newPort });
+        this.sendNativeMessage({ action: "updateBackendServerPort", port: message.port  }, sendResponse);
         return true;
       }
       case "updateControlServerPort": {
-        // execute native host command to update the control server port on C# side
-        const newPort = 23235;
-        sendResponse({ success: true, port: newPort });
+        this.sendNativeMessage({ action: "updateControlServerPort", port: message.port  }, sendResponse);
         return true;
       }
       case "ytFrontendRuntimeLoaded": {
-        this.ytTabs.add(message.tabId);
+        this.ytTabs.add(message.tabId as number);
         break;
       }
       case "playbackEnded":{

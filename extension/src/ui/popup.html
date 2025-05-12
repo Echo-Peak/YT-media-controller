@@ -22,13 +22,13 @@
 <body>
     <div>
       <h4>BackendServerPort: <span id="currentBackendServerPort">Unknown</span></h4>
-      <input type="text" id="backendServerPortInput" placeholder="" />
+      <input id="backendServerPortInput" placeholder="" type="number" min="3000" max="65535" />
       <button id="updateBackendServerButton">Set backend server port</button>
     </div>
 
     <div>
       <h4>ControlServerPort: <span id="currentControlServerPort">Unknown</span></h4>
-      <input type="text" id="controlServerInput" placeholder="" />
+      <input id="controlServerInput" placeholder="" type="number" min="3000" max="65535"/>
       <button id="updateControlServerButton">Set control server port</button>
     </div>
 
