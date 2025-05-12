@@ -35,7 +35,10 @@ module.exports = {
     },
     plugins: [
         new CopyPlugin({
-            patterns: [{ from: "./src/*.json", to: "./[name][ext]" }],
+            patterns: [
+                { from: "./src/*.json", to: "./[name][ext]" },
+                { from: "./src/ui/*.*", to: "./ui/[name][ext]" },
+            ],
             options: {},
         }),
     ],

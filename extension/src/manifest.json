@@ -6,7 +6,8 @@
   "permissions": [
     "nativeMessaging",
     "background",
-    "webRequest"
+    "webRequest",
+    "storage"
   ],
   "background": {
     "service_worker": "background.js"
@@ -21,5 +22,13 @@
     "http://localhost/*",
     "ws://localhost/*",
     "wss://localhost/*"
-  ]
+  ],
+  "action":{
+    "default_popup": "ui/popup.html",
+    "default_icon": {
+      "16": "ui/icon16.png",
+      "48": "ui/icon48.png",
+      "128": "ui/icon128.png"
+    }
+  }
 }
