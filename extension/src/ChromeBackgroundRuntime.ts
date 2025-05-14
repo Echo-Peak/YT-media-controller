@@ -1,12 +1,16 @@
 import { createSocket, SocketInterface } from "./helpers/createSocket";
+import { sendNativeMessage } from "./helpers/sendNativeMessage";
+import { BackendSettings } from "./types/BackendSettings";
 export class ChromeBackgroundRuntime {
   private clientSocket?: SocketInterface;
   private ytTabs = new Set<number>();
   private readonly nativeAppId = "com.ytmediacontroller.app";
+
   constructor(){
-    this.init();
+    this.init().catch(console.error)
     chrome.runtime.onMessage.addListener(this.handleMessage);
   }
+
   private setupCLientSocket = (port: string) => {
     this.clientSocket = createSocket(`http://localhost:${port}`);
     this.clientSocket.on("PlayEvent", this.handlePlayEvent);
@@ -17,22 +21,23 @@ export class ChromeBackgroundRuntime {
     console.log("Client socket created");
   }
 
-  private init = () => {
-    chrome.storage.local.get(["backendServerPort", "controlServerPort"], (result) => {
-      if(result){
-        const { backendServerPort } = result;
-        this.setupCLientSocket(backendServerPort);
-      }else{
-        this.sendNativeMessage({action: 'getSettings'}, (response)=> {
-          if(response){
-            this.setupCLientSocket(response.backendServerPort);
-            chrome.storage.local.set({ 
-              backendServerPort: response.backendServerPort,
-              controlServerPort: response.controlServerPort,
-            });
-          }
-        });
-      }
+  private init = async () => {
+    const backendSettings = await sendNativeMessage<{status: boolean} & BackendSettings>(this.nativeAppId, {action: 'getBackendSettings'});
+    const deviceNetworkIP = await sendNativeMessage<{status: boolean, deviceNetworkIp: string}>(this.nativeAppId, {action: 'getDeviceNetworkIp'});
+
+    if(!backendSettings.status){
+      throw new Error("Failed to get backend settings from native app");
+    }
+    
+    if(!deviceNetworkIP.status){
+      throw new Error("Failed to get device network IP from native app");
+    }
+
+    this.setupCLientSocket(backendSettings.backendServerPort);
+    chrome.storage.local.set({ 
+      backendServerPort: backendSettings.backendServerPort,
+      controlServerPort: backendSettings.controlServerPort,
+      deviceNetworkIp: deviceNetworkIP.deviceNetworkIp
     });
   }
 
@@ -41,26 +46,43 @@ export class ChromeBackgroundRuntime {
       chrome.tabs.sendMessage(firstYtTab, { action: "playEvent", data });
   }
 
-  private sendNativeMessage(data: Record<string, unknown>, callback: (response: any) => void) {
-    chrome.runtime.sendNativeMessage(this.nativeAppId, data, callback);
+  private getFromLocalStorage = (key: string | string[], callback: (value: Record<string, unknown>) => void) => {
+      chrome.storage.local.get(Array.isArray(key) ? key : [key], (result) => {
+        callback(result);
+      });
   }
 
   private handleMessage = (message: Record<string, string | number>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
     switch (message.action) {
-      case "getBackendSettings":{
-        chrome.storage.local.get(["backendServerPort", "controlServerPort"], (result) => {
-          const { backendServerPort, controlServerPort } = result;
-          sendResponse({ backendServerPort, controlServerPort });
-        });
+      case "getDeviceNetworkIp": {
+        this.getFromLocalStorage(["deviceNetworkIp", "backendServerPort"], sendResponse);
+        return true;
+      }
+      case "getControlServerPort": {
+        this.getFromLocalStorage("controlServerPort", sendResponse);
+        return true;
+      }
+      case "getBackendServerPort": {
+        this.getFromLocalStorage("backendServerPort", sendResponse);
         return true;
       }
 
       case "updateBackendServerPort": {
-        this.sendNativeMessage({ action: "updateBackendServerPort", port: message.port  }, sendResponse);
+        sendNativeMessage<{status: boolean, message?: string, error?: string}>(this.nativeAppId, { action: "updateBackendServerPort",  port: message.port  })
+        .then((response)=> {
+          sendResponse({status: response.status, message: response.message, error: response.error});
+        }).catch(err => {
+          sendResponse({status: false, error: err.message});
+        })
         return true;
       }
       case "updateControlServerPort": {
-        this.sendNativeMessage({ action: "updateControlServerPort", port: message.port  }, sendResponse);
+        sendNativeMessage<{status: boolean, message?: string, error?: string}>(this.nativeAppId, { action: "updateControlServerPort",  port: message.port  })
+        .then((response)=> {
+          sendResponse({status: response.status, message: response.message, error: response.error});
+        }).catch(err => {
+          sendResponse({status: false, error: err.message});
+        })
         return true;
       }
       case "ytFrontendRuntimeLoaded": {
