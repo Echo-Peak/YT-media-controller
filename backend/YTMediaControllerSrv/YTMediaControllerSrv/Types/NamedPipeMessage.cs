@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace YTMediaControllerSrv.Types
 {
-    public class WebSocketMessage
+    public class NamedPipeMessage
     {
         public string Action { get; set; }
+        public object Data { get; set; }
     }
 }

@@ -23,17 +23,36 @@ namespace YTMediaControllerHost
         static AppSettings appSettings { get; set; }
         private static Stream output;
         private static readonly object outputLock = new object();
+        private static NamedPipeClientApi pipeClient = new NamedPipeClientApi("YTMediaControllerPipe");
 
         static void Main(string[] args)
         {
             appSettings = new AppSettings(PathResolver.GetSettingsFilePath());
+            pipeClient.OnConnected += OnPipeConnected;
+            pipeClient.OnDisconnected += OnPipeDisconnected;
+            pipeClient.OnMessageReceived += OnPipeMessageReceived;
             var input = Console.OpenStandardInput();
             output = Console.OpenStandardOutput();
 
             Thread readerThread = new Thread(() => ListenForMessages(input));
             readerThread.Start();
-
         }
+
+        private static void OnPipeConnected()
+        {
+            Console.WriteLine("Connected to the named pipe server.");
+        }
+
+        private static void OnPipeDisconnected()
+        {
+            Console.WriteLine("Disconnected from the named pipe server.");
+        }
+
+        private static void OnPipeMessageReceived(string jsonMessage)
+        {
+            SendMessageToExtension(jsonMessage);
+        }
+
         private static void ListenForMessages(Stream input)
         {
             try
@@ -84,12 +103,31 @@ namespace YTMediaControllerHost
                 output.Flush();
             }
         }
+        static void SendMessageToBackend(object messageObj)
+        {
+            Task.Run(async () =>
+            {
+                if (pipeClient.IsConnected)
+                {
+                    await pipeClient.SendMessageAsync(JsonConvert.SerializeObject(messageObj));
+                }
+                else
+                {
+                    Console.Error.WriteLine("[NamedPipeClientApi] Cannot send: No client is connected.");
+                }
+            });
+        }
 
         static object HandleAction(JsonResponse response)
         {
             var settings = appSettings.settings;
             switch (response.Action)
             {
+                case "playbackStarted":
+                    {
+                        SendMessageToBackend(response);
+                        break;
+                    }
                 case "getBackendSettings":
                     {
                         return new

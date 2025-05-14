@@ -1,60 +1,60 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Net;
-using System.Net.WebSockets;
-using System.Security.Policy;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using YTMediaControllerSrv.Controller;
+using YTMediaControllerSrv.Types;
 
 
 namespace YTMediaControllerSrv.Server
 {
     internal class ControlServer
     {
-        public CreateWebSockerServer server { get; set; }
-        private string endpoint = string.Empty;
+        public NamedPipeServerApi pipeApi = new NamedPipeServerApi("YTMediaControllerPipe");
 
-        public ControlServer(string host, int port)
+        public ControlServer()
         {
-            this.endpoint = $"http://{host}:{port}/";
-
-            server = new CreateWebSockerServer(endpoint);
-            server.OnMessage += OnMessage;
-
+            pipeApi.OnMessageReceived += OnMessage;
+            pipeApi.OnClientConnected += OnConnected;
+            pipeApi.OnClientDisconnected += OnDisconnected;
         }
         public void Start()
         {
-            Task.Run(async () =>
-            {
-                Console.WriteLine($"Control server started at {endpoint}");
-                await server.Start();
-            });
+           pipeApi.Start();
         }
 
         public void Stop()
         {
-            server.Stop();
+            pipeApi.Dispose();
         }
 
-        public void Send(object data)
+        private void OnConnected()
         {
-            foreach (var client in server.Clients)
+            Console.WriteLine("Client connected to the named pipe server.");
+        }
+
+        private void OnDisconnected()
+        {
+            Console.WriteLine("Client disconnected from the named pipe server.");
+        }
+
+        public async Task Send(object jsonObject)
+        {
+            if (pipeApi.IsClientConnected())
             {
-                if (client.Key.State == WebSocketState.Open)
-                {
-                    string json = JsonConvert.SerializeObject(data);
-                    byte[] buffer = Encoding.UTF8.GetBytes(json);
-                    client.Key.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
-                }
+               await pipeApi.Send(jsonObject);
+            }
+            else
+            {
+                Console.Error.WriteLine("[ControlServer] Cannot send: No client is connected.");
             }
         }
-        public void OnMessage(WebSocket ws, string action)
+
+        public void OnMessage(string jsonString)
         {
-            switch (action)
+            var obj = JsonConvert.DeserializeObject<NamedPipeMessage>(jsonString);
+            switch (obj.Action)
             {
-                case "playbackStated":
+                case "playbackStarted":
                     {
                         SystemController.EnterFullScreen();
                         break;

@@ -34,7 +34,7 @@ namespace YTMediaControllerSrv
             string deviceIP = DeviceInfo.GetLocalIPAddress();
             AppSettingsJson settings = new AppSettings(settingsFile).settings;
 
-            var controlServer = new ControlServer(deviceIP, settings.ControlServerPort);
+            var controlServer = new ControlServer();
             var playbackManager = new PlaybackManager(controlServer);
             var backendServer = new BackendServer(deviceIP, settings.BackgroundServerPort, playbackManager);
 

@@ -42,10 +42,13 @@ namespace YTMediaControllerSrv
 
         private void SendPlayEvent(string videoId)
         {
-            controlServer.Send(new
+            Task.Run(async () =>
             {
-                action = "playbackStarted",
-                videoId,
+                await controlServer.Send(new
+                {
+                    action = "playbackStarted",
+                    videoId,
+                });
             });
         }
 
