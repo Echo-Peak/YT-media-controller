@@ -1,29 +1,20 @@
-import { createSocket, SocketInterface } from "./helpers/createSocket";
-import { sendNativeMessage } from "./helpers/sendNativeMessage";
+import { NativeHostApi } from "./NativeHostApi";
 import { BackendSettings } from "./types/BackendSettings";
 export class ChromeBackgroundRuntime {
-  private clientSocket?: SocketInterface;
   private ytTabs = new Set<number>();
-  private readonly nativeAppId = "com.ytmediacontroller.app";
-
+  private nativeHost: NativeHostApi;
+  
   constructor(){
-    this.init().catch(console.error)
+    this.nativeHost = new NativeHostApi();
+    this.nativeHost.on("PlayEvent", this.handlePlayEvent);
+    
     chrome.runtime.onMessage.addListener(this.handleMessage);
-  }
-
-  private setupCLientSocket = (port: string) => {
-    this.clientSocket = createSocket(`http://localhost:${port}`);
-    this.clientSocket.on("PlayEvent", this.handlePlayEvent);
-    this.clientSocket.on("error", (error) => {
-      console.error("Socket error:", error);
-      this.clientSocket = undefined;
-    });
-    console.log("Client socket created");
+    this.init();
   }
 
   private init = async () => {
-    const backendSettings = await sendNativeMessage<{status: boolean} & BackendSettings>(this.nativeAppId, {action: 'getBackendSettings'});
-    const deviceNetworkIP = await sendNativeMessage<{status: boolean, deviceNetworkIp: string}>(this.nativeAppId, {action: 'getDeviceNetworkIp'});
+    const backendSettings = await this.nativeHost.postMessageAsync<{status: boolean} & BackendSettings>({action: 'getBackendSettings'});
+    const deviceNetworkIP = await this.nativeHost.postMessageAsync<{status: boolean, deviceNetworkIp: string}>( {action: 'getDeviceNetworkIp'});
 
     if(!backendSettings.status){
       throw new Error("Failed to get backend settings from native app");
@@ -33,7 +24,6 @@ export class ChromeBackgroundRuntime {
       throw new Error("Failed to get device network IP from native app");
     }
 
-    this.setupCLientSocket(backendSettings.backendServerPort);
     chrome.storage.local.set({ 
       backendServerPort: backendSettings.backendServerPort,
       controlServerPort: backendSettings.controlServerPort,
@@ -43,7 +33,7 @@ export class ChromeBackgroundRuntime {
 
   private handlePlayEvent = (data: any) => {
     const firstYtTab = Array.from(this.ytTabs)[0];
-      chrome.tabs.sendMessage(firstYtTab, { action: "playEvent", data });
+    chrome.tabs.sendMessage(firstYtTab, { action: "playEvent", data });
   }
 
   private getFromLocalStorage = (key: string | string[], callback: (value: Record<string, unknown>) => void) => {
@@ -68,7 +58,7 @@ export class ChromeBackgroundRuntime {
       }
 
       case "updateBackendServerPort": {
-        sendNativeMessage<{status: boolean, message?: string, error?: string}>(this.nativeAppId, { action: "updateBackendServerPort",  port: message.port  })
+        this.nativeHost.postMessageAsync<{status: boolean, message?: string, error?: string}>({ action: "updateBackendServerPort",  data: {port: message.port}  })
         .then((response)=> {
           sendResponse({status: response.status, message: response.message, error: response.error});
         }).catch(err => {
@@ -77,7 +67,7 @@ export class ChromeBackgroundRuntime {
         return true;
       }
       case "updateControlServerPort": {
-        sendNativeMessage<{status: boolean, message?: string, error?: string}>(this.nativeAppId, { action: "updateControlServerPort",  port: message.port  })
+        this.nativeHost.postMessageAsync<{status: boolean, message?: string, error?: string}>({ action: "updateControlServerPort",  data: {port: message.port}  })
         .then((response)=> {
           sendResponse({status: response.status, message: response.message, error: response.error});
         }).catch(err => {
@@ -90,47 +80,16 @@ export class ChromeBackgroundRuntime {
         break;
       }
       case "playbackEnded":{
-        this.sendSocketMessage({event: "playbackEnded", data: {
-          videoId: message.videoId
-        }});
+        this.nativeHost.postMessage({action: "playbackEnded", data: { videoId: message.videoId } });
         break;
       }
       
       case "playbackStarted": {
-        this.sendSocketMessage({event: "playbackStated", data: {videoId: message.videoId}});
+        this.nativeHost.postMessage({action: "playbackStated", data: { videoId: message.videoId }});
         break;
       }
     }
   }
-
-  private waitForClientSocket = async (): Promise<SocketInterface | undefined> => {
-    const maxWaitTime = 30000;
-    const interval = 100;
-    let elapsedTime = 0;
-
-    return new Promise((resolve) => {
-      const checkSocket = () => {
-        if (this.clientSocket) {
-          resolve(this.clientSocket);
-        } else if (elapsedTime >= maxWaitTime) {
-          resolve(undefined);
-        } else {
-          elapsedTime += interval;
-          setTimeout(checkSocket, interval);
-        }
-      };
-      checkSocket();
-    });
-  };
-
-  public sendSocketMessage = async (data: Record<string, unknown>) => {
-    const socket = await this.waitForClientSocket();
-    if (socket) {
-      socket.send(data);
-    } else {
-      console.error("Client socket is not available after waiting for 30 seconds.");
-    }
-  };
 
   public sendMessage(data: Record<string, unknown>) {
     chrome.runtime.sendMessage(data);

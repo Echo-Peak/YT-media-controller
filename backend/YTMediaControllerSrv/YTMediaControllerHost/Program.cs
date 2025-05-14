@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using YTMediaControllerSrv.Settings;
 using YTMediaControllerSrv;
+using System.Threading;
 
 namespace YTMediaControllerHost
 {
@@ -20,12 +21,21 @@ namespace YTMediaControllerHost
     internal class Program
     {
         static AppSettings appSettings { get; set; }
+        private static Stream output;
+        private static readonly object outputLock = new object();
+
         static void Main(string[] args)
         {
             appSettings = new AppSettings(PathResolver.GetSettingsFilePath());
             var input = Console.OpenStandardInput();
-            var output = Console.OpenStandardOutput();
+            output = Console.OpenStandardOutput();
 
+            Thread readerThread = new Thread(() => ListenForMessages(input));
+            readerThread.Start();
+
+        }
+        private static void ListenForMessages(Stream input)
+        {
             try
             {
                 while (true)
@@ -51,20 +61,27 @@ namespace YTMediaControllerHost
 
                     if (data == null || data.Action == null) continue;
 
-
                     object actionResponse = HandleAction(data);
-
-                    string responseJson = JsonConvert.SerializeObject(actionResponse);
-                    byte[] responseBytes = Encoding.UTF8.GetBytes(responseJson);
-
-                    output.Write(BitConverter.GetBytes(responseBytes.Length), 0, 4);
-                    output.Write(responseBytes, 0, responseBytes.Length);
-                    output.Flush();
+                    SendMessageToExtension(actionResponse);
                 }
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine("Error: " + ex);
+            }
+        }
+
+        public static void SendMessageToExtension(object messageObj)
+        {
+            string responseJson = JsonConvert.SerializeObject(messageObj);
+            byte[] responseBytes = Encoding.UTF8.GetBytes(responseJson);
+            byte[] lengthPrefix = BitConverter.GetBytes(responseBytes.Length);
+
+            lock (outputLock)
+            {
+                output.Write(lengthPrefix, 0, 4);
+                output.Write(responseBytes, 0, responseBytes.Length);
+                output.Flush();
             }
         }
 
