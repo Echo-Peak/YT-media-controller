@@ -1,7 +1,7 @@
 
 Name "Youtube Media Controller installer"
 
-InstallDir $PROGRAMFILES\PCRemote
+InstallDir $PROGRAMFILES\YTMediaController
 RequestExecutionLevel admin
 
 OutFile "..\dist\YoutubeMediaControllerInstaller.exe"
@@ -22,8 +22,9 @@ Section "Info" Info
   SetOutPath "$INSTDIR"
   File "..\backend\settings.json"
   File "..\backend\YTMediaControllerSrv\YTMediaControllerSrv\bin\Release\YTMediaControllerSrv.exe"
+  File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\Release\YTMediaControllerHost.exe"
 
   SetOutPath "$INSTDIR/BrowserExtension"
-  File /r "..\extention\build"
-  ; call InstallService
+  File /r "..\extension\build"
+  call InstallService
 SectionEnd
