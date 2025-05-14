@@ -38,6 +38,7 @@ module.exports = {
             patterns: [
                 { from: "./src/*.json", to: "./[name][ext]" },
                 { from: "./src/ui/*.*", to: "./ui/[name][ext]" },
+                { from: "./src/ui/libs/*.js", to: "./ui/libs/[name][ext]" },
             ],
             options: {},
         }),
