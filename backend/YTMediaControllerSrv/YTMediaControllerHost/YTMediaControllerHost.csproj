@@ -53,5 +53,11 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\YTMediaControllerSrv\YTMediaControllerSrv.csproj">
+      <Project>{99a09598-1b0f-4323-89ed-a7d73afbad1d}</Project>
+      <Name>YTMediaControllerSrv</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

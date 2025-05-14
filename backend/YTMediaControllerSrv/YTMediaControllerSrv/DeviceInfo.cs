@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace YTMediaControllerSrv
 {
-    internal class DeviceInfo
+    public class DeviceInfo
     {
         public static string GetLocalIPAddress()
         {

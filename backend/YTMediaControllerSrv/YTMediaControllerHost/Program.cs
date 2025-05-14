@@ -3,8 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
+using YTMediaControllerSrv.Settings;
+using YTMediaControllerSrv;
 
 namespace YTMediaControllerHost
 {
@@ -16,8 +19,10 @@ namespace YTMediaControllerHost
 
     internal class Program
     {
+        static AppSettings appSettings { get; set; }
         static void Main(string[] args)
         {
+            appSettings = new AppSettings(PathResolver.GetSettingsFilePath());
             var input = Console.OpenStandardInput();
             var output = Console.OpenStandardOutput();
 
@@ -47,10 +52,9 @@ namespace YTMediaControllerHost
                     if (data == null || data.Action == null) continue;
 
 
-                    bool actionStatus = HandleAction(data);
+                    object actionResponse = HandleAction(data);
 
-                    var response = new { status = actionStatus };
-                    string responseJson = JsonConvert.SerializeObject(response);
+                    string responseJson = JsonConvert.SerializeObject(actionResponse);
                     byte[] responseBytes = Encoding.UTF8.GetBytes(responseJson);
 
                     output.Write(BitConverter.GetBytes(responseBytes.Length), 0, 4);
@@ -64,20 +68,64 @@ namespace YTMediaControllerHost
             }
         }
 
-        static bool HandleAction(JsonResponse response)
+        static object HandleAction(JsonResponse response)
         {
+            var settings = appSettings.settings;
             switch (response.Action)
             {
+                case "getBackendSettings":
+                    {
+                        return new
+                        {
+                            status = true,
+                            backendServerPort = settings.BackgroundServerPort,
+                            controlServerPort = settings.ControlServerPort
+                        };
+                    }
+                case "getDeviceNetworkIp":
+                    {
+                        return new
+                        {
+                            status = true,
+                            deviceNetworkIp = YTMediaControllerSrv.DeviceInfo.GetLocalIPAddress()
+                        };
+                    }
                 case "updateBackendServerPort":
                     {
-                        return true;
+                        try
+                        {
+                            appSettings.UpdateSettingsFile("BackgroundServerPort", response.Port);
+                            return new { status = true };
+                        }catch (Exception err)
+                        {
+                            return new
+                            {
+                                status = false,
+                                message = "Unable to update backend server port",
+                                error = err.Message
+                            };
+                        }
+                        
                     }
                 case "updateControlServerPort":
                     {
-                        return true;
+                        try
+                        {
+                            appSettings.UpdateSettingsFile("ControlServerPort", response.Port);
+                            return new { status = true };
+                        }
+                        catch (Exception err)
+                        {
+                            return new
+                            {
+                                status = false,
+                                message = "Unable to update control server port",
+                                error = err.Message
+                            };
+                        }
                     }
             }
-            return false;
+            return new { status = false, message = $"Unknown action \"{response.Action}\"" };
         }
     }
 }
