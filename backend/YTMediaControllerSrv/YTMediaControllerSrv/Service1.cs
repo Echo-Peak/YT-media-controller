@@ -21,11 +21,13 @@ namespace YTMediaControllerSrv
 
         protected override void OnStart(string[] args)
         {
+            Logger.Log("Service starting");
             app.Start();
         }
 
         protected override void OnStop()
         {
+            Logger.Log("Service stopping");
             app.Stop();
         }
     }
