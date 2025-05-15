@@ -9,7 +9,6 @@ namespace YTMediaControllerSrv.Settings
     public class AppSettingsJson
     {
         public int BackgroundServerPort { get; set; } = 9200;
-        public int ControlServerPort { get; set; } = 9300;
 
         public void Update(string property, object value)
         {
@@ -17,9 +16,6 @@ namespace YTMediaControllerSrv.Settings
             {
                 case "BackgroundServerPort":
                     BackgroundServerPort = Convert.ToInt32(value);
-                    break;
-                case "ControlServerPort":
-                    ControlServerPort = Convert.ToInt32(value);
                     break;
                 default:
                     throw new ArgumentException($"Property '{property}' not found.");

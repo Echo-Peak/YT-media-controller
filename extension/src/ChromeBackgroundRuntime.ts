@@ -26,7 +26,6 @@ export class ChromeBackgroundRuntime {
 
     chrome.storage.local.set({ 
       backendServerPort: backendSettings.backendServerPort,
-      controlServerPort: backendSettings.controlServerPort,
       deviceNetworkIp: deviceNetworkIP.deviceNetworkIp
     });
   }
@@ -48,10 +47,6 @@ export class ChromeBackgroundRuntime {
         this.getFromLocalStorage(["deviceNetworkIp", "backendServerPort"], sendResponse);
         return true;
       }
-      case "getControlServerPort": {
-        this.getFromLocalStorage("controlServerPort", sendResponse);
-        return true;
-      }
       case "getBackendServerPort": {
         this.getFromLocalStorage("backendServerPort", sendResponse);
         return true;
@@ -59,15 +54,6 @@ export class ChromeBackgroundRuntime {
 
       case "updateBackendServerPort": {
         this.nativeHost.postMessageAsync<{status: boolean, message?: string, error?: string}>({ action: "updateBackendServerPort",  data: {port: message.port}  })
-        .then((response)=> {
-          sendResponse({status: response.status, message: response.message, error: response.error});
-        }).catch(err => {
-          sendResponse({status: false, error: err.message});
-        })
-        return true;
-      }
-      case "updateControlServerPort": {
-        this.nativeHost.postMessageAsync<{status: boolean, message?: string, error?: string}>({ action: "updateControlServerPort",  data: {port: message.port}  })
         .then((response)=> {
           sendResponse({status: response.status, message: response.message, error: response.error});
         }).catch(err => {

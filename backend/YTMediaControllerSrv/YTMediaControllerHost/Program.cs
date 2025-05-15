@@ -133,8 +133,7 @@ namespace YTMediaControllerHost
                         return new
                         {
                             status = true,
-                            backendServerPort = settings.BackgroundServerPort,
-                            controlServerPort = settings.ControlServerPort
+                            backendServerPort = settings.BackgroundServerPort
                         };
                     }
                 case "getDeviceNetworkIp":
@@ -142,7 +141,7 @@ namespace YTMediaControllerHost
                         return new
                         {
                             status = true,
-                            deviceNetworkIp = YTMediaControllerSrv.DeviceInfo.GetLocalIPAddress()
+                            deviceNetworkIp = DeviceInfo.GetLocalIPAddress()
                         };
                     }
                 case "updateBackendServerPort":
@@ -161,23 +160,6 @@ namespace YTMediaControllerHost
                             };
                         }
                         
-                    }
-                case "updateControlServerPort":
-                    {
-                        try
-                        {
-                            appSettings.UpdateSettingsFile("ControlServerPort", response.Port);
-                            return new { status = true };
-                        }
-                        catch (Exception err)
-                        {
-                            return new
-                            {
-                                status = false,
-                                message = "Unable to update control server port",
-                                error = err.Message
-                            };
-                        }
                     }
             }
             return new { status = false, message = $"Unknown action \"{response.Action}\"" };
