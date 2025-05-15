@@ -23,14 +23,19 @@ namespace YTMediaControllerHost
         static AppSettings appSettings { get; set; }
         private static Stream output;
         private static readonly object outputLock = new object();
-        private static NamedPipeClientApi pipeClient = new NamedPipeClientApi("YTMediaControllerPipe");
+        private static WebSocketClient backedndClient;
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             appSettings = new AppSettings(PathResolver.GetSettingsFilePath());
-            pipeClient.OnConnected += OnPipeConnected;
-            pipeClient.OnDisconnected += OnPipeDisconnected;
-            pipeClient.OnMessageReceived += OnPipeMessageReceived;
+            backedndClient = new WebSocketClient("localhost", appSettings.settings.BackgroundServerPort + 1);
+
+            backedndClient.OnConnect += OnPipeConnected;
+            backedndClient.OnDisconnect += OnPipeDisconnected;
+            backedndClient.OnMessage += OnPipeMessageReceived;
+
+            await backedndClient.ConnectAsync();
+
             var input = Console.OpenStandardInput();
             output = Console.OpenStandardOutput();
 
@@ -40,12 +45,12 @@ namespace YTMediaControllerHost
 
         private static void OnPipeConnected()
         {
-            Console.WriteLine("Connected to the named pipe server.");
+            Console.WriteLine("Connected to the backend server.");
         }
 
         private static void OnPipeDisconnected()
         {
-            Console.WriteLine("Disconnected from the named pipe server.");
+            Console.WriteLine("Disconnected from the backend server.");
         }
 
         private static void OnPipeMessageReceived(string jsonMessage)
@@ -107,14 +112,8 @@ namespace YTMediaControllerHost
         {
             Task.Run(async () =>
             {
-                if (pipeClient.IsConnected)
-                {
-                    await pipeClient.SendMessageAsync(JsonConvert.SerializeObject(messageObj));
-                }
-                else
-                {
-                    Console.Error.WriteLine("[NamedPipeClientApi] Cannot send: No client is connected.");
-                }
+                await backedndClient.SendMessageAsync(JsonConvert.SerializeObject(messageObj));
+      
             });
         }
 

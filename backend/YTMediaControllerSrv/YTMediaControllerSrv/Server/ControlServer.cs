@@ -9,39 +9,46 @@ namespace YTMediaControllerSrv.Server
 {
     internal class ControlServer
     {
-        public NamedPipeServerApi pipeApi = new NamedPipeServerApi("YTMediaControllerPipe");
+        public WebSocketConnectionManager wsManager;
 
-        public ControlServer()
+        public ControlServer(string host, int port)
         {
-            pipeApi.OnMessageReceived += OnMessage;
-            pipeApi.OnClientConnected += OnConnected;
-            pipeApi.OnClientDisconnected += OnDisconnected;
+            string endpoint = $"http://{host}:{port}/";
+            wsManager = new WebSocketConnectionManager(endpoint);
+
+            wsManager.OnMessage += OnMessage;
+            wsManager.OnConnect += OnConnected;
+            wsManager.OnDisconnect += OnDisconnected;
         }
+
         public void Start()
         {
-           pipeApi.Start();
+            Task.Run(async () =>
+            {
+                await wsManager.StartAsync();
+            });
         }
 
         public void Stop()
         {
-            pipeApi.Dispose();
+            wsManager.Stop();
         }
 
         private void OnConnected()
         {
-            Console.WriteLine("Client connected to the named pipe server.");
+            Console.WriteLine($"Client connected");
         }
 
         private void OnDisconnected()
         {
-            Console.WriteLine("Client disconnected from the named pipe server.");
+            Console.WriteLine($"Client disconnected");
         }
 
         public async Task Send(object jsonObject)
         {
-            if (pipeApi.IsClientConnected())
+            if (wsManager.IsConnected())
             {
-               await pipeApi.Send(jsonObject);
+               await wsManager.SendAsync(jsonObject);
             }
             else
             {

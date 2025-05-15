@@ -70,7 +70,7 @@
     <Compile Include="ProjectInstaller.Designer.cs">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </Compile>
-    <Compile Include="Server\NamedPipeServerApi.cs" />
+    <Compile Include="Server\WebSocketConnectionManager.cs" />
     <Compile Include="Settings\AppSettingsJson.cs" />
     <Compile Include="Controller\SystemController.cs" />
     <Compile Include="DeviceInfo.cs" />
