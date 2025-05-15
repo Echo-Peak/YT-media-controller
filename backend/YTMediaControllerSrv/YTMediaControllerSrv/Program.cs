@@ -29,25 +29,8 @@ namespace YTMediaControllerSrv
         {
             // This requires app to be running as admin to bind port
 
-            string settingsFile = PathResolver.GetSettingsFilePath();
-
-            string deviceIP = DeviceInfo.GetLocalIPAddress();
-            AppSettingsJson settings = new AppSettings(settingsFile).settings;
-
-            var controlServer = new ControlServer();
-            var playbackManager = new PlaybackManager(controlServer);
-            var backendServer = new BackendServer(deviceIP, settings.BackgroundServerPort, playbackManager);
-
-            Console.CancelKeyPress += (sender, e) =>
-            {
-                Console.WriteLine("SIGINT received. Cleaning up resources...");
-                backendServer.Stop();
-                controlServer.Stop();
-                Console.WriteLine("Cleanup complete. Exiting application.");
-            };
-
-            controlServer.Start();
-            backendServer.Start();
+            var app = new AppContainer();
+            app.Start();
         }
 
         static void RunAsService()

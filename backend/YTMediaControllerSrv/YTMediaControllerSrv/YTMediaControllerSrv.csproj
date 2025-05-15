@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PathResolver.cs" />
+    <Compile Include="AppContainer.cs" />
     <Compile Include="Server\NamedPipeServerApi.cs" />
     <Compile Include="Settings\AppSettingsJson.cs" />
     <Compile Include="Controller\SystemController.cs" />
