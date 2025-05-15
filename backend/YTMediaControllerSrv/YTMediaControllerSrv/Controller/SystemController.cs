@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WindowsInput;
+using WindowsInput.Native;
 
 namespace YTMediaControllerSrv.Controller
 {
@@ -12,7 +13,7 @@ namespace YTMediaControllerSrv.Controller
         static IKeyboardSimulator keyboardEmulator = new InputSimulator().Keyboard;
         public static void EnterFullScreen()
         {
-            keyboardEmulator.ModifiedKeyStroke(WindowsInput.Native.VirtualKeyCode.LWIN, WindowsInput.Native.VirtualKeyCode.VK_F);
+            keyboardEmulator.KeyPress(VirtualKeyCode.F11);
         }
     }
 }
