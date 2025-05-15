@@ -61,6 +61,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Logger.cs" />
     <Compile Include="PathResolver.cs" />
     <Compile Include="AppContainer.cs" />
     <Compile Include="ProjectInstaller.cs">
