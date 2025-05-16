@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.IO;
 using YTMediaControllerSrv.Server;
 using YTMediaControllerSrv.Settings;
+using YTMediaControllerSrv.Types;
 
 namespace YTMediaControllerSrv
 {
@@ -9,6 +12,7 @@ namespace YTMediaControllerSrv
         private ControlServer controlServer;
         private BackendServer backendServer;
         private PlaybackManager playbackManager;
+        private BrowserExtensionNativeHost nativeHost;
 
         public AppContainer() {
             string settingsFile = PathResolver.GetSettingsFilePath();
@@ -19,6 +23,9 @@ namespace YTMediaControllerSrv
             controlServer = new ControlServer("localhost", settings.BackgroundServerPort + 1);
             playbackManager = new PlaybackManager(controlServer);
             backendServer = new BackendServer(deviceIP, settings.BackgroundServerPort, playbackManager);
+            nativeHost = new BrowserExtensionNativeHost();
+
+
 
 #if DEBUG
             Console.CancelKeyPress += (sender, e) =>

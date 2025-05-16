@@ -61,6 +61,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BrowserExtensionNativeHost.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="PathResolver.cs" />
     <Compile Include="AppContainer.cs" />
@@ -89,6 +90,7 @@
     <Compile Include="Settings\AppSettings.cs" />
     <Compile Include="Types\BackendRequest.cs" />
     <Compile Include="Types\NamedPipeMessage.cs" />
+    <Compile Include="Types\NativeHostManifestJson.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
