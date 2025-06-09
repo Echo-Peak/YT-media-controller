@@ -23,18 +23,18 @@ namespace YTMediaControllerHost
         static AppSettings appSettings { get; set; }
         private static Stream output;
         private static readonly object outputLock = new object();
-        private static WebSocketClient backedndClient;
+       // private static WebSocketClient backedndClient;
 
         static async Task Main(string[] args)
         {
             appSettings = new AppSettings(PathResolver.GetSettingsFilePath());
-            backedndClient = new WebSocketClient("localhost", appSettings.settings.BackgroundServerPort + 1);
+            //backedndClient = new WebSocketClient("localhost", appSettings.settings.BackgroundServerPort + 1);
 
-            backedndClient.OnConnect += OnPipeConnected;
-            backedndClient.OnDisconnect += OnPipeDisconnected;
-            backedndClient.OnMessage += OnPipeMessageReceived;
+            //backedndClient.OnConnect += OnPipeConnected;
+            //backedndClient.OnDisconnect += OnPipeDisconnected;
+            //backedndClient.OnMessage += OnPipeMessageReceived;
 
-            await backedndClient.ConnectAsync();
+            //await backedndClient.ConnectAsync();
 
             var input = Console.OpenStandardInput();
             output = Console.OpenStandardOutput();
@@ -112,7 +112,7 @@ namespace YTMediaControllerHost
         {
             Task.Run(async () =>
             {
-                await backedndClient.SendMessageAsync(JsonConvert.SerializeObject(messageObj));
+              //  await backedndClient.SendMessageAsync(JsonConvert.SerializeObject(messageObj));
       
             });
         }

@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Open external YT viewer",
+  "version": "1.0",
+  "description": "A Chrome extension to render YT videos via an external streaming server.",
+  "permissions": [
+    "background",
+    "webRequest",
+    "storage",
+    "tabs",
+    "contextMenus",
+    "nativeMessaging"    
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+    "web_accessible_resources": [
+    {
+      "resources": ["ui/window.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "host_permissions": [
+    "http://localhost/*",
+    "ws://localhost/*",
+    "wss://localhost/*"
+  ],
+  "action":{
+    "default_title":"YT ext",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
+  }
+}

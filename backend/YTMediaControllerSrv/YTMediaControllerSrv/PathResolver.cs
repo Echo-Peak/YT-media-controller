@@ -55,5 +55,15 @@ namespace YTMediaControllerSrv
             }
             return Path.Combine(installDir, "YTMediaControllerHost.exe");
         }
+
+        public static string GetYtDlpBin()
+        {
+            if (!IsInstalled())
+            {
+                string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+                return Path.Combine(GetProjectRoot(), $"backend\\ytdlp\\yt-dlp.exe");
+            }
+            return Path.Combine(installDir, "bin/yt-dlp.exe");
+        }
     }
 }

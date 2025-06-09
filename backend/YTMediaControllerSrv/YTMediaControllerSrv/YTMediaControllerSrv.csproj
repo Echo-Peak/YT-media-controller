@@ -91,6 +91,10 @@
     <Compile Include="Types\BackendRequest.cs" />
     <Compile Include="Types\NamedPipeMessage.cs" />
     <Compile Include="Types\NativeHostManifestJson.cs" />
+    <Compile Include="Types\YTDlpJsonDump.cs" />
+    <Compile Include="Types\YTUrlData.cs" />
+    <Compile Include="YTDLP.cs" />
+    <Compile Include="YTDlpParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

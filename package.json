@@ -6,7 +6,8 @@
   "scripts": {
     "build-service":"node backend/scripts/build.js",
     "build-browser-extension":"cd .\\extension && npm run build",
-    "package": "npm run build-service && npm run build-browser-extension && node packager/build.js"
+    "package": "npm run build-service && npm run build-browser-extension && node packager/build.js",
+    "install-android":"abd install -r .\\mobile\\android\\app\\build\\outputs\\debug\\app-debug.apk"
   },
   "keywords": [],
   "author": "",

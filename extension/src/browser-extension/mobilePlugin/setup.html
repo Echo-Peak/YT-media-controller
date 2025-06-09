@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YT Media controller config</title>
+    <style>
+    body {
+      min-width: 200px;
+      font-family: Arial, sans-serif;
+      padding: 10px;
+    }
+    input[type="text"] {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    button {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+    <div id="qr-code-container">
+      
+    </div>
+    <div>
+      <h4>BackendServerIp: <span id="currentBackendServerIp">Unknown</span></h4>
+      <h4>BackendServerPort: <span id="currentBackendServerPort">Unknown</span></h4>
+    </div>
+    <script src="./libs/qrcode.min.js"></script>
+    <script src="setup.js"></script>
+</body>
+</html>

@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using YTMediaControllerSrv.Server;
+using YTMediaControllerSrv.Types;
 
 namespace YTMediaControllerSrv
 {
@@ -11,43 +13,50 @@ namespace YTMediaControllerSrv
     {
         private List<string> videoQueue = new List<string>();
         private ControlServer controlServer;
+        private YTDLP ytdlp = new YTDLP();
+        private readonly ConcurrentDictionary<string, string> videoIdToManifestUrl = new ConcurrentDictionary<string, string>();
+
         public PlaybackManager(ControlServer controlServer)
         {
             this.controlServer = controlServer;
         }
 
-        private string ExtractVideoId(string url)
-        {
-            string videoId = "";
-            if (url.Contains("v="))
-            {
-                int startIndex = url.IndexOf("v=") + 2;
-                int endIndex = url.IndexOf("&", startIndex);
-                if (endIndex == -1)
-                {
-                    endIndex = url.Length;
-                }
-                videoId = url.Substring(startIndex, endIndex - startIndex);
-            }
-            return videoId;
-        }
-
         public void PlayVideo(string sourceUrl)
         {
-            string videoId = ExtractVideoId(sourceUrl);
-            bool inQueue = videoQueue.Contains(videoId);
+            YTUrlData yTUrlData = new YTUrlData(sourceUrl);
+            YTDlpJsonDump videoMetadata = ytdlp.GetVideoMetadata(sourceUrl);
+            string sourceVideoManifest = YTDlpParser.GetBestVideoManifest(videoMetadata);
+
+
+            bool inQueue = videoQueue.Contains(yTUrlData.VideoId);
             if (inQueue) return;
-            SendPlayEvent(videoId);
+            SendPlayEvent(yTUrlData);
         }
 
-        private void SendPlayEvent(string videoId)
+        public string GetVideoManifest(string videoID)
+        {
+            if (videoIdToManifestUrl.TryGetValue(videoID, out string manifestUrl))
+            {
+                return manifestUrl;
+            }else
+            {
+                throw new Exception($"Manifest for video ID {videoID} not found in cache.");
+            }
+        }
+
+        public bool IsManifestCached(string videoID)
+        {
+            return videoIdToManifestUrl.ContainsKey(videoID);
+        }
+
+        private void SendPlayEvent(YTUrlData data)
         {
             Task.Run(async () =>
             {
                 await controlServer.Send(new
                 {
-                    action = "playbackStarted",
-                    videoId,
+                    action = "newVideo",
+                    data,
                 });
             });
         }

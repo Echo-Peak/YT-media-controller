@@ -1,9 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -127,6 +129,56 @@ namespace YTMediaControllerSrv.Server
             await HandleRequest(request, response, playbackManager.QueueVideo);
         }
 
+        private string RewriteM3U8(string original)
+        {
+            var lines = original.Split(new[] { '\n' }, StringSplitOptions.None);
+            var rewritten = new List<string>();
+
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line))
+                {
+                    rewritten.Add(line);
+                }
+                else
+                {
+                    var escaped = WebUtility.UrlEncode(line.Trim());
+                    rewritten.Add("/segment?url=" + escaped);
+                }
+            }
+
+            return string.Join("\n", rewritten);
+        }
+
+        private async Task HandleVideoManifestRequest(string videoId, HttpListenerResponse response)
+        {
+            try
+            {
+                if (playbackManager.IsManifestCached(videoId))
+                {
+                    response.StatusCode = 200;
+                    byte[] buffer = Encoding.UTF8.GetBytes(playbackManager.GetVideoManifest(videoId));
+                    response.ContentType = "application/vnd.apple.mpegurl";
+                    response.ContentLength64 = buffer.Length;
+                    await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+                    response.Close();
+                    return;
+                }else
+                {
+                    Console.WriteLine("m3u8 file could not be cached");
+                    response.StatusCode = 404;
+                    await Return404(response);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error rewriting m3u8: " + ex.Message);
+                response.StatusCode = 502;
+                response.Close();
+            }
+        }
+
         public async void HandleRequest(HttpListenerContext context, HttpListenerRequest request, HttpListenerResponse response)
         {
             response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -143,14 +195,21 @@ namespace YTMediaControllerSrv.Server
             string requestedPath = request.Url.AbsolutePath.TrimStart('/');
             await Console.Out.WriteLineAsync($"Requesting path: {requestedPath}");
 
+            if (requestedPath.StartsWith("video/") && requestedPath.EndsWith(".m3u8"))
+            {
+                string videoId = Path.GetFileNameWithoutExtension(requestedPath.Replace("video/", ""));
+                await HandleVideoManifestRequest(videoId, response);
+                return;
+            }
+
             switch (requestedPath)
             {
-                case "playVideo":
+                case "mobile/playVideo":
                     {
                         await HandlePlayVideoRequest(request, response);
                         break;
                     }
-                case "queueVideo":
+                case "mobile/queueVideo":
                     {
                         await HandleQueueVideoRequest(request, response);
                         break;

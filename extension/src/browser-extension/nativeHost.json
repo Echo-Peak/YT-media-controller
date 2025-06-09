@@ -1,0 +1,11 @@
+{
+  "name": "com.ytmediacontroller.app",
+  "manifest_version": 3,
+  "version": "1.0",
+  "description": "YT Native Host",
+  "path": "C:\\projects\\Personal\\2025\\YT-media-controller\\backend\\YTMediaControllerSrv\\YTMediaControllerHost\\bin\\Debug\\YTMediaControllerHost.exe",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://cejllfkfaaammohgjgdaombkemdbbjld/"
+  ]
+}
