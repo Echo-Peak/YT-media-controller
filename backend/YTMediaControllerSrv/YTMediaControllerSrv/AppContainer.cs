@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using FFMpegCore;
+using Newtonsoft.Json;
 using System;
 using System.IO;
 using YTMediaControllerSrv.Server;
@@ -9,21 +10,20 @@ namespace YTMediaControllerSrv
 {
     internal class AppContainer
     {
-        private ControlServer controlServer;
+        private UISocketServer uiSocketServer;
         private BackendServer backendServer;
-        private PlaybackManager playbackManager;
         private BrowserExtensionNativeHost nativeHost;
 
         public AppContainer() {
             string settingsFile = PathResolver.GetSettingsFilePath();
+            GlobalFFOptions.Configure(opt => opt.BinaryFolder = PathResolver.GetFFMpegDir());
 
             string deviceIP = DeviceInfo.GetLocalIPAddress();
             AppSettingsJson settings = new AppSettings(settingsFile).settings;
 
-            controlServer = new ControlServer("localhost", settings.BackgroundServerPort + 1);
-            playbackManager = new PlaybackManager(controlServer);
-            backendServer = new BackendServer(deviceIP, settings.BackgroundServerPort, playbackManager);
-            nativeHost = new BrowserExtensionNativeHost();
+            uiSocketServer = new UISocketServer("localhost", settings.BackgroundServerPort + 1, settings.BackgroundServerPort);
+            backendServer = new BackendServer(deviceIP, settings.BackgroundServerPort, uiSocketServer);
+           // nativeHost = new BrowserExtensionNativeHost();
 
 
 
@@ -38,13 +38,13 @@ namespace YTMediaControllerSrv
         }
         public void Start()
         {
-            controlServer.Start();
+            uiSocketServer.Start();
             backendServer.Start();
         }
 
         public void Stop()
         {
-            controlServer.Stop();
+            uiSocketServer.Stop();
             backendServer.Stop();
         }
     }

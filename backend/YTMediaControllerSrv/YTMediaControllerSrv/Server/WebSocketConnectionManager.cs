@@ -19,11 +19,12 @@ namespace YTMediaControllerSrv.Server
         public event Action OnConnect;
         public event Action OnDisconnect;
         public event Action<string> OnMessage;
-
+        private string wsUrl;
         private WebSocket _clientSocket;
 
         public WebSocketConnectionManager(string urlPrefix)
         {
+            wsUrl = urlPrefix;
             _httpListener = new HttpListener();
             _httpListener.Prefixes.Add(urlPrefix);
         }
@@ -31,7 +32,7 @@ namespace YTMediaControllerSrv.Server
         public async Task StartAsync(CancellationToken cancellationToken = default)
         {
             _httpListener.Start();
-            Console.WriteLine("[WebSocketServer] Listening...");
+            Console.WriteLine($"[WebSocketServer] Listening at {wsUrl}...");
 
 
             while (!cancellationToken.IsCancellationRequested)
@@ -103,6 +104,7 @@ namespace YTMediaControllerSrv.Server
 
         public async Task SendAsync(object data)
         {
+            Console.WriteLine("Sending data to UI web sockets");
             string message = JsonConvert.SerializeObject(data);
             if (_clientSocket?.State == WebSocketState.Open)
             {

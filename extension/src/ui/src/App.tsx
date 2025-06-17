@@ -1,11 +1,11 @@
 import React from 'react';
 import './App.css';
-import { YTVideoPlayer } from './components/YTVideoPlayer';
+import { Player } from './components/Player';
 
 function App() {
   return (
     <div className="App">
-      <YTVideoPlayer/>
+      <Player/>
     </div>
   );
 }

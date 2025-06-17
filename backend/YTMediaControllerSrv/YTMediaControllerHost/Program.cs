@@ -23,18 +23,10 @@ namespace YTMediaControllerHost
         static AppSettings appSettings { get; set; }
         private static Stream output;
         private static readonly object outputLock = new object();
-       // private static WebSocketClient backedndClient;
 
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             appSettings = new AppSettings(PathResolver.GetSettingsFilePath());
-            //backedndClient = new WebSocketClient("localhost", appSettings.settings.BackgroundServerPort + 1);
-
-            //backedndClient.OnConnect += OnPipeConnected;
-            //backedndClient.OnDisconnect += OnPipeDisconnected;
-            //backedndClient.OnMessage += OnPipeMessageReceived;
-
-            //await backedndClient.ConnectAsync();
 
             var input = Console.OpenStandardInput();
             output = Console.OpenStandardOutput();
@@ -43,20 +35,6 @@ namespace YTMediaControllerHost
             readerThread.Start();
         }
 
-        private static void OnPipeConnected()
-        {
-            Console.WriteLine("Connected to the backend server.");
-        }
-
-        private static void OnPipeDisconnected()
-        {
-            Console.WriteLine("Disconnected from the backend server.");
-        }
-
-        private static void OnPipeMessageReceived(string jsonMessage)
-        {
-            SendMessageToExtension(jsonMessage);
-        }
 
         private static void ListenForMessages(Stream input)
         {
@@ -108,25 +86,12 @@ namespace YTMediaControllerHost
                 output.Flush();
             }
         }
-        static void SendMessageToBackend(object messageObj)
-        {
-            Task.Run(async () =>
-            {
-              //  await backedndClient.SendMessageAsync(JsonConvert.SerializeObject(messageObj));
-      
-            });
-        }
 
         static object HandleAction(JsonResponse response)
         {
             var settings = appSettings.settings;
             switch (response.Action)
             {
-                case "playbackStarted":
-                    {
-                        SendMessageToBackend(response);
-                        break;
-                    }
                 case "getBackendSettings":
                     {
                         return new

@@ -65,5 +65,15 @@ namespace YTMediaControllerSrv
             }
             return Path.Combine(installDir, "bin/yt-dlp.exe");
         }
+
+        public static string GetFFMpegDir()
+        {
+            if (!IsInstalled())
+            {
+                string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+                return Path.Combine(GetProjectRoot(), $"backend\\ffmpeg");
+            }
+            return Path.Combine(installDir, "bin");
+        }
     }
 }

@@ -10,7 +10,7 @@ namespace YTMediaControllerSrv.Types
     {
         public string FormatId { get; set; }
         public string Url { get; set; }
-        public string ManifestUrl { get; set; }
+        public string Manifest_Url { get; set; }
         public string Protocol { get; set; }
         public string Ext { get; set; }
         public string Vcodec { get; set; }
@@ -22,12 +22,12 @@ namespace YTMediaControllerSrv.Types
         public float? Asr { get; set; }
         public float? Abr { get; set; }
         public long? Filesize { get; set; }
-        public string FormatNote { get; set; }
+        public string Format_Note { get; set; }
         public string Container { get; set; }
         public string Resolution { get; set; }
         public int? Preference { get; set; }
-        public string VideoExt { get; set; }
-        public string AudioExt { get; set; }
+        public string Video_Ext { get; set; }
+        public string Audio_Ext { get; set; }
         public bool? IsDash { get; set; }
         public bool? IsHls { get; set; }
     }
