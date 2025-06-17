@@ -16,8 +16,8 @@ export class BackendService {
   }
 
   static async init(): Promise<BackendService> {
-    const { apiServerPort } = await getChromeStorageKeys();
-    const port = apiServerPort || process.env.REACT_APP_API_SERVER_PORT;
+    const { uiSocketServerPort } = await getChromeStorageKeys();
+    const port = uiSocketServerPort || process.env.REACT_APP_API_SERVER_PORT;
     return new BackendService(port);
   }
 

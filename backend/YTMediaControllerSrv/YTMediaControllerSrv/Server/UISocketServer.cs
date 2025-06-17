@@ -68,27 +68,13 @@ namespace YTMediaControllerSrv.Server
 
         public void OnMessage(string jsonString)
         {
-            var obj = JsonConvert.DeserializeObject<NamedPipeMessage>(jsonString);
+            var obj = JsonConvert.DeserializeObject<UISocketMessage>(jsonString);
             switch (obj.Action)
             {
                 case "playbackStarted":
                     {
                         SystemController.EnterFullScreen();
                         break;
-                    }
-                case "getDeviceInfo":
-                    {
-                        var deviceInfo = new
-                        {
-                            action = "deviceInfo",
-                            data = new { 
-                                devicePort = backendServerPort,
-                                deviceIp = DeviceInfo.GetLocalIPAddress()
-                            }
-                        };
-                        SendSync(deviceInfo);
-                        break;
-                    
                     }
             }
         }

@@ -12,7 +12,6 @@ namespace YTMediaControllerSrv
     {
         private UISocketServer uiSocketServer;
         private BackendServer backendServer;
-        private BrowserExtensionNativeHost nativeHost;
 
         public AppContainer() {
             string settingsFile = PathResolver.GetSettingsFilePath();
@@ -21,9 +20,8 @@ namespace YTMediaControllerSrv
             string deviceIP = DeviceInfo.GetLocalIPAddress();
             AppSettingsJson settings = new AppSettings(settingsFile).settings;
 
-            uiSocketServer = new UISocketServer("localhost", settings.BackgroundServerPort + 1, settings.BackgroundServerPort);
+            uiSocketServer = new UISocketServer("localhost", settings.UISocketServerPort, settings.BackgroundServerPort);
             backendServer = new BackendServer(deviceIP, settings.BackgroundServerPort, uiSocketServer);
-           // nativeHost = new BrowserExtensionNativeHost();
 
 
 

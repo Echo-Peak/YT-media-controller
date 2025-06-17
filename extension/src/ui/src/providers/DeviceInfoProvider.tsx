@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { useBackendService } from '../services/backend/useSocketService';
-import { DeviceInfoDto } from '../types/DeviceInfoDto';
+import { getChromeStorageKeys } from '../services/helpers/getChromeStorageKeys';
 
 type DeviceInfo = {
   deviceIp?: string;
@@ -24,21 +23,17 @@ export const DeviceInfoProvider: React.FC<DeviceInfoProviderProps> = ({ children
     devicePort: undefined,
   });
 
-    const wsService = useBackendService();
-  
     useEffect(() => {
-      const handleData = (payload: Record<string, unknown>) => {
-        console.log('Received device info:', payload);
-        if (payload.action === 'deviceInfo') {
-          const data = payload.data as DeviceInfoDto;
-          setDeviceInfo(data);
-        }
-      };
-      wsService.onData(handleData);
-      wsService.sendData({
-        action: 'getDeviceInfo',
+      getChromeStorageKeys().then(data => {
+        const {backendServicePort, deviceNetworkIp} = data as Record<string, unknown>;
+        setDeviceInfo({
+          deviceIp: deviceNetworkIp as string | undefined,
+          devicePort: backendServicePort ? parseInt(backendServicePort as string, 10) : undefined,
+        })
+      }).catch(err => {
+        console.error("Error fetching Chrome storage keys:", err);
       })
-    },[wsService])
+    },[])
 
   return (
     <DeviceInfoContext.Provider value={deviceInfo}>

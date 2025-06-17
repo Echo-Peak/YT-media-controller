@@ -92,12 +92,20 @@ namespace YTMediaControllerHost
             var settings = appSettings.settings;
             switch (response.Action)
             {
-                case "getBackendSettings":
+                case "getUISocketServerPort":
                     {
                         return new
                         {
                             status = true,
-                            backendServerPort = settings.BackgroundServerPort
+                            result = settings.UISocketServerPort
+                        };
+                    }
+                case "getBackendServerPort":
+                    {
+                        return new
+                        {
+                            status = true,
+                            result = settings.BackgroundServerPort
                         };
                     }
                 case "getDeviceNetworkIp":
@@ -105,7 +113,7 @@ namespace YTMediaControllerHost
                         return new
                         {
                             status = true,
-                            deviceNetworkIp = DeviceInfo.GetLocalIPAddress()
+                            result = DeviceInfo.GetLocalIPAddress()
                         };
                     }
                 case "updateBackendServerPort":

@@ -1,16 +1,15 @@
 import { NativeHostApi } from "./NativeHostApi";
-import { BackendSettings } from "./types/BackendSettings";
-
 
 export class ChromeBackgroundRuntime {
-  private ytTabs = new Set<number>();
   private nativeHost: NativeHostApi;
-  
+  private deviceNetworkIP?: string;
+  private uiSocketServerPort?: number;
+  private backendServerPort?: number;
+
   constructor(){
     this.nativeHost = new NativeHostApi();
     console.log("ChromeBackgroundRuntime initialized 2");
     
-
     chrome.runtime.onInstalled.addListener(() => {
         chrome.contextMenus.create({
         id: "configure_mobile_plugin",
@@ -26,6 +25,8 @@ export class ChromeBackgroundRuntime {
         })
       }
     });
+
+    this.init().catch(console.error);
   }
 
   private createPage = () => {
@@ -34,11 +35,12 @@ export class ChromeBackgroundRuntime {
     });
   }
 
-  private createMobilePluginSetup = async () => {
-    const backendSettings = await this.nativeHost.postMessageAsync<{status: boolean} & BackendSettings>({action: 'getBackendSettings'});
-    const deviceNetworkIP = await this.nativeHost.postMessageAsync<{status: boolean, deviceNetworkIp: string}>( {action: 'getDeviceNetworkIp'});
-
-    if(!backendSettings.status){
+  private init = async () => {
+    const uiSocketServerPort = await this.nativeHost.postMessageAsync<{status: boolean, result: number}>({action: 'getUISocketServerPort'});
+    const backendServerPort = await this.nativeHost.postMessageAsync<{status: boolean, result: number}>({action: 'getBackendServerPort'});
+    const deviceNetworkIP = await this.nativeHost.postMessageAsync<{status: boolean, result: string}>( {action: 'getDeviceNetworkIp'});
+  
+    if(!uiSocketServerPort.status){
       throw new Error("Failed to get backend settings from native app");
     }
     
@@ -46,9 +48,26 @@ export class ChromeBackgroundRuntime {
       throw new Error("Failed to get device network IP from native app");
     }
 
+    if(!backendServerPort.status){
+      throw new Error("Failed to get backend server port from native app");
+    }
+  
+    this.uiSocketServerPort = uiSocketServerPort.result;
+    this.deviceNetworkIP = deviceNetworkIP.result;
+    this.backendServerPort = backendServerPort.result;
+    await this.addBackendSettingsToStorage(this.uiSocketServerPort, this.backendServerPort, this.deviceNetworkIP);
+  }
+
+  private createMobilePluginSetup = async () => {
+
+    if(!this.uiSocketServerPort || !this.deviceNetworkIP) {
+      console.error("Backend settings or device network IP is not available. Cannot create mobile plugin setup.");
+      return;
+    }
+
     const query = new URLSearchParams({
-      deviceIp: deviceNetworkIP.deviceNetworkIp,
-      backendServerPort: backendSettings.backendServerPort,
+      deviceIp: this.deviceNetworkIP,
+      uiSocketServerPort: this.uiSocketServerPort.toString(),
     });
 
     chrome.windows.create({
@@ -58,74 +77,12 @@ export class ChromeBackgroundRuntime {
       height: 400
     });
   }
-  
 
-  // private init = async () => {
-  //   const backendSettings = await this.nativeHost.postMessageAsync<{status: boolean} & BackendSettings>({action: 'getBackendSettings'});
-  //   const deviceNetworkIP = await this.nativeHost.postMessageAsync<{status: boolean, deviceNetworkIp: string}>( {action: 'getDeviceNetworkIp'});
-
-  //   if(!backendSettings.status){
-  //     throw new Error("Failed to get backend settings from native app");
-  //   }
-    
-  //   if(!deviceNetworkIP.status){
-  //     throw new Error("Failed to get device network IP from native app");
-  //   }
-
-  //   chrome.storage.local.set({ 
-  //     backendServerPort: backendSettings.backendServerPort,
-  //     deviceNetworkIp: deviceNetworkIP.deviceNetworkIp
-  //   });
-  // }
-
-  // private handlePlayEvent = (data: any) => {
-  //   const firstYtTab = Array.from(this.ytTabs)[0];
-  //   chrome.tabs.sendMessage(firstYtTab, { action: "playEvent", data });
-  // }
-
-  // private getFromLocalStorage = (key: string | string[], callback: (value: Record<string, unknown>) => void) => {
-  //     chrome.storage.local.get(Array.isArray(key) ? key : [key], (result) => {
-  //       callback(result);
-  //     });
-  // }
-
-  // private handleMessage = (message: Record<string, string | number>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
-  //   switch (message.action) {
-  //     case "getDeviceNetworkIp": {
-  //       this.getFromLocalStorage(["deviceNetworkIp", "backendServerPort"], sendResponse);
-  //       return true;
-  //     }
-  //     case "getBackendServerPort": {
-  //       this.getFromLocalStorage("backendServerPort", sendResponse);
-  //       return true;
-  //     }
-
-  //     case "updateBackendServerPort": {
-  //       this.nativeHost.postMessageAsync<{status: boolean, message?: string, error?: string}>({ action: "updateBackendServerPort",  data: {port: message.port}  })
-  //       .then((response)=> {
-  //         sendResponse({status: response.status, message: response.message, error: response.error});
-  //       }).catch(err => {
-  //         sendResponse({status: false, error: err.message});
-  //       })
-  //       return true;
-  //     }
-  //     case "ytFrontendRuntimeLoaded": {
-  //       this.ytTabs.add(message.tabId as number);
-  //       break;
-  //     }
-  //     case "playbackEnded":{
-  //       this.nativeHost.postMessage({action: "playbackEnded", data: { videoId: message.videoId } });
-  //       break;
-  //     }
-      
-  //     case "playbackStarted": {
-  //       this.nativeHost.postMessage({action: "playbackStated", data: { videoId: message.videoId }});
-  //       break;
-  //     }
-  //   }
-  // }
-
-  // public sendMessage(data: Record<string, unknown>) {
-  //   chrome.runtime.sendMessage(data);
-  // }
+  private addBackendSettingsToStorage = async (uiSocketServerPort: number, backendServerPort: number, deviceNetworkIp: string) => {
+    await chrome.storage.local.set({
+      uiSocketServerPort: uiSocketServerPort,
+      backendServerPort: backendServerPort,
+      deviceNetworkIp: deviceNetworkIp,
+    });
+  }
 }

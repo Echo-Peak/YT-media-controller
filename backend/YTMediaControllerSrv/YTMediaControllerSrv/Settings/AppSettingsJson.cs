@@ -9,6 +9,7 @@ namespace YTMediaControllerSrv.Settings
     public class AppSettingsJson
     {
         public int BackgroundServerPort { get; set; } = 9200;
+        public int UISocketServerPort { get; set; } = 9201;
 
         public void Update(string property, object value)
         {
