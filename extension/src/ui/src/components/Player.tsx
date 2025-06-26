@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { YoutubePlayer } from './players/YoutubePlayer';
 import { StreamPlayer } from './players/StreamPlayer';
 import { VideoPlayer } from './players/VideoPlayer';
+import { NoVideoPlaying } from './dialogs/NoVideoPlaying';
 
 export const Player = () => {
     const { source } = useVideoSource();
     const [streamPlayerFailed, setStreamPlayerFailed] = useState(false);
 
     if(!source) {
-        return <div style={{ color: 'white', textAlign: 'center', marginTop: '20px' }}>No video source available</div>;
+        return <NoVideoPlaying />;
     }
 
     const onStreamError = (error: Error) => {
@@ -20,8 +21,6 @@ export const Player = () => {
 
 
     if(streamPlayerFailed) {
-        console.log('----------------', source);
-        
         if(source.dashStreamUrl){
             return <VideoPlayer sourceUrl={source.dashStreamUrl} />;
         }else{
