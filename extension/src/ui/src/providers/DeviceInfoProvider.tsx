@@ -25,10 +25,10 @@ export const DeviceInfoProvider: React.FC<DeviceInfoProviderProps> = ({ children
 
     useEffect(() => {
       getChromeStorageKeys().then(data => {
-        const {backendServicePort, deviceNetworkIp} = data as Record<string, unknown>;
+        const {backendServerPort, deviceNetworkIp} = data as Record<string, unknown>;
         setDeviceInfo({
           deviceIp: deviceNetworkIp as string | undefined,
-          devicePort: backendServicePort ? parseInt(backendServicePort as string, 10) : undefined,
+          devicePort: backendServerPort ? parseInt(backendServerPort as string, 10) : undefined,
         })
       }).catch(err => {
         console.error("Error fetching Chrome storage keys:", err);
