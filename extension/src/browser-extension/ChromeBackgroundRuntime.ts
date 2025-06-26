@@ -73,8 +73,8 @@ export class ChromeBackgroundRuntime {
     chrome.windows.create({
       url: chrome.runtime.getURL("ui/index.html") + "?" + query.toString(),
       type: "popup",
-      width: 600,
-      height: 400
+      width: 500,
+      height: 600
     });
   }
 
