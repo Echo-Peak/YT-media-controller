@@ -12,7 +12,7 @@ export const NoVideoPlaying = () => {
                 </Heading>
                 <Heading  textAlign="center" as ="h5" size="sm" color="gray.300">
                     In a browser navigate to youtube and long-press on any video link, then select "Share" and choose "Send to TV" option. 
-                    If using the YouTube mobile app, find the video you want to play and select the elipspes (three dots) next to the video title, then select "Share" and choose "Send to TV" option.
+                    If using the YouTube mobile app, find the video you want to play and select the vertical ellipsis (three dots) next to the video title, then select "Share" and choose "Send to TV" option.
                 </Heading>
                 
             
