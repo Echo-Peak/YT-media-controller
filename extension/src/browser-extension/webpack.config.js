@@ -36,7 +36,6 @@ module.exports = {
             patterns: [
                 { from: "./*.json", to: "./[name][ext]" },
                 { from: "./assets", to: "./assets" },
-                { from: "./mobilePlugin", to: "./mobilePlugin" },
             ],
             options: {},
         }),
