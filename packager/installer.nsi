@@ -25,6 +25,6 @@ Section "Info" Info
   File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\Release\YTMediaControllerHost.exe"
 
   SetOutPath "$INSTDIR/BrowserExtension"
-  File /r "..\extension\build"
+  File /r "..\dist\browser-extension-unpacked"
   call InstallService
 SectionEnd
