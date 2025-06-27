@@ -1,0 +1,17 @@
+{
+  "name": "@yt-media-controller/extension",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/background.js",
+  "scripts": {
+    "build": "webpack --mode production && npm run create-dev-native-host",
+    "create-dev-native-host": "ts-node ./scripts/createDevNativeHost.ts",
+    "package": "powershell -c \"Compress-Archive -Path .\\build\\* -DestinationPath .\\dist\\yt-extension.zip\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/chrome": "^0.0.321"
+  }
+}

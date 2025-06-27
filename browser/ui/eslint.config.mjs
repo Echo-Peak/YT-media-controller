@@ -26,6 +26,7 @@ export default [
       'prettier/prettier': 'warn',
       'react/react-in-jsx-scope': 'off', // Not needed with React 17+
       'react/prop-types': 'off', // Use TypeScript instead
+      '@typescript-eslint/no-floating-promises': 'off',
     },
   },
 ];
