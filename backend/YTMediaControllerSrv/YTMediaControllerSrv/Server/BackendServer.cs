@@ -196,34 +196,50 @@ namespace YTMediaControllerSrv.Server
         private string RewriteM3U8(string original)
         {
             var lines = original.Split(new[] { '\n' }, StringSplitOptions.None);
-            var rewritten = new List<string>();
+            var result = new StringBuilder();
 
-            foreach (var line in lines)
+            foreach (var rawLine in lines)
             {
-                if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line))
+                var line = rawLine.TrimEnd('\r');
+
+                if (line.StartsWith("#EXT-X-MAP:URI="))
                 {
-                    rewritten.Add(line);
+                    var uriStart = line.IndexOf("URI=\"", StringComparison.Ordinal);
+                    var uriEnd = line.LastIndexOf('"');
+
+                    if (uriStart >= 0 && uriEnd > uriStart + 5)
+                    {
+                        var originalUrl = line.Substring(uriStart + 5, uriEnd - (uriStart + 5));
+                        var encodedUrl = WebUtility.UrlEncode(originalUrl);
+                        var rewrittenUrl = $"{this.endpoint}video/hls/segment?url={encodedUrl}";
+                        result.AppendLine($"#EXT-X-MAP:URI=\"{rewrittenUrl}\"");
+                        continue;
+                    }
                 }
-                else
+                else if (line.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
                 {
-                    var escaped = WebUtility.UrlEncode(line.Trim());
-                    var newUrl = $"{this.endpoint}video/hls/segment?url={line.Trim()}";
-                    rewritten.Add(newUrl);
+                    var trimmedUrl = line.Trim();
+                    var rewrittenUrl = $"{this.endpoint}video/hls/segment?url={WebUtility.UrlEncode(trimmedUrl)}";
+                    result.AppendLine(rewrittenUrl);
+                    continue;
                 }
+
+                result.AppendLine(line);
             }
 
-            return string.Join("\n", rewritten);
+            return result.ToString();
         }
         private async Task HandleHlsPlaylistStreamRequest(string videoId, HttpListenerResponse response)
         {
-            bool finishedOk = false;          // track whether we sent a normal reply
+            bool finishedOk = false;
 
             try
             {
                 if (!streamingService.IsStreamSourceCached(videoId))
                 {
                     response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return;                   // skip the rest → finally will close
+                    response.Close();
+                    return;
                 }
 
                 var src = streamingService.GetCachedSource(videoId);
@@ -236,19 +252,17 @@ namespace YTMediaControllerSrv.Server
                 response.ContentLength64 = bytes.Length;
 
                 await response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
-                finishedOk = true;            // mark success
+                finishedOk = true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[HLS] {ex}");
                 if (!finishedOk && response.OutputStream.CanWrite)
-                    response.StatusCode = (int)HttpStatusCode.BadGateway;   // 502
+                    response.StatusCode = (int)HttpStatusCode.BadGateway;
             }
             finally
             {
-                // Close exactly once; suppress any second-close errors
-                try { response.OutputStream.Close(); } catch { /* ignored */ }
-                try { response.Close(); } catch { /* ignored */ }
+                try { response.OutputStream.Close(); } catch { }
+                try { response.Close(); } catch {}
             }
         }
 
