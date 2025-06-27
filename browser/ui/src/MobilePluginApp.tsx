@@ -2,7 +2,7 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import { useDeviceInfo } from './providers/DeviceInfoProvider';
 import QRCode from 'react-qr-code';
-import { Box, Container, Heading } from '@chakra-ui/react';
+import { Box, Center, Container, Heading } from '@chakra-ui/react';
 
 export const MobilePluginApp = () => {
   const { deviceIp, devicePort } = useDeviceInfo();
@@ -25,12 +25,14 @@ export const MobilePluginApp = () => {
         </Heading>
       </Box>
       <Box mb={10}>
-        <QRCode
-          size={256}
-          style={{ maxWidth: '256px', width: '256px' }}
-          value={deviceEndpoint}
-          viewBox={`0 0 256 256`}
-        />
+        <Center>
+          <QRCode
+            size={256}
+            style={{ maxWidth: '256px', width: '256px' }}
+            value={deviceEndpoint}
+            viewBox={`0 0 256 256`}
+          />
+        </Center>
       </Box>
 
       <Box textAlign={'center'}>

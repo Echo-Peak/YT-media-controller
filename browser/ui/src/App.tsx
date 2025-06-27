@@ -1,6 +1,6 @@
 import React from 'react';
 import { Player } from './components/Player';
-import { Container } from '@mui/material';
+import { Container } from '@chakra-ui/react';
 
 function App() {
   return (
