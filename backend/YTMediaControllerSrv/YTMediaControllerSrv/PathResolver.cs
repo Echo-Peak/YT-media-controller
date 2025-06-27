@@ -51,6 +51,8 @@ namespace YTMediaControllerSrv
             if (!IsInstalled())
             {
                 string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+                Console.WriteLine(configuration);
+                Console.WriteLine(GetProjectRoot());
                 return Path.Combine(GetProjectRoot(), $"backend\\YTMediaControllerSrv\\YTMediaControllerHost\\bin\\{configuration}\\YTMediaControllerHost.exe");
             }
             return Path.Combine(installDir, "YTMediaControllerHost.exe");
@@ -61,7 +63,7 @@ namespace YTMediaControllerSrv
             if (!IsInstalled())
             {
                 string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
-                return Path.Combine(GetProjectRoot(), $"backend\\ytdlp\\yt-dlp.exe");
+                return Path.Combine(GetProjectRoot(), $"backend\\externalBins\\yt-dlp.exe");
             }
             return Path.Combine(installDir, "bin/yt-dlp.exe");
         }
@@ -71,7 +73,7 @@ namespace YTMediaControllerSrv
             if (!IsInstalled())
             {
                 string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
-                return Path.Combine(GetProjectRoot(), $"backend\\ffmpeg");
+                return Path.Combine(GetProjectRoot(), $"backend\\externalBins\\ffmpeg");
             }
             return Path.Combine(installDir, "bin");
         }
