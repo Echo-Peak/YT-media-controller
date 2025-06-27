@@ -20,7 +20,7 @@ const nativeHostManifest = {
   description: "YT Native Host",
   path: "C:\\projects\\Personal\\2025\\YT-media-controller\\backend\\YTMediaControllerSrv\\YTMediaControllerHost\\bin\\Debug\\YTMediaControllerHost.exe",
   type: "stdio",
-  allowed_origins: [`chrome-extension://${extensionId}`],
+  allowed_origins: [`chrome-extension://${extensionId}/`],
 };
 
 const outputPath = path.join(distDir, "nativeHost.json");
