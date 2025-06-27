@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 type Props = {
   sourceUrl: string;
-}
+};
 
 declare global {
   interface Window {
@@ -21,19 +21,18 @@ const containerStyles: React.CSSProperties = {
 
 const extractVideoId = (url: string): string => {
   const lastPart = url.split('/').pop();
-  if(lastPart?.includes('watch?v=')) {
+  if (lastPart?.includes('watch?v=')) {
     return lastPart.split('watch?v=')[1];
   }
   return lastPart || '';
-}
-
+};
 
 export const YoutubePlayer = ({ sourceUrl }: Props) => {
-    const playerRef = useRef<YT.Player | undefined>(undefined);
-    const iframeRef = useRef<HTMLDivElement>(null);
-    const videoId = extractVideoId(sourceUrl);
+  const playerRef = useRef<YT.Player | undefined>(undefined);
+  const iframeRef = useRef<HTMLDivElement>(null);
+  const videoId = extractVideoId(sourceUrl);
 
-    useEffect(() => {
+  useEffect(() => {
     if (window.YT && window.YT.Player) return;
 
     const tag = document.createElement('script');
@@ -42,7 +41,7 @@ export const YoutubePlayer = ({ sourceUrl }: Props) => {
     window.onYouTubeIframeAPIReady = () => {
       if (iframeRef.current) {
         playerRef.current = new window.YT.Player(iframeRef.current, {
-          playerVars:{
+          playerVars: {
             autoplay: 1,
             controls: 1,
             modestbranding: 1,
@@ -66,7 +65,9 @@ export const YoutubePlayer = ({ sourceUrl }: Props) => {
     }
   }, [videoId]);
 
-  return (<div style={containerStyles}>
-    <div ref={iframeRef} style={{width: 'inherit', height: 'inherit'}}/>;
-  </div>)
-}
+  return (
+    <div style={containerStyles}>
+      <div ref={iframeRef} style={{ width: 'inherit', height: 'inherit' }} />;
+    </div>
+  );
+};

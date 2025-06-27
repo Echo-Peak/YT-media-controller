@@ -1,4 +1,4 @@
-import { BackendService } from "./BackendService";
+import { BackendService } from './BackendService';
 
 let backendService: BackendService | null = null;
 
@@ -13,4 +13,4 @@ export const useBackendService = (): BackendService => {
     throw new Error('BackendService not initialized');
   }
   return backendService;
-}
+};

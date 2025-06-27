@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, ReactNode, useRef, useEffect } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useRef,
+  useEffect,
+} from 'react';
 import { YTUrlSource } from '../types/YTUrlSource';
 import { useBackendService } from '../services/backend/useSocketService';
 
@@ -6,7 +13,9 @@ interface VideoSourceContextType {
   source: YTUrlSource | undefined;
 }
 
-const VideoSourceContext = createContext<VideoSourceContextType | undefined>(undefined);
+const VideoSourceContext = createContext<VideoSourceContextType | undefined>(
+  undefined,
+);
 
 export const VideoSourceProvider = ({ children }: { children: ReactNode }) => {
   const [source, setSource] = useState<YTUrlSource | undefined>(undefined);
@@ -24,9 +33,7 @@ export const VideoSourceProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     wsService.onData(handleData);
-  },[wsService])
-
-
+  }, [wsService]);
 
   return (
     <VideoSourceContext.Provider value={{ source }}>

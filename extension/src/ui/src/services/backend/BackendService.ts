@@ -47,7 +47,7 @@ export class BackendService {
     });
 
     this.socket.addEventListener('close', () => {
-        this.scheduleReconnect();
+      this.scheduleReconnect();
     });
 
     this.socket.addEventListener('error', () => {
@@ -56,7 +56,7 @@ export class BackendService {
   }
 
   private scheduleReconnect() {
-    if(this.reconnectTimer) {
+    if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
     }
     this.reconnectTimer = setTimeout(() => {
@@ -74,10 +74,9 @@ export class BackendService {
   }
 
   sendData(data: Record<string, unknown>) {
-
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(data));
-    }else{
+    } else {
       console.warn('WebSocket is not open, queuing message:', data);
       this.pendingMessages.push(data);
     }

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 type Props = {
   sourceUrl: string;
-}
+};
 
 declare global {
   interface Window {
@@ -20,20 +20,27 @@ const containerStyles: React.CSSProperties = {
 };
 
 export const VideoPlayer = ({ sourceUrl }: Props) => {
-    const iframeRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLVideoElement>(null);
 
-    useEffect(() => {
+  useEffect(() => {
     if (iframeRef.current) {
       iframeRef.current.src = sourceUrl;
-      iframeRef.current.play().catch(error => {
-        console.error("Error playing video:", error);
+      iframeRef.current.play().catch((error) => {
+        console.error('Error playing video:', error);
       });
     }
 
-      console.log("VideoPlayer mounted with sourceUrl:", sourceUrl);
-    }, [iframeRef, sourceUrl]);
+    console.log('VideoPlayer mounted with sourceUrl:', sourceUrl);
+  }, [iframeRef, sourceUrl]);
 
-  return (<div style={containerStyles}>
-    <video ref={iframeRef} style={{width: 'inherit', height: 'inherit'}} controls/>;
-  </div>)
-}
+  return (
+    <div style={containerStyles}>
+      <video
+        ref={iframeRef}
+        style={{ width: 'inherit', height: 'inherit' }}
+        controls
+      />
+      ;
+    </div>
+  );
+};

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from 'react';
 import { getChromeStorageKeys } from '../services/helpers/getChromeStorageKeys';
 
 type DeviceInfo = {
@@ -17,23 +23,32 @@ type DeviceInfoProviderProps = {
   children: ReactNode;
 };
 
-export const DeviceInfoProvider: React.FC<DeviceInfoProviderProps> = ({ children }) => {
+export const DeviceInfoProvider: React.FC<DeviceInfoProviderProps> = ({
+  children,
+}) => {
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>({
     deviceIp: undefined,
     devicePort: undefined,
   });
 
-    useEffect(() => {
-      getChromeStorageKeys().then(data => {
-        const {backendServerPort, deviceNetworkIp} = data as Record<string, unknown>;
+  useEffect(() => {
+    getChromeStorageKeys()
+      .then((data) => {
+        const { backendServerPort, deviceNetworkIp } = data as Record<
+          string,
+          unknown
+        >;
         setDeviceInfo({
           deviceIp: deviceNetworkIp as string | undefined,
-          devicePort: backendServerPort ? parseInt(backendServerPort as string, 10) : undefined,
-        })
-      }).catch(err => {
-        console.error("Error fetching Chrome storage keys:", err);
+          devicePort: backendServerPort
+            ? parseInt(backendServerPort as string, 10)
+            : undefined,
+        });
       })
-    },[])
+      .catch((err) => {
+        console.error('Error fetching Chrome storage keys:', err);
+      });
+  }, []);
 
   return (
     <DeviceInfoContext.Provider value={deviceInfo}>
