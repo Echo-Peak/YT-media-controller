@@ -38,7 +38,7 @@ namespace YTMediaControllerSrv.Streaming
                 return videoStream.CreateVODPlaylist(playlist);
             }
             catch (Exception ex) { 
-                Console.WriteLine("Unable to load playlist resource. ResourceId: {0}, videoId: {1}", resourceId, videoId);
+                Logger.Error($"Unable to load playlist resource. ResourceId: {resourceId}, videoId: {videoId}", ex);
                 return null;
             }
         }
@@ -55,7 +55,7 @@ namespace YTMediaControllerSrv.Streaming
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Unable to load playlist resource. ResourceId: {0}, videoId: {1}", resourceId, videoId);
+                Logger.Error($"Unable to load playlist resource. ResourceId: {resourceId}, videoId: {videoId}", ex);
                 return (null, null);
             }
         }

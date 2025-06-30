@@ -50,7 +50,7 @@ namespace YTMediaControllerSrv.Server
             var middlewarePipeline = pipeline.Build();
             server = new CreateHttpServer(endpoint);
             server.OnRequest += async (ctx, req, rs) => await middlewarePipeline(ctx);
-            Console.WriteLine($"Backend server started at {endpoint}");
+            Logger.Info($"Backend server started at {endpoint}");
         }
 
         public void Stop()
@@ -142,7 +142,7 @@ namespace YTMediaControllerSrv.Server
             }
             catch (Exception ex)
             {
-                await Console.Out.WriteLineAsync($"Error processing request: {ex.Message}");
+                Logger.Error($"Error processing request", ex);
                 response.StatusCode = 500;
                 response.Close();
             }
@@ -160,7 +160,7 @@ namespace YTMediaControllerSrv.Server
             {
                 if (streamer.IsCached(videoId))
                 {
-                    Console.WriteLine($"Attempting to stream the video {videoId}");
+                    Logger.Info($"Attempting to stream the video {videoId}");
                     response.StatusCode = 200;
                     response.ContentType = "video/mp4";
                     response.SendChunked = true;
@@ -195,7 +195,7 @@ namespace YTMediaControllerSrv.Server
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Unable to create DASH stream " + ex.Message);
+                Logger.Error("Unable to create DASH stream", ex);
                 response.StatusCode = 502;
                 response.Close();
             }
@@ -216,7 +216,8 @@ namespace YTMediaControllerSrv.Server
 
 
                 var localMasterPlaylist = await streamingService.Use(StreamType.HLS, videoId);
-                Console.WriteLine("Generated local Master playlist url: {0}", localMasterPlaylist);
+                Logger.Info($"Generated local Master playlist url: {localMasterPlaylist}");
+
                 var bytes = Encoding.UTF8.GetBytes(localMasterPlaylist);
 
                 response.StatusCode = (int)HttpStatusCode.OK;
@@ -295,7 +296,7 @@ namespace YTMediaControllerSrv.Server
                     return;
                 }
 
-                Console.WriteLine($"Attempting to load resource: {resourceId}");
+                Logger.Debug($"Attempting to load resource: {resourceId}");
                 var (segmentStream, segmentContentType) = await streamer.LoadSegmentResourceAsStream(videoId, resourceId);
 
 
@@ -315,7 +316,7 @@ namespace YTMediaControllerSrv.Server
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Unable to create HLS stream " + ex.Message);
+               Logger.Error("Unable to create HLS stream", ex);
                 response.StatusCode = 502;
                 response.Close();
             }
@@ -362,7 +363,6 @@ namespace YTMediaControllerSrv.Server
             var path = context.Request.Url.AbsolutePath.TrimStart('/');
             if (path.StartsWith("video/dash") && path.EndsWith(".mp4"))
             {
-                Console.WriteLine("video/dash");
                 var streamParts = Path.GetFileNameWithoutExtension(path.Replace("video/dash", "")).Split('.');
                 string videoId = streamParts[0];
                 await HandleDASHStreamRequest(videoId, context.Response);

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,28 +10,56 @@ namespace YTMediaControllerSrv
 {
     public class Logger
     {
-        static void WriteLog(string logLevel, string message)
+        static string solutionName = Assembly.GetExecutingAssembly().GetName().Name;
+        static string logFile = Path.Combine(PathResolver.GetLogsDir(), solutionName + "-stdout.log");
+        static void CreateLog(string logLevel, string message)
         {
+            string entry = $"{DateTime.Now} [{logLevel}]: {message}";
 #if DEBUG
-            Console.WriteLine($"{DateTime.Now} [{logLevel}]: {message}");
+            Console.WriteLine(entry);
 #else
-            try
-            {
-                using (System.Diagnostics.EventLog eventLog = new System.Diagnostics.EventLog("Application"))
-                {
-                    eventLog.Source = "YTMediaControllerSrv";
-                    eventLog.WriteEntry($"{logLevel}: {message}", System.Diagnostics.EventLogEntryType.Information);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to write to Event Viewer: {ex.Message}");
-            }
+            WriteLog(entry);
 #endif
         }
-        public static void Log(string message)
+
+        static void WriteLog(string entry)
         {
-            WriteLog("INFO", message);
+            bool logDirExists = Directory.Exists(PathResolver.GetLogsDir());
+            if (!logDirExists)
+            {
+                try
+                {
+                    Directory.CreateDirectory(PathResolver.GetLogsDir());
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+            }
+
+            File.AppendAllText(logFile, entry);
+
+        }
+        public static void Info(string message)
+        {
+            CreateLog("INFO", message);
+        }
+
+        public static void Debug(string message)
+        {
+#if DEBUG
+            Console.WriteLine(message);
+#endif
+        }
+
+        public static void Warn(string message)
+        {
+            CreateLog("WARN", message);
+        }
+
+        public static void Error(string message, Exception err)
+        {
+            CreateLog("ERROR", $"{message}\n Error: {err.Message}, Stack: {err.StackTrace}");
         }
     }
 }

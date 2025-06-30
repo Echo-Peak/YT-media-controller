@@ -28,9 +28,9 @@ namespace YTMediaControllerSrv
 #if DEBUG
             Console.CancelKeyPress += (sender, e) =>
             {
-                Console.WriteLine("SIGINT received. Cleaning up resources...");
+                Logger.Info("SIGINT received. Cleaning up resources...");
                 Stop();
-                Console.WriteLine("Cleanup complete. Exiting application.");
+                Logger.Info("Cleanup complete. Exiting application.");
             };
 #endif
         }
