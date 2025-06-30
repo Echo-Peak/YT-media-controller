@@ -39,7 +39,7 @@ namespace YTMediaControllerSrv.Server
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    Logger.Error("Unable to start HTTP server", e);
                 }
             }
         }

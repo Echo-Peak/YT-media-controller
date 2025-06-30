@@ -24,10 +24,9 @@ namespace YTMediaControllerSrv
             string nativeHostManifestPath = PathResolver.GetNativeHostManifestPath();
             string nativeHostJson = File.ReadAllText(nativeHostManifestPath);
             NativeHostManifestJson manifest = JsonConvert.DeserializeObject<NativeHostManifestJson>(nativeHostJson);
-            Console.WriteLine(nativeHostManifestPath);
             manifest.path = PathResolver.GetNativeHostBinPath();
             File.WriteAllText(nativeHostManifestPath, JsonConvert.SerializeObject(manifest, Formatting.Indented));
-            Console.WriteLine($"Updated native host manifest at {nativeHostManifestPath}");
+            Logger.Info($"Updated native host manifest at {nativeHostManifestPath}");
 
             return (manifest.name, nativeHostManifestPath);
         }
@@ -41,7 +40,7 @@ namespace YTMediaControllerSrv
             {
                 if (googleKey == null)
                 {
-                    Console.WriteLine("Google registry key not found.");
+                    Logger.Warn("Google registry key not found.");
                     return;
                 }
             }
@@ -50,7 +49,7 @@ namespace YTMediaControllerSrv
             {
                 if (baseKey == null)
                 {
-                    Console.WriteLine("Failed to open or create NativeMessagingHosts key.");
+                    Logger.Warn("Failed to open or create NativeMessagingHosts key.");
                     return;
                 }
 
@@ -58,12 +57,12 @@ namespace YTMediaControllerSrv
                 {
                     if (hostKey == null)
                     {
-                        Console.WriteLine($"Failed to create key for {nativeHostId}");
+                        Logger.Warn($"Failed to create key for {nativeHostId}");
                         return;
                     }
 
                     hostKey.SetValue(null, nativeHostPath);
-                    Console.WriteLine($"Successfully registered {nativeHostId} with manifest path: {nativeHostPath}");
+                    Logger.Info($"Successfully registered {nativeHostId} with manifest path: {nativeHostPath}");
                 }
             }
         }

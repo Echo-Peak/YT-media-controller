@@ -69,7 +69,7 @@ namespace YTMediaControllerHost
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine("Error: " + ex);
+                Logger.Error("NativeHost Error", ex);
             }
         }
 

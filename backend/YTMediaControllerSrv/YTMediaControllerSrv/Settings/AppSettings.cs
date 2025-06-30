@@ -29,8 +29,7 @@ namespace YTMediaControllerSrv.Settings
             }
             catch (Exception err)
             {
-                Console.WriteLine("Unable to read settings. Using default settings");
-                Console.WriteLine(err.Message);
+                Logger.Error("Unable to read settings. Using default settings", err);
             }
         }
         public void UpdateSettingsFile(string property, object value)
@@ -40,12 +39,11 @@ namespace YTMediaControllerSrv.Settings
                 settings.Update(property, value);
                 string json = JsonConvert.SerializeObject(settings, Formatting.Indented);
                 File.WriteAllText(settingsFilePath, json);
-                Console.WriteLine($"Updated {property} to {value}");
+                Logger.Debug($"Updated {property} to {value}");
             }
             catch (Exception err)
             {
-                Console.WriteLine("Unable to update settings.");
-                Console.WriteLine(err.Message);
+                Logger.Error("Unable to update settings.", err);
             }
         }
     }

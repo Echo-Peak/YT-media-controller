@@ -34,7 +34,7 @@ namespace YTMediaControllerSrv
 
         static string GetBrowserExtentionDir()
         {
-            if(!IsInstalled())
+            if (!IsInstalled())
             {
                 return Path.Combine(GetProjectRoot(), "extension\\build");
             }
@@ -51,8 +51,6 @@ namespace YTMediaControllerSrv
             if (!IsInstalled())
             {
                 string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
-                Console.WriteLine(configuration);
-                Console.WriteLine(GetProjectRoot());
                 return Path.Combine(GetProjectRoot(), $"backend\\YTMediaControllerSrv\\YTMediaControllerHost\\bin\\{configuration}\\YTMediaControllerHost.exe");
             }
             return Path.Combine(installDir, "YTMediaControllerHost.exe");
@@ -76,6 +74,11 @@ namespace YTMediaControllerSrv
                 return Path.Combine(GetProjectRoot(), $"backend\\externalBins\\ffmpeg");
             }
             return Path.Combine(installDir, "bin");
+        }
+
+        public static string GetLogsDir()
+        {
+            return Path.Combine(installDir, "logs");
         }
     }
 }
