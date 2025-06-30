@@ -43,3 +43,7 @@ bld/
 .idea_modules.xml
 .idea_modules.iml
 packages
+
+# generated
+debug.settings.json
+externalBins

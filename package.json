@@ -3,10 +3,45 @@
   "version": "1.0.0",
   "description": "YT-media-controller",
   "main": "index.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build-service": "node backend/scripts/build.js",
+    "build-browser": "npm run build-browser-extension && npm run build-browser-ui",
+    "build-browser-extension": "yarn workspace @yt-media-controller/extension run build",
+    "build-browser-ui": "yarn workspace @yt-media-controller/ui run build",
+    "package": "npm run build-service && npm run build-browser-extension && node packager/build.js",
+    "install-android": "abd install -r .\\mobile\\android\\app\\build\\outputs\\debug\\app-debug.apk"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "workspaces": [
+    "browser/*"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.25.7",
+    "@babel/preset-env": "^7.25.7",
+    "@eslint/js": "^9.29.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/chrome": "^0.0.321",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.126",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.6",
+    "babel-loader": "^9.2.1",
+    "copy-webpack-plugin": "^12.0.2",
+    "eslint": "^9.29.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.1",
+    "eslint-plugin-react": "^7.37.5",
+    "prettier": "^3.6.1",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.35.0",
+    "webpack": "^5.99.8",
+    "webpack-cli": "^6.0.1"
+  }
 }

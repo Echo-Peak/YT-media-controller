@@ -1,0 +1,40 @@
+@startuml
+
+title Youtube media controller - High level flow
+
+| Android plugin |
+:User uses browser to find a youtube video;
+:User long taps on video to open sharing options;
+:User clicks on "Play video" share intent from YTMediaControler;
+:app sends origin url to backend server located on the same network as "play request";
+
+| C# HTTP backend server |
+:On play request;
+:Use yt-dlp to get metadata of origin url;
+:Algoritim gets the best audio/video stream urls for DASH streaming and best m3u8 manifest for HLS steaming;
+:best stream urls are sent to UI via WS;
+
+| Browser extention - viewer UI |
+:on WS play event;
+:Extract urls & render/load video;
+if (HLS stream could not be loaded) then (yes)
+ if (DASH stream could not be loaded) then (yes)
+ :Use youtube iframe api to load orgin source url;
+ if (unable to load video)
+ :render error;
+ stop
+ else (no)
+ :continue playing video;
+ stop
+ end if
+ else (no)
+ :Continue streaming video with buffered chunks in video element;
+ stop
+ end if
+else (no)
+:Continue streaming video via HLS.js;
+stop
+end if
+
+
+@enduml
