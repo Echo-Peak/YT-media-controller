@@ -112,7 +112,14 @@
     <Compile Include="ProjectInstaller.Designer.cs">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </Compile>
+    <Compile Include="Server\Middleware\BaseMiddleware.cs" />
+    <Compile Include="Server\Middleware\DASHMiddleware.cs" />
+    <Compile Include="Server\Middleware\HLSMiddleware.cs" />
+    <Compile Include="Server\Middleware\IHttpMiddleware.cs" />
+    <Compile Include="Server\IUISocketServer.cs" />
     <Compile Include="Server\MiddlewarePipeline.cs" />
+    <Compile Include="Server\Middleware\CORSMiddleware.cs" />
+    <Compile Include="Server\Middleware\MobileRouterMiddleware.cs" />
     <Compile Include="Server\WebSocketConnectionManager.cs" />
     <Compile Include="Settings\AppSettingsJson.cs" />
     <Compile Include="Controller\SystemController.cs" />

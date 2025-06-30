@@ -78,7 +78,7 @@ namespace YTMediaControllerSrv.Streaming
             {
                 throw new Exception("Failed to retrieve video manifest URL.");
             }
-
+            Logger.Debug($"Master playlist orgin url: {source.MasterPlaylistUrl}");
             DashStreamer.Load(yTUrlData.VideoId, source);
             HlsStreamer.Load(yTUrlData.VideoId, source.MasterPlaylistUrl);
         }
