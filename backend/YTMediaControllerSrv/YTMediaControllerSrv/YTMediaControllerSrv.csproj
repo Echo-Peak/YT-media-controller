@@ -48,6 +48,9 @@
     <Reference Include="Instances, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Instances.3.0.1\lib\netstandard2.0\Instances.dll</HintPath>
     </Reference>
+    <Reference Include="M3U8Parser, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\M3U8Parser.2.0.0\lib\netstandard2.0\M3U8Parser.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.2\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
@@ -126,7 +129,11 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\AppSettings.cs" />
+    <Compile Include="Streaming\DASHStreamer.cs" />
+    <Compile Include="Streaming\HLSStreamer.cs" />
+    <Compile Include="Streaming\M3u8Parser.cs" />
     <Compile Include="Streaming\StreamingService.cs" />
+    <Compile Include="Streaming\VideoStream.cs" />
     <Compile Include="Streaming\YTUrlSource.cs" />
     <Compile Include="Types\BackendRequest.cs" />
     <Compile Include="Types\NamedPipeMessage.cs" />

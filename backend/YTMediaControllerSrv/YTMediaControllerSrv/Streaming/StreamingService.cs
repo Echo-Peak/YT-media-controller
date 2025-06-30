@@ -10,31 +10,65 @@ using YTMediaControllerSrv.Types;
 
 namespace YTMediaControllerSrv.Streaming
 {
+    public enum StreamType
+    {
+        DASH,
+        HLS
+    }
     public class StreamingService
     {
         private YTDLP ytdlp = new YTDLP();
-        private readonly ConcurrentDictionary<string, YTUrlSource> cachedLocalManifests = new ConcurrentDictionary<string, YTUrlSource>();
+        private DASHStreamer DashStreamer;
+        private HLSStreamer HlsStreamer;
 
-        public bool IsStreamSourceCached(string streamKey)
+        public StreamingService(DASHStreamer dashStreamer, HLSStreamer hlsStreamer)
         {
-            return cachedLocalManifests.ContainsKey(streamKey);
+            DashStreamer = dashStreamer;
+            HlsStreamer = hlsStreamer;
         }
-
-        public YTUrlSource GetCachedSource(string streamKey)
+        public object GetStreamer(StreamType streamerType)
         {
-            if (cachedLocalManifests.TryGetValue(streamKey, out YTUrlSource source))
+            if (streamerType == StreamType.DASH)
             {
-                return source;
+                return DashStreamer;
             }
-            return null;
+            else if (streamerType == StreamType.HLS)
+            {
+                return HlsStreamer;
+            }
+            throw new ArgumentException("Invalid streamer type specified.");
         }
 
-        private void AddStreamToCache(string videoId, YTUrlSource source)
+        public async Task<string> Use(StreamType streamType, string videoId)
         {
-               cachedLocalManifests.TryAdd(videoId, source);
+            if (streamType == StreamType.DASH)
+            {
+                if (DashStreamer.IsCached(videoId))
+                {
+                    YTUrlSource source = DashStreamer.GetCachedSource(videoId);
+                    return source.VideoSourceUrl;
+                }
+                else
+                {
+                    throw new Exception("DASH stream not cached.");
+                }
+            }
+            else if (streamType == StreamType.HLS)
+            {
+                if (HlsStreamer.IsCached(videoId))
+                {
+
+                    return await HlsStreamer.GenerateMasterPlayList(videoId);
+                }
+                else
+                {
+                    throw new Exception("HLS stream not cached.");
+                }
+            }
+            throw new ArgumentException("Invalid stream type specified.");
         }
 
-        async public Task CacheStream(string sourceUrl)
+        async public Task Prepare(string sourceUrl)
         {
             YTUrlData yTUrlData = new YTUrlData(sourceUrl);
             YTDlpJsonDump videoMetadata = await ytdlp.GetVideoMetadata(sourceUrl);
@@ -45,8 +79,8 @@ namespace YTMediaControllerSrv.Streaming
                 throw new Exception("Failed to retrieve video manifest URL.");
             }
 
-
-            AddStreamToCache(yTUrlData.VideoId, source);
+            DashStreamer.Load(yTUrlData.VideoId, source);
+            HlsStreamer.Load(yTUrlData.VideoId, source.MasterPlaylistUrl);
         }
     }
 }

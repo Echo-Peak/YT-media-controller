@@ -32,7 +32,7 @@ namespace YTMediaControllerSrv.Types
         public bool? IsHls { get; set; }
     }
 
-    internal class YTDlpJsonDump
+    public class YTDlpJsonDump
     {
         public string Id { get; set; }
         public string Title { get; set; }

@@ -35,7 +35,7 @@ namespace YTMediaControllerSrv {
 
             var manifestCandidates = formats
                 .Where(f => IsManifestOnly(f))
-                .Select(f => new VideoScore(f))
+                .Select(f => new VideoScore(f, isManifest: true))
                 .OrderByDescending(v => v)
                 .ToList();
 
@@ -115,9 +115,9 @@ namespace YTMediaControllerSrv {
             public int Height { get; }
             public double Tbr { get; }
 
-            public VideoScore(YtDlpFormat f)
+            public VideoScore(YtDlpFormat f, bool isManifest=false)
             {
-                Url = f.Url;
+                Url = isManifest ? f.Manifest_Url : f.Url;
                 var vcodec = (f.Vcodec ?? "").ToLowerInvariant();
 
                 if (vcodec.Contains("av01"))

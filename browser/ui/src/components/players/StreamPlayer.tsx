@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import Hls from 'hls.js';
+import { Box } from '@chakra-ui/react';
 
 type StreamPlayerProps = {
   sourceUrl: string;
@@ -11,6 +12,8 @@ const containerStyles: React.CSSProperties = {
   height: '100vh',
   position: 'fixed',
   overflow: 'hidden',
+  top: 0,
+  left: 0,
   zIndex: 9999,
 };
 
@@ -23,17 +26,24 @@ export const StreamPlayer = ({ sourceUrl, onError }: StreamPlayerProps) => {
       return;
     }
 
-    const hls = new Hls();
+    const hls = new Hls({
+      maxBufferLength: 10,
+      maxMaxBufferLength: 60,
+      maxBufferSize: 30 * 1000 * 1000,
+      maxBufferHole: 0.5,
+      liveMaxLatencyDuration: 10,
+      liveSyncDuration: 5,
+      backBufferLength: 0,
+    });
     console.log('Loading HLS manifest from:', sourceUrl);
     hls.loadSource(sourceUrl);
 
     hls.on(Hls.Events.ERROR, (event, data) => {
-      console.error('HLS Error:', data);
-      onError(
-        new Error(
-          `HLS Error: ${data.type} - ${data.details} - ${data.fatal ? 'Fatal' : 'Non-fatal'}`,
-        ),
-      );
+      if (data.fatal) {
+        onError(new Error(`HLS Error: ${data.type} - ${data.details}`));
+      } else {
+        console.warn('HLS non-fatal error:', data);
+      }
     });
 
     if (playerRef.current) {
@@ -42,7 +52,7 @@ export const StreamPlayer = ({ sourceUrl, onError }: StreamPlayerProps) => {
   }, [playerRef]);
 
   return (
-    <div style={containerStyles}>
+    <Box style={containerStyles}>
       <video
         ref={playerRef as React.RefObject<HTMLVideoElement>}
         style={{ width: '100vw', height: '100vh' }}
@@ -52,6 +62,6 @@ export const StreamPlayer = ({ sourceUrl, onError }: StreamPlayerProps) => {
       >
         Your browser does not support the video tag.
       </video>
-    </div>
+    </Box>
   );
 };

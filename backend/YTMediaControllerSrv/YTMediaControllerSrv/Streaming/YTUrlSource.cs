@@ -10,14 +10,13 @@ namespace YTMediaControllerSrv.Streaming
     {
         public string VideoSourceUrl { get; set; }
         public string AudioSourceUrl { get; set; }
+        public string MasterPlaylistUrl { get; set; }
 
-        public string ManifestSourceUrl { get; set; }
-
-        public YTUrlSource(string videoSource, string audioSource, string manifestSourceUrl)
+        public YTUrlSource(string videoSource, string audioSource, string masterPlayListSource)
         {
             VideoSourceUrl = videoSource;
             AudioSourceUrl = audioSource;
-            ManifestSourceUrl = manifestSourceUrl;
+            MasterPlaylistUrl = masterPlayListSource;
         }
     }
 }

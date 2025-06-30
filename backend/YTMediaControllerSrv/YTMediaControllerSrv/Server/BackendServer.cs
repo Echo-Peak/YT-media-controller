@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -21,7 +22,7 @@ namespace YTMediaControllerSrv.Server
         public CreateHttpServer server { get; set; }
         private UISocketServer uiSockerServer { get; set; }
         private string endpoint = string.Empty;
-        private StreamingService streamingService = new StreamingService();
+        private StreamingService streamingService { get; set; }
         private HttpClient httpClient = new HttpClient(new HttpClientHandler
         {
             AutomaticDecompression = DecompressionMethods.Deflate
@@ -31,6 +32,10 @@ namespace YTMediaControllerSrv.Server
         {
             this.uiSockerServer = uiSockerServer;
             this.endpoint = $"http://{host}:{port}/";
+            streamingService = new StreamingService(
+                new DASHStreamer(),
+                new HLSStreamer(httpClient, this.endpoint)
+                );
         }
 
         public void Start()
@@ -111,7 +116,8 @@ namespace YTMediaControllerSrv.Server
                 if (containsVideoId)
                 {
                     string originSource = jsonData.SourceUrl;
-                    await streamingService.CacheStream(originSource);
+                    await streamingService.Prepare(originSource);
+
                     string videoId = new YTUrlData(originSource).VideoId;
 
                     await uiSockerServer.Send(new
@@ -121,7 +127,7 @@ namespace YTMediaControllerSrv.Server
                         {
                             originSource,
                             dashStreamUrl = this.endpoint + $"video/dash/{videoId}.mp4",
-                            hlsStreamUrl = this.endpoint + $"video/playlist/{videoId}.m3u8"
+                            hlsStreamUrl = this.endpoint + $"video/hls/masterPlaylist/{videoId}.m3u8"
                         }
                     });
                     response.StatusCode = 200;
@@ -149,9 +155,10 @@ namespace YTMediaControllerSrv.Server
 
         private async Task HandleDASHStreamRequest(string videoId, HttpListenerResponse response)
         {
+            var streamer = (DASHStreamer)streamingService.GetStreamer(StreamType.DASH);
             try
             {
-                if (streamingService.IsStreamSourceCached(videoId))
+                if (streamer.IsCached(videoId))
                 {
                     Console.WriteLine($"Attempting to stream the video {videoId}");
                     response.StatusCode = 200;
@@ -159,7 +166,7 @@ namespace YTMediaControllerSrv.Server
                     response.SendChunked = true;
                     await response.OutputStream.FlushAsync();
 
-                    YTUrlSource source = streamingService.GetCachedSource(videoId);
+                    YTUrlSource source = streamer.GetCachedSource(videoId);
 
 
                     using (var videoStream = await httpClient.GetStreamAsync(source.VideoSourceUrl))
@@ -193,59 +200,24 @@ namespace YTMediaControllerSrv.Server
                 response.Close();
             }
         }
-        private string RewriteM3U8(string original)
-        {
-            var lines = original.Split(new[] { '\n' }, StringSplitOptions.None);
-            var result = new StringBuilder();
 
-            foreach (var rawLine in lines)
-            {
-                var line = rawLine.TrimEnd('\r');
-
-                if (line.StartsWith("#EXT-X-MAP:URI="))
-                {
-                    var uriStart = line.IndexOf("URI=\"", StringComparison.Ordinal);
-                    var uriEnd = line.LastIndexOf('"');
-
-                    if (uriStart >= 0 && uriEnd > uriStart + 5)
-                    {
-                        var originalUrl = line.Substring(uriStart + 5, uriEnd - (uriStart + 5));
-                        var encodedUrl = WebUtility.UrlEncode(originalUrl);
-                        var rewrittenUrl = $"{this.endpoint}video/hls/segment?url={encodedUrl}";
-                        result.AppendLine($"#EXT-X-MAP:URI=\"{rewrittenUrl}\"");
-                        continue;
-                    }
-                }
-                else if (line.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-                {
-                    var trimmedUrl = line.Trim();
-                    var rewrittenUrl = $"{this.endpoint}video/hls/segment?url={WebUtility.UrlEncode(trimmedUrl)}";
-                    result.AppendLine(rewrittenUrl);
-                    continue;
-                }
-
-                result.AppendLine(line);
-            }
-
-            return result.ToString();
-        }
-        private async Task HandleHlsPlaylistStreamRequest(string videoId, HttpListenerResponse response)
+        private async Task HandleHlsMasterPlaylistRequest(string videoId, HttpListenerResponse response)
         {
             bool finishedOk = false;
-
+            var streamer = (HLSStreamer)streamingService.GetStreamer(StreamType.HLS);
             try
             {
-                if (!streamingService.IsStreamSourceCached(videoId))
+                if (!streamer.IsCached(videoId))
                 {
                     response.StatusCode = (int)HttpStatusCode.NotFound;
                     response.Close();
                     return;
                 }
 
-                var src = streamingService.GetCachedSource(videoId);
-                var manifest = await httpClient.GetStringAsync(src.ManifestSourceUrl);
-                var rewritten = RewriteM3U8(manifest);
-                var bytes = Encoding.UTF8.GetBytes(rewritten);
+
+                var localMasterPlaylist = await streamingService.Use(StreamType.HLS, videoId);
+                Console.WriteLine("Generated local Master playlist url: {0}", localMasterPlaylist);
+                var bytes = Encoding.UTF8.GetBytes(localMasterPlaylist);
 
                 response.StatusCode = (int)HttpStatusCode.OK;
                 response.ContentType = "application/vnd.apple.mpegurl";
@@ -266,30 +238,72 @@ namespace YTMediaControllerSrv.Server
             }
         }
 
+        private async Task HandleHlsPlaylistStreamRequest(HttpListenerRequest request, HttpListenerResponse response)
+        {
+            var streamer = (HLSStreamer)streamingService.GetStreamer(StreamType.HLS);
+            bool finishedOk = false;
+            try
+            {
+                NameValueCollection queryParams = request.QueryString;
+                foreach (string key in queryParams.AllKeys)
+                {
+                    string value = queryParams[key];
+                }
+                var resourceId = queryParams["resourceId"];
+                var videoId = queryParams["videoId"];
+
+                var playListData = await streamer.LoadPlaylistResource(videoId, resourceId);
+
+                var bytes = Encoding.UTF8.GetBytes(playListData);
+
+                response.StatusCode = (int)HttpStatusCode.OK;
+                response.ContentType = "application/vnd.apple.mpegurl";
+                response.ContentLength64 = bytes.Length;
+
+                await response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+                finishedOk = true;
+            }
+            catch (Exception ex)
+            {
+                if (!finishedOk && response.OutputStream.CanWrite)
+                    response.StatusCode = (int)HttpStatusCode.BadGateway;
+            }
+            finally
+            {
+                try { response.OutputStream.Close(); } catch { }
+                try { response.Close(); } catch { }
+            }
+        }
+
         private async Task HandleHlsSegmentRequest(HttpListenerContext context)
         {
             var response = context.Response;
             var request = context.Request;
+            var streamer = (HLSStreamer)streamingService.GetStreamer(StreamType.HLS);
 
             try
             {
                 var requestUrl = request.Url;
                 var queryParams = System.Web.HttpUtility.ParseQueryString(requestUrl.Query);
-                var segmentUrl = queryParams["url"];
+                var resourceId = queryParams["resourceId"];
+                var videoId = queryParams["videoId"];
 
-                if (string.IsNullOrEmpty(segmentUrl))
+                if (string.IsNullOrEmpty(resourceId))
                 {
                     response.StatusCode = 400;
                     response.Close();
                     return;
                 }
 
-                var decodedSegmentUrl = WebUtility.UrlDecode(segmentUrl);
-                Console.WriteLine("opening segment: {0}", decodedSegmentUrl);
-                var segmentStream = await httpClient.GetStreamAsync(decodedSegmentUrl);
+                Console.WriteLine($"Attempting to load resource: {resourceId}");
+                var (segmentStream, segmentContentType) = await streamer.LoadSegmentResourceAsStream(videoId, resourceId);
+
+
+                //var decodedSegmentUrl = WebUtility.UrlDecode(segmentUrl);
+                //var segmentStream = await httpClient.GetStreamAsync(segmentUrl);
 
                 response.StatusCode = 200;
-                response.ContentType = "video/MP2T";
+                response.ContentType = segmentContentType;
                 response.SendChunked = true;
 
                 using (var outputStream = response.OutputStream)
@@ -355,11 +369,17 @@ namespace YTMediaControllerSrv.Server
                 return;
             }
             
-            if (path.StartsWith("video/playlist") && path.EndsWith(".m3u8"))
+            if (path.StartsWith("video/hls/masterPlaylist") && path.EndsWith(".m3u8"))
             {
                 var streamParts = Path.GetFileNameWithoutExtension(path.Replace("video/playlist", "")).Split('.');
                 string videoId = streamParts[0];
-                await HandleHlsPlaylistStreamRequest(videoId, context.Response);
+                await HandleHlsMasterPlaylistRequest(videoId, context.Response);
+                return;
+            }
+
+            if (path.StartsWith("video/hls/playlist"))
+            {
+                await HandleHlsPlaylistStreamRequest(context.Request, context.Response);
                 return;
             }
 
