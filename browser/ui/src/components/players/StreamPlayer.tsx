@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import Hls from 'hls.js';
 import { Box } from '@chakra-ui/react';
+import { useHlsStreamer } from '../../services/useHlsStreamer';
 
 type StreamPlayerProps = {
   sourceUrl: string;
@@ -20,36 +20,47 @@ const containerStyles: React.CSSProperties = {
 export const StreamPlayer = ({ sourceUrl, onError }: StreamPlayerProps) => {
   const playerRef = useRef<HTMLMediaElement | undefined>(undefined);
 
-  useEffect(() => {
-    if (!Hls.isSupported()) {
-      onError(new Error('HLS is not supported on this device'));
+  const onFatalError = (error: Error) => {
+    console.error('Fatal error in StreamPlayer:', error);
+    onError(error);
+  };
+  const { loadStream, cleanupStream } = useHlsStreamer(onFatalError);
+
+  const onPlayHandler = () => {
+    if (!playerRef.current) {
       return;
     }
 
-    const hls = new Hls({
-      maxBufferLength: 10,
-      maxMaxBufferLength: 60,
-      maxBufferSize: 30 * 1000 * 1000,
-      maxBufferHole: 0.5,
-      liveMaxLatencyDuration: 10,
-      liveSyncDuration: 5,
-      backBufferLength: 0,
-    });
-    console.log('Loading HLS manifest from:', sourceUrl);
-    hls.loadSource(sourceUrl);
-
-    hls.on(Hls.Events.ERROR, (event, data) => {
-      if (data.fatal) {
-        onError(new Error(`HLS Error: ${data.type} - ${data.details}`));
-      } else {
-        console.warn('HLS non-fatal error:', data);
+    try {
+      if (document.fullscreenElement !== playerRef.current) {
+        if (playerRef.current?.requestFullscreen) {
+          playerRef.current.requestFullscreen().catch(console.warn);
+        }
       }
-    });
+    } catch (e) {
+      console.warn('Failed to enter fullscreen:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (!sourceUrl || !playerRef.current) {
+      console.warn('No source URL or player reference available');
+      return;
+    }
+
+    console.log('Loading HLS manifest from:', sourceUrl);
+    loadStream(sourceUrl, playerRef.current);
 
     if (playerRef.current) {
-      hls.attachMedia(playerRef.current);
+      playerRef.current.addEventListener('playing', onPlayHandler);
     }
-  }, [playerRef]);
+    return () => {
+      cleanupStream();
+      if (playerRef.current) {
+        playerRef.current.removeEventListener('playing', onPlayHandler);
+      }
+    };
+  }, [playerRef, sourceUrl]);
 
   return (
     <Box style={containerStyles}>
