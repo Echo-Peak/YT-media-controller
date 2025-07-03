@@ -112,7 +112,14 @@
     <Compile Include="ProjectInstaller.Designer.cs">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </Compile>
+    <Compile Include="Server\Middleware\BaseMiddleware.cs" />
+    <Compile Include="Server\Middleware\DASHMiddleware.cs" />
+    <Compile Include="Server\Middleware\HLSMiddleware.cs" />
+    <Compile Include="Server\Middleware\IHttpMiddleware.cs" />
     <Compile Include="Server\MiddlewarePipeline.cs" />
+    <Compile Include="Server\Middleware\CORSMiddleware.cs" />
+    <Compile Include="Server\Middleware\MobileRouterMiddleware.cs" />
+    <Compile Include="YTDLP\VideoCache.cs" />
     <Compile Include="Server\WebSocketConnectionManager.cs" />
     <Compile Include="Settings\AppSettingsJson.cs" />
     <Compile Include="Controller\SystemController.cs" />
@@ -129,19 +136,14 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\AppSettings.cs" />
-    <Compile Include="Streaming\DASHStreamer.cs" />
-    <Compile Include="Streaming\HLSStreamer.cs" />
-    <Compile Include="Streaming\M3u8Parser.cs" />
-    <Compile Include="Streaming\StreamingService.cs" />
-    <Compile Include="Streaming\VideoStream.cs" />
-    <Compile Include="Streaming\YTUrlSource.cs" />
+    <Compile Include="YTDLP\YTUrlSource.cs" />
     <Compile Include="Types\BackendRequest.cs" />
     <Compile Include="Types\NamedPipeMessage.cs" />
     <Compile Include="Types\NativeHostManifestJson.cs" />
     <Compile Include="Types\YTDlpJsonDump.cs" />
     <Compile Include="Types\YTUrlData.cs" />
-    <Compile Include="Streaming\YTDLP.cs" />
-    <Compile Include="Streaming\YTDlpParser.cs" />
+    <Compile Include="YTDLP\YtdlpExec.cs" />
+    <Compile Include="YTDLP\YTDlpParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
