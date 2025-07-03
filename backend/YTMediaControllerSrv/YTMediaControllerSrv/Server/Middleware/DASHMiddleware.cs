@@ -1,24 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.Remoting.Contexts;
-using System.Text;
 using System.Threading.Tasks;
-using YTMediaControllerSrv.Streaming;
+using YTMediaControllerSrv.YTDLP;
 
 namespace YTMediaControllerSrv.Server.Middleware
 {
     internal class DASHMiddleware : IHttpMiddleware
     {
-        private StreamingService StreamingService { get; set; }
         private HttpClient HttpClient { get; set; }
-        public DASHMiddleware(StreamingService streamingService, HttpClient httpClient)
+        private VideoCache Cache { get; set; }
+        public DASHMiddleware(HttpClient httpClient, VideoCache cache)
         {
-            StreamingService = streamingService;
             HttpClient = httpClient;
+            Cache = cache;
         }
         public async Task Invoke(HttpListenerContext context, Func<Task> next)
         {
@@ -29,23 +26,30 @@ namespace YTMediaControllerSrv.Server.Middleware
                 await next();
                 return;
             }
-            if (path.StartsWith("video/dash") && path.EndsWith(".mp4"))
+
+            NameValueCollection queryParams = context.Request.QueryString;
+            foreach (string key in queryParams.AllKeys)
             {
-                var streamParts = Path.GetFileNameWithoutExtension(path.Replace("video/dash", "")).Split('.');
-                string videoId = streamParts[0];
-                await HandleDASHStreamRequest(videoId, context);
+                string value = queryParams[key];
+            }
+            var videoId = queryParams["videoId"];
+            if (string.IsNullOrEmpty(videoId))
+            {
+                await next();
                 return;
             }
+
+            await HandleDASHStreamRequest(videoId, context);
+
         }
         private async Task HandleDASHStreamRequest(string videoId, HttpListenerContext context)
         {
             var response = context.Response;
-            var streamer = (DASHStreamer)StreamingService.GetStreamer(StreamType.DASH);
 
             try
             {
-
-                if (!streamer.IsCached(videoId))
+                var sourceJson = Cache.Get(videoId);
+                if (sourceJson == null)
                 {
                     response.StatusCode = 404;
                     response.Close();
@@ -56,12 +60,13 @@ namespace YTMediaControllerSrv.Server.Middleware
                 response.StatusCode = 200;
                 response.ContentType = "video/mp4";
                 response.SendChunked = true;
+
                 await response.OutputStream.FlushAsync();
-                YTUrlSource source = streamer.GetCachedSource(videoId);
 
+                var bestSource = YTDlpParser.GetBestSource(sourceJson);
 
-                using (var videoStream = await HttpClient.GetStreamAsync(source.VideoSourceUrl))
-                using (var audioStream = await HttpClient.GetStreamAsync(source.AudioSourceUrl))
+                using (var videoStream = await HttpClient.GetStreamAsync(bestSource.VideoSourceUrl))
+                using (var audioStream = await HttpClient.GetStreamAsync(bestSource.AudioSourceUrl))
                 {
                     await FFMpegCore.FFMpegArguments
                         .FromPipeInput(new FFMpegCore.Pipes.StreamPipeSource(videoStream))
@@ -70,19 +75,26 @@ namespace YTMediaControllerSrv.Server.Middleware
                             .WithCopyCodec()
                             .WithCustomArgument("-map 0:v:0 -map 1:a:0")
                             .WithCustomArgument("-movflags +frag_keyframe+empty_moov")
+                            .WithCustomArgument("-preset ultrafast")
+                            .WithCustomArgument("-fflags +nobuffer")
                             .ForceFormat("mp4"))
                         .ProcessAsynchronously();
                 }
-
-                response.OutputStream.Close();
-
-                response.Close();
+            }
+            catch (IOException ioEx) when (ioEx.Message.Contains("pipe") || ioEx.Message.Contains("broken"))
+            {
+                Logger.Debug("Client disconnected during DASH stream.");
             }
             catch (Exception ex)
             {
                 Logger.Error("Unable to create DASH stream", ex);
-                response.StatusCode = 502;
-                response.Close();
+                if (context.Response.OutputStream.CanWrite)
+                    context.Response.StatusCode = 502;
+            }
+            finally
+            {
+                try { response.OutputStream.Close(); } catch { }
+                try { response.Close(); } catch { }
             }
         }
     }

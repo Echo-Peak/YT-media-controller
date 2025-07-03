@@ -1,27 +1,37 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Caching;
+using YTMediaControllerSrv.Server;
 using YTMediaControllerSrv.Types;
 
-namespace YTMediaControllerSrv
+namespace YTMediaControllerSrv.YTDLP
 {
-    internal class YTDLP
+    internal class YtdlpExec
     {
-        public async Task<YTDlpJsonDump> GetVideoMetadata(string sourceUrl)
+        private VideoCache Cache { get; set; }
+
+        public YtdlpExec(VideoCache videoCache) {
+            Cache = videoCache;
+        }
+        public async Task<YTDlpJsonDump> Fetch(string sourceUrl)
         {
-            Console.WriteLine("Fetching json dump for {0}", sourceUrl);
+            Logger.Info($"Fetching json dump for {sourceUrl}");
             string jsonDump = await ExecCommand(sourceUrl, "--dump-json");
             if (string.IsNullOrWhiteSpace(jsonDump))
             {
                 throw new Exception("Failed to retrieve video metadata. The output is empty.");
             }
 
-            return JsonConvert.DeserializeObject<YTDlpJsonDump>(jsonDump);
+            YTDlpJsonDump json = JsonConvert.DeserializeObject<YTDlpJsonDump>(jsonDump);
+            Cache.Add(json.Id, json);
+            return json;
         }
 
         private Task<string> ExecCommand(string sourceUrl, params string[] commandList)
@@ -65,14 +75,16 @@ namespace YTMediaControllerSrv
 
             process.Exited += (sender, e) =>
             {
-                process.WaitForExit(); // Ensure all output is flushed
-                if (process.ExitCode == 0 && output.Length > 0)
+                process.WaitForExit();
+                try
                 {
+                    VerifyOutput(output.ToString());
                     tcs.TrySetResult(output.ToString().Trim());
+
                 }
-                else
+                catch (Exception verifyError)
                 {
-                    string err = error.Length > 0 ? error.ToString() : output.ToString();
+                    string err = error.Length > 0 ? error.ToString() : verifyError.Message;
                     tcs.TrySetException(new Exception($"yt-dlp failed with exit code {process.ExitCode}. Output: {err}"));
                 }
 
@@ -91,6 +103,17 @@ namespace YTMediaControllerSrv
             }
 
             return tcs.Task;
+        }
+        private void VerifyOutput(string output)
+        {
+            if (output.Length == 0)
+            {
+                throw new Exception("yt-dlp returned empty output.");
+            }
+            if (!output.StartsWith("{\"id\":"))
+            {
+                throw new Exception("yt-dlp encountered an error: " + output.ToString());
+            }
         }
     }
 }

@@ -6,22 +6,23 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using YTMediaControllerSrv.Streaming;
 using YTMediaControllerSrv.Types;
+using YTMediaControllerSrv.YTDLP;
 
 namespace YTMediaControllerSrv.Server.Middleware
 {
     internal class MobileRouterMiddleware : IHttpMiddleware
     {
-        private StreamingService StreamingService {  get; set; }
         private UISocketServer UISocketServer { get; set; }
         private string BaseUrl { get; set; }
 
-        public MobileRouterMiddleware(StreamingService streamingService,  UISocketServer uiSocketServer, string baseUrl)
+        private YtdlpExec Ytdlp { get; set; }
+
+        public MobileRouterMiddleware(UISocketServer uiSocketServer, YtdlpExec ytdlp, string baseUrl)
         {
-            StreamingService = streamingService;
             UISocketServer = uiSocketServer;
             BaseUrl = baseUrl;
+            Ytdlp = ytdlp;
         }
         public async Task Invoke(HttpListenerContext context, Func<Task> next)
         {
@@ -90,7 +91,8 @@ namespace YTMediaControllerSrv.Server.Middleware
                 if (containsVideoId)
                 {
                     string originSource = jsonData.SourceUrl;
-                    await StreamingService.Prepare(originSource);
+                    var sourceJson = await Ytdlp.Fetch(originSource);
+                    string masterManifestUrl = YTDlpParser.GetBestSource(sourceJson).MasterPlaylistUrl;
 
                     string videoId = new YTUrlData(originSource).VideoId;
 
@@ -100,8 +102,8 @@ namespace YTMediaControllerSrv.Server.Middleware
                         data = new
                         {
                             originSource,
-                            dashStreamUrl = BaseUrl + $"video/dash/{videoId}.mp4",
-                            hlsStreamUrl = BaseUrl + $"video/hls/masterPlaylist/{videoId}.m3u8"
+                            dashStreamUrl = BaseUrl + $"video/dash?videoId={videoId}",
+                            hlsStreamUrl = BaseUrl + $"video/hls/playlist?videoId={videoId}&url={Convert.ToBase64String(Encoding.UTF8.GetBytes(masterManifestUrl))}"
                         }
                     });
                     response.StatusCode = 200;

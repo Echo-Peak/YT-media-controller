@@ -5,10 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using YTMediaControllerSrv.Streaming;
 using YTMediaControllerSrv.Types;
 
-namespace YTMediaControllerSrv {
+namespace YTMediaControllerSrv.YTDLP {
     internal class YTDlpParser
     {
         public static YTUrlSource GetBestSource(YTDlpJsonDump dump)
