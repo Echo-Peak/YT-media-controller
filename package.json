@@ -43,5 +43,8 @@
     "typescript-eslint": "^8.35.0",
     "webpack": "^5.99.8",
     "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "react-icons": "^5.5.0"
   }
 }

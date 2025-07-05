@@ -1,9 +1,9 @@
 import { useVideoSource } from '../providers/VideoSourceProvider';
 import { useState } from 'react';
 import { YoutubePlayer } from './players/YoutubePlayer';
-import { StreamPlayer } from './players/StreamPlayer';
-import { VideoPlayer } from './players/VideoPlayer';
+import { HLSPlayer } from './players/HLSPlayer';
 import { NoVideoPlaying } from './dialogs/NoVideoPlaying';
+import { DASHPlayer } from './players/DASHPlayer';
 
 export const Player = () => {
   const { source } = useVideoSource();
@@ -20,13 +20,23 @@ export const Player = () => {
 
   if (streamPlayerFailed) {
     if (source.dashStreamUrl) {
-      return <VideoPlayer sourceUrl={source.dashStreamUrl} />;
+      return (
+        <DASHPlayer
+          sourceUrl={source.dashStreamUrl}
+          videoData={source.videoData}
+          onError={onStreamError}
+        />
+      );
     } else {
       return <YoutubePlayer sourceUrl={source.originSource} />;
     }
   }
 
   return (
-    <StreamPlayer sourceUrl={source.hlsStreamUrl} onError={onStreamError} />
+    <HLSPlayer
+      sourceUrl={source.hlsStreamUrl}
+      videoData={source.videoData}
+      onError={onStreamError}
+    />
   );
 };

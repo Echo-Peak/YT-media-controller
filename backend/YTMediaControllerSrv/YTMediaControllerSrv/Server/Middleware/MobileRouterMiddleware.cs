@@ -103,7 +103,11 @@ namespace YTMediaControllerSrv.Server.Middleware
                         {
                             originSource,
                             dashStreamUrl = BaseUrl + $"video/dash?videoId={videoId}",
-                            hlsStreamUrl = BaseUrl + $"video/hls/playlist?videoId={videoId}&url={Convert.ToBase64String(Encoding.UTF8.GetBytes(masterManifestUrl))}"
+                            hlsStreamUrl = BaseUrl + $"video/hls/playlist?videoId={videoId}&url={Convert.ToBase64String(Encoding.UTF8.GetBytes(masterManifestUrl))}",
+                            videoData = new {
+                                title = sourceJson.Title,
+                                uploader = sourceJson.Uploader
+                            }
                         }
                     });
                     response.StatusCode = 200;
