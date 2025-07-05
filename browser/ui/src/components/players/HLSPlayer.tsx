@@ -1,11 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { Box } from '@chakra-ui/react';
 import { useHlsStreamer } from '../../services/useHlsStreamer';
-
-type StreamPlayerProps = {
-  sourceUrl: string;
-  onError: (error: Error) => void;
-};
+import { VideoPlayer, VideoPlayerRef } from '../VideoPlayer/VideoPlayer';
+import { StreamablePlayerProps } from '../../types/StreamablePlayerProps';
+import { useSpacebarPlayToggle } from '../VideoPlayer/useSpacebarToggle';
 
 const containerStyles: React.CSSProperties = {
   width: '100vw',
@@ -17,8 +15,12 @@ const containerStyles: React.CSSProperties = {
   zIndex: 9999,
 };
 
-export const StreamPlayer = ({ sourceUrl, onError }: StreamPlayerProps) => {
-  const playerRef = useRef<HTMLMediaElement | undefined>(undefined);
+export const HLSPlayer = ({
+  sourceUrl,
+  videoData,
+  onError,
+}: StreamablePlayerProps) => {
+  const playerRef = useRef<VideoPlayerRef>(null);
 
   const onFatalError = (error: Error) => {
     console.error('Fatal error in StreamPlayer:', error);
@@ -62,17 +64,11 @@ export const StreamPlayer = ({ sourceUrl, onError }: StreamPlayerProps) => {
     };
   }, [playerRef, sourceUrl]);
 
+  useSpacebarPlayToggle(playerRef);
+
   return (
     <Box style={containerStyles}>
-      <video
-        ref={playerRef as React.RefObject<HTMLVideoElement>}
-        style={{ width: '100vw', height: '100vh' }}
-        controls
-        autoPlay
-        crossOrigin="anonymous"
-      >
-        Your browser does not support the video tag.
-      </video>
+      <VideoPlayer ref={playerRef} videoData={videoData} />
     </Box>
   );
 };
