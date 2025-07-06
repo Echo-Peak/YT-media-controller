@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 
 type Props = {
   sourceUrl: string;
+  onError: () => void;
 };
 
 declare global {
@@ -27,7 +28,7 @@ const extractVideoId = (url: string): string => {
   return lastPart || '';
 };
 
-export const YoutubePlayer = ({ sourceUrl }: Props) => {
+export const EmbeddedYoutubePlayer = ({ sourceUrl, onError }: Props) => {
   const playerRef = useRef<YT.Player | undefined>(undefined);
   const iframeRef = useRef<HTMLDivElement>(null);
   const videoId = extractVideoId(sourceUrl);
@@ -53,6 +54,10 @@ export const YoutubePlayer = ({ sourceUrl }: Props) => {
             onReady: (event) => {
               event.target.playVideo();
             },
+            onError: (eventCode) => {
+              console.error('YouTube Player Error:', eventCode.data);
+              onError();
+            },
           },
         });
       }
@@ -64,6 +69,8 @@ export const YoutubePlayer = ({ sourceUrl }: Props) => {
       playerRef.current.cueVideoById(videoId);
     }
   }, [videoId]);
+
+  useLayoutEffect(() => {}, []);
 
   return (
     <div style={containerStyles}>

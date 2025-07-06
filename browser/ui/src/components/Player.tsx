@@ -1,6 +1,6 @@
 import { useVideoSource } from '../providers/VideoSourceProvider';
 import { useState } from 'react';
-import { YoutubePlayer } from './players/YoutubePlayer';
+import { EmbeddedYoutubePlayer } from './players/EmbeddedYoutubePlayer';
 import { HLSPlayer } from './players/HLSPlayer';
 import { NoVideoPlaying } from './dialogs/NoVideoPlaying';
 import { DASHPlayer } from './players/DASHPlayer';
@@ -18,6 +18,14 @@ export const Player = () => {
     setStreamPlayerFailed(true);
   };
 
+  const onUnableToPlayVideo = () => {
+    console.error(
+      'Unable to play video, opening via youtube.com in new tab:',
+      source.originSource,
+    );
+    window.open(source.originSource, '_blank');
+  };
+
   if (streamPlayerFailed) {
     if (source.dashStreamUrl) {
       return (
@@ -28,7 +36,12 @@ export const Player = () => {
         />
       );
     } else {
-      return <YoutubePlayer sourceUrl={source.originSource} />;
+      return (
+        <EmbeddedYoutubePlayer
+          sourceUrl={source.originSource}
+          onError={onUnableToPlayVideo}
+        />
+      );
     }
   }
 
