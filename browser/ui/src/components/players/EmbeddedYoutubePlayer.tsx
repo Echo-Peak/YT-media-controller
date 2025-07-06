@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef } from 'react';
 
 type Props = {
   sourceUrl: string;
-  onError: () => void;
+  onError: (err: Error) => void;
 };
 
 declare global {
@@ -11,6 +11,19 @@ declare global {
     YT: typeof YT;
   }
 }
+
+const notAllowedInEmbeddedPlayers =
+  'The owner of the requested video does not allow it to be played in embedded players.';
+
+const ytErrorDescriptionMap = {
+  2: 'The request contains an invalid parameter value.',
+  5: 'The requested content cannot be played in an HTML5 player.',
+  100: 'The video requested was not found.',
+  101: notAllowedInEmbeddedPlayers,
+  150: notAllowedInEmbeddedPlayers,
+  200: 'The video is unavailable.',
+  201: 'The video is private.',
+};
 
 const containerStyles: React.CSSProperties = {
   width: '100vw',
@@ -55,8 +68,10 @@ export const EmbeddedYoutubePlayer = ({ sourceUrl, onError }: Props) => {
               event.target.playVideo();
             },
             onError: (eventCode) => {
-              console.error('YouTube Player Error:', eventCode.data);
-              onError();
+              const err =
+                ytErrorDescriptionMap[eventCode.data] ||
+                `Unknown error - ${eventCode.data}`;
+              onError(new Error(`YouTube Player Error: ${err}`));
             },
           },
         });
