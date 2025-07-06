@@ -7,49 +7,55 @@ import { DASHPlayer } from './players/DASHPlayer';
 
 export const Player = () => {
   const { source } = useVideoSource();
-  const [streamPlayerFailed, setStreamPlayerFailed] = useState(false);
+  const [HLSPlayerFailed, setHLSPlayerFailed] = useState(false);
+  const [DASHPlayerFailed, setDASHPlayerFailed] = useState(false);
 
   if (!source) {
     return <NoVideoPlaying />;
   }
 
-  const onStreamError = (error: Error) => {
-    console.error('Error loading video:', error);
-    setStreamPlayerFailed(true);
+  const onHLSStreamError = (error: Error) => {
+    console.error('Error loading video via HLS:', error);
+    setHLSPlayerFailed(true);
   };
 
-  const onUnableToPlayVideo = () => {
-    console.error(
-      'Unable to play video, opening via youtube.com in new tab:',
-      source.originSource,
-    );
+  const onDASHStreamError = (error: Error) => {
+    console.error('Error loading video via DASH:', error);
+    setDASHPlayerFailed(true);
+  };
+
+  const onEmbeddedYoutubePlayerError = (error: Error) => {
+    console.error(error);
     window.open(source.originSource, '_blank');
   };
 
-  if (streamPlayerFailed) {
-    if (source.dashStreamUrl) {
-      return (
-        <DASHPlayer
-          sourceUrl={source.dashStreamUrl}
-          videoData={source.videoData}
-          onError={onStreamError}
-        />
-      );
-    } else {
-      return (
-        <EmbeddedYoutubePlayer
-          sourceUrl={source.originSource}
-          onError={onUnableToPlayVideo}
-        />
-      );
-    }
+  const streamPlayersFailed = HLSPlayerFailed && DASHPlayerFailed;
+  const unableToUserDASH = HLSPlayerFailed && !source.dashStreamUrl;
+
+  if (streamPlayersFailed || unableToUserDASH) {
+    return (
+      <EmbeddedYoutubePlayer
+        sourceUrl={source.originSource}
+        onError={onEmbeddedYoutubePlayerError}
+      />
+    );
+  }
+
+  if (HLSPlayerFailed) {
+    return (
+      <DASHPlayer
+        sourceUrl={source.dashStreamUrl}
+        videoData={source.videoData}
+        onError={onDASHStreamError}
+      />
+    );
   }
 
   return (
     <HLSPlayer
       sourceUrl={source.hlsStreamUrl}
       videoData={source.videoData}
-      onError={onStreamError}
+      onError={onHLSStreamError}
     />
   );
 };
