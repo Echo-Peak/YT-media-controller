@@ -92,9 +92,10 @@ namespace YTMediaControllerSrv.Server.Middleware
                 {
                     string originSource = jsonData.SourceUrl;
                     var sourceJson = await Ytdlp.Fetch(originSource);
-                    string masterManifestUrl = YTDlpParser.GetBestSource(sourceJson).MasterPlaylistUrl;
+                    YTUrlSource localSource = YTDlpParser.GetBestSource(sourceJson);
 
                     string videoId = new YTUrlData(originSource).VideoId;
+                    bool isDashAvailable = !string.IsNullOrEmpty(localSource.VideoSourceUrl) && !string.IsNullOrEmpty(localSource.AudioSourceUrl);
 
                     await UISocketServer.Send(new
                     {
@@ -102,8 +103,8 @@ namespace YTMediaControllerSrv.Server.Middleware
                         data = new
                         {
                             originSource,
-                            dashStreamUrl = BaseUrl + $"video/dash?videoId={videoId}",
-                            hlsStreamUrl = BaseUrl + $"video/hls/playlist?videoId={videoId}&url={Convert.ToBase64String(Encoding.UTF8.GetBytes(masterManifestUrl))}",
+                            dashStreamUrl = isDashAvailable ? BaseUrl + $"video/dash?videoId={videoId}" : null,
+                            hlsStreamUrl = BaseUrl + $"video/hls/playlist?videoId={videoId}&url={Convert.ToBase64String(Encoding.UTF8.GetBytes(localSource.MasterPlaylistUrl))}",
                             videoData = new {
                                 title = sourceJson.Title,
                                 uploader = sourceJson.Uploader
