@@ -131,6 +131,12 @@ namespace YTMediaControllerSrv.Server.Middleware
 
                 using (var segmentResponse = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
                 {
+                    if(segmentResponse.StatusCode != HttpStatusCode.OK)
+                    {
+                        response.StatusCode = (int)segmentResponse.StatusCode;
+                        response.Close();
+                        return;
+                    }
                     var contentType = segmentResponse.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
                     response.ContentType = contentType;
 

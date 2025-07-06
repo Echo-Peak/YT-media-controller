@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 
 type Props = {
   sourceUrl: string;
+  onError: (err: Error) => void;
 };
 
 declare global {
@@ -10,6 +11,19 @@ declare global {
     YT: typeof YT;
   }
 }
+
+const notAllowedInEmbeddedPlayers =
+  'The owner of the requested video does not allow it to be played in embedded players.';
+
+const ytErrorDescriptionMap = {
+  2: 'The request contains an invalid parameter value.',
+  5: 'The requested content cannot be played in an HTML5 player.',
+  100: 'The video requested was not found.',
+  101: notAllowedInEmbeddedPlayers,
+  150: notAllowedInEmbeddedPlayers,
+  200: 'The video is unavailable.',
+  201: 'The video is private.',
+};
 
 const containerStyles: React.CSSProperties = {
   width: '100vw',
@@ -27,7 +41,7 @@ const extractVideoId = (url: string): string => {
   return lastPart || '';
 };
 
-export const YoutubePlayer = ({ sourceUrl }: Props) => {
+export const EmbeddedYoutubePlayer = ({ sourceUrl, onError }: Props) => {
   const playerRef = useRef<YT.Player | undefined>(undefined);
   const iframeRef = useRef<HTMLDivElement>(null);
   const videoId = extractVideoId(sourceUrl);
@@ -53,6 +67,12 @@ export const YoutubePlayer = ({ sourceUrl }: Props) => {
             onReady: (event) => {
               event.target.playVideo();
             },
+            onError: (eventCode) => {
+              const err =
+                ytErrorDescriptionMap[eventCode.data] ||
+                `Unknown error - ${eventCode.data}`;
+              onError(new Error(`YouTube Player Error: ${err}`));
+            },
           },
         });
       }
@@ -64,6 +84,8 @@ export const YoutubePlayer = ({ sourceUrl }: Props) => {
       playerRef.current.cueVideoById(videoId);
     }
   }, [videoId]);
+
+  useLayoutEffect(() => {}, []);
 
   return (
     <div style={containerStyles}>
