@@ -3,8 +3,6 @@ import { useRef } from 'react';
 
 const hlsConfig: Partial<HlsConfig> = {
   maxBufferLength: 10,
-  enableWorker: true,
-  progressive: true,
   maxBufferSize: 30 * 1000 * 1000,
   maxBufferHole: 0.5,
   liveMaxLatencyDuration: 10,
@@ -41,7 +39,6 @@ export const useHlsStreamer = (
   onFatalError: (error: Error) => void,
 ): HlsStreamer => {
   const hlsRef = useRef<Hls | undefined>(undefined);
-  let fragLoadTimeout: ReturnType<typeof setTimeout> | null = null;
   const cleanupStream = () => {
     if (hlsRef.current) {
       hlsRef.current.stopLoad();
@@ -49,17 +46,6 @@ export const useHlsStreamer = (
       hlsRef.current.destroy();
       hlsRef.current = undefined;
     }
-  };
-  const resetFragTimeout = () => {
-    if (fragLoadTimeout) clearTimeout(fragLoadTimeout);
-    fragLoadTimeout = setTimeout(() => {
-      cleanupStream();
-      onFatalError(
-        new Error(
-          'HLS stuck: no fragment has been loaded for an extended amount of time',
-        ),
-      );
-    }, 6000);
   };
 
   const loadStream = (streamUrl: string, mediaElement: HTMLMediaElement) => {
@@ -70,16 +56,17 @@ export const useHlsStreamer = (
     hlsRef.current.loadSource(streamUrl);
     hlsRef.current.attachMedia(mediaElement);
 
-    hlsRef.current.on(Hls.Events.FRAG_LOADED, () => {
-      resetFragTimeout();
-    });
-
     hlsRef.current.on(Hls.Events.ERROR, (event, data) => {
-      if (data.fatal) {
+      const isNetworkError = data.type === Hls.ErrorTypes.NETWORK_ERROR;
+      const isForbidden =
+        (data.networkDetails as XMLHttpRequest).status === 403;
+
+      if ((isNetworkError && isForbidden) || data.fatal) {
+        cleanupStream();
         onFatalError(new Error(`HLS Error: ${data.type} - ${data.details}`));
-      } else {
-        console.warn('HLS non-fatal error:', data);
+        return;
       }
+      console.warn('HLS non-fatal error:', data);
     });
   };
 
