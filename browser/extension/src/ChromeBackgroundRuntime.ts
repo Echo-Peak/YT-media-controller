@@ -1,3 +1,4 @@
+import { doesTabExist } from "./helpers/doesTabExists";
 import { NativeHostApi } from "./NativeHostApi";
 
 export class ChromeBackgroundRuntime {
@@ -126,14 +127,27 @@ export class ChromeBackgroundRuntime {
     });
   };
 
+  private openInYTTab = async (url: string) => {
+    const tabExists = await doesTabExist(this.YTTabID!);
+
+    if (tabExists) {
+      chrome.tabs.update(this.YTTabID!, { url: url, active: true });
+    } else {
+      console.warn("YouTube tab does not exist, creating a new one.");
+      chrome.tabs.create({ url: url, active: true }, (tab) => {
+        this.YTTabID = tab.id;
+      });
+    }
+  };
+
   private handleMessage = (
     message: Record<string, any>,
     sender: chrome.runtime.MessageSender,
     sendResponse: (response?: any) => void
   ) => {
     switch (message.action) {
-      case "getYTTabId": {
-        sendResponse({ tabId: this.YTTabID });
+      case "openInYTTab": {
+        this.openInYTTab(message.data.url).catch(console.error);
         break;
       }
       case "enforcementDialogRemoved": {
