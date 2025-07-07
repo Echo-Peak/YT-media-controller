@@ -9,12 +9,18 @@
     "storage",
     "tabs",
     "contextMenus",
-    "nativeMessaging"    
+    "nativeMessaging"
   ],
   "background": {
     "service_worker": "background.js"
   },
-    "web_accessible_resources": [
+  "content_scripts": [
+    {
+      "matches": ["*://www.youtube.com/*"],
+      "js": ["youtubeContentScript.js"]
+    }
+  ],
+  "web_accessible_resources": [
     {
       "resources": ["ui/window.html"],
       "matches": ["<all_urls>"]
@@ -25,8 +31,8 @@
     "ws://localhost/*",
     "wss://localhost/*"
   ],
-  "action":{
-    "default_title":"YT ext",
+  "action": {
+    "default_title": "YT ext",
     "default_icon": {
       "16": "assets/icon16.png",
       "48": "assets/icon48.png",
