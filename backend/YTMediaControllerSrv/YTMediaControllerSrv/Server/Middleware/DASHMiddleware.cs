@@ -64,22 +64,25 @@ namespace YTMediaControllerSrv.Server.Middleware
                 await response.OutputStream.FlushAsync();
 
                 var bestSource = YTDlpParser.GetBestSource(sourceJson);
-
-                using (var videoStream = await HttpClient.GetStreamAsync(bestSource.VideoSourceUrl))
-                using (var audioStream = await HttpClient.GetStreamAsync(bestSource.AudioSourceUrl))
+                var audioSource = bestSource.AudioSourceUrl;
+                var videoSource = bestSource.VideoSourceUrl;
+                bool missingSource = string.IsNullOrEmpty(videoSource) && string.IsNullOrEmpty(audioSource);
+                if (missingSource)
                 {
-                    await FFMpegCore.FFMpegArguments
-                        .FromPipeInput(new FFMpegCore.Pipes.StreamPipeSource(videoStream))
-                        .AddPipeInput(new FFMpegCore.Pipes.StreamPipeSource(audioStream))
-                        .OutputToPipe(new FFMpegCore.Pipes.StreamPipeSink(response.OutputStream), o => o
-                            .WithCopyCodec()
-                            .WithCustomArgument("-map 0:v:0 -map 1:a:0")
-                            .WithCustomArgument("-movflags +frag_keyframe+empty_moov")
-                            .WithCustomArgument("-preset ultrafast")
-                            .WithCustomArgument("-fflags +nobuffer")
-                            .ForceFormat("mp4"))
-                        .ProcessAsynchronously();
+                    throw new Exception($"Missing a source url. Audio source: \"{audioSource}\", Video source: \"{videoSource}\"");
                 }
+
+                await FFMpegCore.FFMpegArguments
+                    .FromUrlInput(new Uri(bestSource.VideoSourceUrl))
+                    .AddUrlInput(new Uri(bestSource.AudioSourceUrl))
+                    .OutputToPipe(new FFMpegCore.Pipes.StreamPipeSink(response.OutputStream), o => o
+                        .WithAudioCodec("aac")
+                        .WithVideoCodec("copy")
+                        .WithCustomArgument("-map 0:v:0 -map 1:a:0")
+                        .WithCustomArgument("-movflags +frag_keyframe+empty_moov")
+                        .ForceFormat("mp4"))
+                    .ProcessAsynchronously();
+                
             }
             catch (IOException ioEx) when (ioEx.Message.Contains("pipe") || ioEx.Message.Contains("broken"))
             {
@@ -87,14 +90,27 @@ namespace YTMediaControllerSrv.Server.Middleware
             }
             catch (Exception ex)
             {
-                Logger.Error("Unable to create DASH stream", ex);
                 if (context.Response.OutputStream.CanWrite)
+                {
                     context.Response.StatusCode = 502;
+                }
             }
             finally
             {
-                try { response.OutputStream.Close(); } catch { }
-                try { response.Close(); } catch { }
+                try
+                {
+                    if (response.OutputStream.CanWrite)
+                    {
+                        response.OutputStream.Close();
+                    }
+                }
+                catch(Exception streamError) {
+                    Logger.Error("Unable to close output stream", streamError);
+                }
+
+                try { response.Close(); } catch(Exception resError) {
+                    Logger.Error("Unable to close response", resError);
+                }
             }
         }
     }
