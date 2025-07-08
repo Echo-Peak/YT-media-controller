@@ -1,33 +1,20 @@
 import { ChromeFrontEndRuntime } from "../ChromeFrontEndRuntime";
-import { getPlaybackControls } from "./getPlaybackControls";
-import { isFirstFrame } from "./isFirstFrame";
+import {
+  convertDurationToSeconds,
+  convertSecondsToDuration,
+} from "./convertDuration";
+import { elementMap } from "./elementMap";
+import { getPlaybackControlsState } from "./getPlaybackControls";
 import { selectVideoId } from "./selectVideoId";
 
 const runtime = new ChromeFrontEndRuntime();
-
-const elements = {
-  enforcementDialog: {
-    viewModel:
-      "body > ytd-app > ytd-popup-container > tp-yt-paper-dialog > ytd-enforcement-message-view-model",
-    container: "body > ytd-app > ytd-popup-container",
-  },
-  playback: {
-    container:
-      "#movie_player > div.ytp-chrome-bottom > div.ytp-chrome-controls > div.ytp-left-controls > div.ytp-time-display.notranslate > span.ytp-time-wrapper > div",
-    currentTime: "span.ytp-time-current",
-    duration: "span.ytp-time-duration",
-  },
-};
+const maxSecondsToWait = 30;
 
 const startPlaybackWatcher = () => {
   let timeoutId: NodeJS.Timeout | null = null;
-  const controls = getPlaybackControls(
-    elements.playback.container,
-    elements.playback.currentTime,
-    elements.playback.duration
-  );
   let waitIndex = 0;
   let videoPlaying = false;
+  let playbackStarted = false;
   const videoId = selectVideoId(window.location.href);
 
   if (!videoId) {
@@ -36,22 +23,50 @@ const startPlaybackWatcher = () => {
   }
 
   const playbackTick = () => {
-    if (waitIndex > 20) {
+    const controls = getPlaybackControlsState(elementMap);
+    if (waitIndex > maxSecondsToWait) {
+      console.error(
+        `Playback controls not found after ${maxSecondsToWait} seconds`
+      );
       clearInterval(timeoutId!);
       return;
     }
-    if (!controls.currentTime || !controls.duration) {
+
+    if (!controls.duration || !controls.currentTime) {
       waitIndex++;
       return;
     }
 
-    const currentTime = (controls.currentTime as HTMLElement).innerText;
+    const elapsedTimeInSeconds = Math.floor(controls.currentTime);
+
+    if (controls.isPaused && videoPlaying) {
+      videoPlaying = false;
+      runtime.sendEvent({
+        action: "webPlaybackPaused",
+        data: {
+          videoId,
+          elapsedTime: convertSecondsToDuration(elapsedTimeInSeconds),
+          duration: (controls.duration as HTMLSpanElement).innerText,
+        },
+      });
+    } else if (!controls.isPaused && playbackStarted) {
+      videoPlaying = true;
+      runtime.sendEvent({
+        action: "webPlaybackElapsed",
+        data: {
+          videoId,
+          elapsedTime: convertSecondsToDuration(elapsedTimeInSeconds),
+          duration: (controls.duration as HTMLSpanElement).innerText,
+        },
+      });
+    }
+
     const duration = (controls.duration as HTMLElement).innerText;
 
-    if (currentTime === duration) {
+    if (elapsedTimeInSeconds === convertDurationToSeconds(duration)) {
       clearInterval(timeoutId!);
       runtime.sendEvent({
-        action: "playbackEnded",
+        action: "webPlaybackEnded",
         data: {
           videoId,
         },
@@ -59,22 +74,12 @@ const startPlaybackWatcher = () => {
       return;
     }
 
-    if (!isFirstFrame(currentTime)) {
-      if (!videoPlaying) {
-        runtime.sendEvent({
-          action: "playbackStarted",
-          data: {
-            videoId,
-          },
-        });
-        videoPlaying = true;
-      }
+    if (elapsedTimeInSeconds < 10 && !playbackStarted) {
+      playbackStarted = true;
       runtime.sendEvent({
-        action: "playbackElapsed",
+        action: "webPlaybackStarted",
         data: {
           videoId,
-          elapsedTime: currentTime,
-          duration,
         },
       });
     }
@@ -86,10 +91,12 @@ const startPlaybackWatcher = () => {
 function startDialogBlocker() {
   let timeoutId: NodeJS.Timeout | null = null;
   const removeDialog = () => {
-    const dialog = document.querySelector(elements.enforcementDialog.viewModel);
+    const dialog = document.querySelector(
+      elementMap.enforcementDialog.viewModel
+    );
     if (dialog) {
       const container = document.querySelector(
-        elements.enforcementDialog.container
+        elementMap.enforcementDialog.container
       );
       if (container) {
         container.removeChild(dialog);

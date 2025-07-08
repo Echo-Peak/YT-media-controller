@@ -29,7 +29,6 @@ export class ChromeBackgroundRuntime {
         });
       }
     });
-    this.createYTTab();
     this.init().catch(console.error);
   }
 
@@ -134,9 +133,7 @@ export class ChromeBackgroundRuntime {
       chrome.tabs.update(this.YTTabID!, { url: url, active: true });
     } else {
       console.warn("YouTube tab does not exist, creating a new one.");
-      chrome.tabs.create({ url: url, active: true }, (tab) => {
-        this.YTTabID = tab.id;
-      });
+      this.createYTTab();
     }
   };
 

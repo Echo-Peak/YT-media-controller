@@ -1,21 +1,20 @@
-export const getPlaybackControls = (
-  containerSelector: string,
-  currentTimeSelector: string,
-  durationSelector: string
-): {
-  currentTime: Element;
-  duration: Element;
-} => {
-  const selector = document.querySelector(containerSelector);
-  const currentTime = selector?.querySelector(currentTimeSelector);
-  const duration = selector?.querySelector(durationSelector);
+import { ElementMap } from "./elementMap";
 
-  if (!currentTime || !duration) {
-    throw new Error("Playback control elements not found");
-  }
+export const getPlaybackControlsState = (
+  elementMap: ElementMap
+): {
+  currentTime?: number;
+  duration?: Element;
+  isPaused: boolean;
+} => {
+  const videoContainer =
+    document.querySelector(elementMap.videoContainer) ?? undefined;
+  const duration = document.querySelector(elementMap.duration) ?? undefined;
+  const playButton = document.querySelector(elementMap.playButton) ?? undefined;
 
   return {
-    currentTime,
+    currentTime: (videoContainer as HTMLVideoElement).currentTime,
     duration,
+    isPaused: playButton?.getAttribute("data-title-no-tooltip") === "Play",
   };
 };

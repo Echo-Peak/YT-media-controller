@@ -13,6 +13,7 @@ export class BackendService {
   private constructor(port: string | number | undefined) {
     this.port = port;
     this.connect();
+    chrome.runtime.onMessage.addListener(this.relayMessageToBackend);
   }
 
   static async init(): Promise<BackendService> {
@@ -20,6 +21,19 @@ export class BackendService {
     const port = uiSocketServerPort || process.env.REACT_APP_API_SERVER_PORT;
     return new BackendService(port);
   }
+
+  private relayMessageToBackend = (
+    message: { action: string; data?: Record<string, unknown> },
+    sender: chrome.runtime.MessageSender,
+    sendResponse: (response?: Record<string, unknown>) => void,
+  ) => {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify(message));
+    } else {
+      console.warn('WebSocket is not open, queuing message:', message);
+      this.pendingMessages.push(message);
+    }
+  };
 
   private connect() {
     if (!this.port) return;
