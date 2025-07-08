@@ -69,11 +69,17 @@ namespace YTMediaControllerSrv.Server
         public void OnMessage(string jsonString)
         {
             var obj = JsonConvert.DeserializeObject<UISocketMessage>(jsonString);
+
             switch (obj.Action)
             {
-                case "playbackStarted":
+                case "webPlaybackStarted":
                     {
-                        SystemController.EnterFullScreen();
+                        SystemController.TriggerYoutubeFullsceen();
+                        break;
+                    }
+                case "enforcementDialogRemoved":
+                    {
+                        SystemController.TriggerYoutubePlay();
                         break;
                     }
             }

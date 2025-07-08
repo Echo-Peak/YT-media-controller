@@ -4,9 +4,11 @@ import { EmbeddedYoutubePlayer } from './players/EmbeddedYoutubePlayer';
 import { HLSPlayer } from './players/HLSPlayer';
 import { NoVideoPlaying } from './dialogs/NoVideoPlaying';
 import { DASHPlayer } from './players/DASHPlayer';
+import { useChromeRuntime } from '../services/useChromeRuntime';
 
 export const Player = () => {
   const { source } = useVideoSource();
+  const { sendEvent } = useChromeRuntime();
   const [HLSPlayerFailed, setHLSPlayerFailed] = useState(false);
   const [DASHPlayerFailed, setDASHPlayerFailed] = useState(false);
 
@@ -26,7 +28,12 @@ export const Player = () => {
 
   const onEmbeddedYoutubePlayerError = (error: Error) => {
     console.error(error);
-    window.open(source.originSource, '_blank');
+    sendEvent({
+      action: 'openInYTTab',
+      data: {
+        url: source.originSource,
+      },
+    });
   };
 
   const streamPlayersFailed = HLSPlayerFailed && DASHPlayerFailed;

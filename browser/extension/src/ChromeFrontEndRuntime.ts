@@ -1,35 +1,32 @@
 export class ChromeFrontEndRuntime {
-  constructor(){
-    chrome.runtime.sendMessage({action: "ytFrontendRuntimeLoaded"});
+  constructor() {
+    chrome.runtime.sendMessage({ action: "ytFrontendRuntimeLoaded" });
     chrome.runtime.onMessage.addListener(this.handleMessage);
   }
 
-  private handleMessage = (message: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
-    switch (message.action) {
-      case "PlayEvent": {
-        window.location.href = message.data.url;
-        break;
-      }
-    }
-  }
+  private handleMessage = (
+    message: any,
+    sender: chrome.runtime.MessageSender,
+    sendResponse: (response?: any) => void
+  ) => {};
 
-  public sendVideoEndedEvent = (videoId: string) => {
-    chrome.runtime.sendMessage({action: "playbackElapsed", data:{
-      videoId,
-    }});
-  }
+  public sendEvent = (event: { action: string; data?: any }) => {
+    chrome.runtime.sendMessage(event);
+  };
 
-  public sendVideoStartedEvent = (videoId: string) => {
-    chrome.runtime.sendMessage({action: "playbackElapsed" ,data: {
-      videoId,
-    }});
-  }
-
-    public sendVideoElapsedTimeEvent = (videoId: string, elapsedTime: string, duration: string) => {
-    chrome.runtime.sendMessage({action: "playbackElapsed", data:{
-      videoId,
-      elapsedTime,
-      duration,
-    }});
-  }
+  public getYTTabId = (): Promise<number | undefined> => {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ action: "getYTTabId" }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "Error getting YouTube tab ID:",
+            chrome.runtime.lastError
+          );
+          resolve(undefined);
+        } else {
+          resolve(response?.tabId);
+        }
+      });
+    });
+  };
 }

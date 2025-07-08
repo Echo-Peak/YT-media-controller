@@ -5,7 +5,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 module.exports = {
   entry: {
     background: "./src/background.ts",
-    contentScript: "./src/contentScript.ts",
+    youtubeContentScript: "./src/Youtube/contentScript.ts",
   },
   output: {
     path: path.resolve(__dirname, "../../dist/browser-extension-unpacked"),
