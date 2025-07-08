@@ -1,7 +1,7 @@
 name: Build assets
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "pipeline-testing"]
 
 jobs:
   build-desktop-installer-asset:
