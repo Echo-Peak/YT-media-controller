@@ -15,6 +15,7 @@ jobs:
         run: |
           VERSION="v1.0.0-build.${{ github.run_number }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+        shell: bash.exe
 
       - name: Fetch external binaries
         run: node ./backend/scripts/installExternalDeps.js
@@ -27,7 +28,7 @@ jobs:
           nuget restore ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
 
       - name: Build backend service
-        run:
+        run: |
           msbuild ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
           /p:Configuration=Release
 
@@ -40,6 +41,7 @@ jobs:
           git config user.email "github-actions@github.com"
           git tag ${{ steps.vars.outputs.version }}
           git push origin ${{ steps.vars.outputs.version }}
+        shell: bash.exe
 
       - name: Create GitHub Release
         id: create_release
