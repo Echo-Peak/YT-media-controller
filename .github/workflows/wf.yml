@@ -21,7 +21,7 @@ jobs:
         run: node ./backend/scripts/installExternalDeps.js
 
       - name: Install NPM modules
-        run: npm install
+        run: yarn
 
       - name: Restore NuGet packages
         run: |
