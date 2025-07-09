@@ -20,6 +20,13 @@ jobs:
       - name: Fetch external binaries
         run: node ./backend/scripts/installExternalDeps.js
 
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.os }}-node-
+
       - name: Install NPM modules
         run: yarn
 
