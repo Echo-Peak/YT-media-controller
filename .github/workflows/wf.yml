@@ -5,7 +5,7 @@ on:
 
 jobs:
   build-desktop-installer-asset:
-    runs-on: windows-server
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
