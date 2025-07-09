@@ -15,7 +15,7 @@ jobs:
         run: |
           VERSION="v1.0.0-build.${{ github.run_number }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-        shell: bash.exe
+        shell: bash
 
       - name: Fetch external binaries
         run: node ./backend/scripts/installExternalDeps.js
@@ -41,7 +41,7 @@ jobs:
           git config user.email "github-actions@github.com"
           git tag ${{ steps.vars.outputs.version }}
           git push origin ${{ steps.vars.outputs.version }}
-        shell: bash.exe
+        shell: bash
 
       - name: Create GitHub Release
         id: create_release
