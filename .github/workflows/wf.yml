@@ -9,6 +9,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
 
       - name: Set version/tag variable
         id: vars
@@ -20,15 +22,15 @@ jobs:
       - name: Fetch external binaries
         run: node ./backend/scripts/installExternalDeps.js
 
+      - name: Install NPM modules
+        run: yarn
+
       - name: Cache node_modules
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
           key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
           restore-keys: ${{ runner.os }}-node-
-
-      - name: Install NPM modules
-        run: yarn
 
       - name: Restore NuGet packages
         run: |
