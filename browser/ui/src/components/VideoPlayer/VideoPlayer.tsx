@@ -16,6 +16,7 @@ type VideoPlayerProps = {
     uploader: string;
   };
   onError?: (error: Error) => void;
+  onEnd: () => void;
 };
 
 const PlayerContainer = styled.div({
@@ -41,7 +42,7 @@ const Video = styled.video({
 export type VideoPlayerRef = HTMLVideoElement | null;
 
 export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
-  ({ videoData, onError }, ref) => {
+  ({ videoData, onError, onEnd }, ref) => {
     const internalVideoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -65,6 +66,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       };
       const handleVideoEndEvent = () => {
         setIsPlaying(false);
+        onEnd();
       };
       const handleVideoPauseEvent = () => {
         setIsPlaying(false);
