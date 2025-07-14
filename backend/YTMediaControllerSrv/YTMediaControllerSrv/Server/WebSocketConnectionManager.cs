@@ -32,7 +32,7 @@ namespace YTMediaControllerSrv.Server
         public async Task StartAsync(CancellationToken cancellationToken = default)
         {
             _httpListener.Start();
-            Console.WriteLine($"[WebSocketServer] Listening at {wsUrl}...");
+            Logger.Info($"[WebSocketServer] Listening at {wsUrl}...");
 
 
             while (!cancellationToken.IsCancellationRequested)
@@ -50,7 +50,7 @@ namespace YTMediaControllerSrv.Server
                 {
                     context.Response.StatusCode = 409;
                     context.Response.Close();
-                    Console.WriteLine("[WebSocketServer] Rejected connection: already connected.");
+                    Logger.Info("[WebSocketServer] Rejected connection: already connected.");
                     continue;
                 }
 
@@ -58,7 +58,7 @@ namespace YTMediaControllerSrv.Server
                 _clientSocket = wsContext.WebSocket;
 
                 OnConnect?.Invoke();
-                Console.WriteLine("[WebSocketServer] Client connected");
+                Logger.Info("[WebSocketServer] Client connected");
 
                 _ = ListenAsync(_clientSocket, cancellationToken);
             }
@@ -70,30 +70,28 @@ namespace YTMediaControllerSrv.Server
 
             try
             {
-                Console.WriteLine(socket.State == WebSocketState.Open && !ct.IsCancellationRequested);
                 while (socket.State == WebSocketState.Open && !ct.IsCancellationRequested)
                 {
                     var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
 
-                    Console.WriteLine(result.MessageType);
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
                         break;
                     }
                     
                     var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    Console.WriteLine(message);
+                    Logger.Debug(message);
                     OnMessage?.Invoke(message);
                 }
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"[WebSocketServer] Error: {ex.Message}");
+                Logger.Error($"[WebSocketServer] error", ex);
             }
             finally
             {
                 OnDisconnect?.Invoke();
-                Console.WriteLine("[WebSocketServer] Client disconnected");
+                Logger.Info("[WebSocketServer] Client disconnected");
 
                 if (socket.State == WebSocketState.Open)
                     await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", ct);
@@ -104,7 +102,7 @@ namespace YTMediaControllerSrv.Server
 
         public async Task SendAsync(object data)
         {
-            Console.WriteLine("Sending data to UI web sockets");
+            Logger.Info("Sending data to UI web sockets");
             string message = JsonConvert.SerializeObject(data);
             if (_clientSocket?.State == WebSocketState.Open)
             {
