@@ -45,5 +45,5 @@ bld/
 packages
 
 # generated
-debug.settings.json
+settings.json
 externalBins

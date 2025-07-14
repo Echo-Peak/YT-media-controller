@@ -26,7 +26,7 @@ namespace YTMediaControllerSrv
         {
             if (!IsInstalled())
             {
-                return Path.Combine(GetProjectRoot(), "backend\\debug.settings.json");
+                return Path.Combine(GetProjectRoot(), "backend\\settings.example.json");
             }
 
             return Path.Combine(installDir, "settings.json");

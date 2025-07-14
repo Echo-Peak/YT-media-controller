@@ -5,7 +5,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "build-service": "node backend/scripts/build.js",
+    "build-service": "ts-node backend/scripts/build.ts",
     "build-browser": "npm run build-browser-extension && npm run build-browser-ui",
     "build-browser-extension": "yarn workspace @yt-media-controller/extension run build",
     "build-browser-ui": "yarn workspace @yt-media-controller/ui run build",
