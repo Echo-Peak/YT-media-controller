@@ -4,4 +4,5 @@ export type StreamablePlayerProps = {
   sourceUrl: string;
   videoData?: YTVideoData;
   onError: (error: Error) => void;
+  onEnded: () => void;
 };

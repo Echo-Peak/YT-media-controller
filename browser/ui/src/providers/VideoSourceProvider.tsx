@@ -11,6 +11,7 @@ import { useBackendService } from '../services/backend/useSocketService';
 
 interface VideoSourceContextType {
   source: YTUrlSource | undefined;
+  removeSource: () => void;
 }
 
 const VideoSourceContext = createContext<VideoSourceContextType | undefined>(
@@ -36,7 +37,9 @@ export const VideoSourceProvider = ({ children }: { children: ReactNode }) => {
   }, [wsService]);
 
   return (
-    <VideoSourceContext.Provider value={{ source }}>
+    <VideoSourceContext.Provider
+      value={{ source, removeSource: () => setSource(undefined) }}
+    >
       {children}
     </VideoSourceContext.Provider>
   );

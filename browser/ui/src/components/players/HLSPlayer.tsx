@@ -19,6 +19,7 @@ export const HLSPlayer = ({
   sourceUrl,
   videoData,
   onError,
+  onEnded,
 }: StreamablePlayerProps) => {
   const playerRef = useRef<VideoPlayerRef>(null);
 
@@ -68,7 +69,7 @@ export const HLSPlayer = ({
 
   return (
     <Box style={containerStyles}>
-      <VideoPlayer ref={playerRef} videoData={videoData} />
+      <VideoPlayer ref={playerRef} videoData={videoData} onEnd={onEnded} />
     </Box>
   );
 };

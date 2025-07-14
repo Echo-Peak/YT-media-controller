@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef } from 'react';
 type Props = {
   sourceUrl: string;
   onError: (err: Error) => void;
+  onEnded: () => void;
 };
 
 declare global {
@@ -41,7 +42,11 @@ const extractVideoId = (url: string): string => {
   return lastPart || '';
 };
 
-export const EmbeddedYoutubePlayer = ({ sourceUrl, onError }: Props) => {
+export const EmbeddedYoutubePlayer = ({
+  sourceUrl,
+  onError,
+  onEnded,
+}: Props) => {
   const playerRef = useRef<YT.Player | undefined>(undefined);
   const iframeRef = useRef<HTMLDivElement>(null);
   const videoId = extractVideoId(sourceUrl);
@@ -66,6 +71,11 @@ export const EmbeddedYoutubePlayer = ({ sourceUrl, onError }: Props) => {
           events: {
             onReady: (event) => {
               event.target.playVideo();
+            },
+            onStateChange: (event) => {
+              if (event.data === window.YT.PlayerState.ENDED) {
+                onEnded();
+              }
             },
             onError: (eventCode) => {
               const err =

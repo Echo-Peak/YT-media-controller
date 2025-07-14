@@ -8,6 +8,7 @@ export const DASHPlayer = ({
   sourceUrl,
   videoData,
   onError,
+  onEnded,
 }: StreamablePlayerProps) => {
   const playerRef = useRef<VideoPlayerRef>(null);
 
@@ -29,6 +30,7 @@ export const DASHPlayer = ({
         ref={playerRef}
         videoData={videoData}
         onError={handleError}
+        onEnd={onEnded}
       />
     </Box>
   );
