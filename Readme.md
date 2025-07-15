@@ -1,56 +1,105 @@
 # YT-media-controller
 
-## Usage 
-**Desktop app setup**
-This project creates 2 build artifacts. The desktop app, which contains the background server, control server and browser extension. The mobile app, which in this case is a android APK file.
-
-The apk file will need to be side-loaded via ADB.
-
-After the desktop app is installed, the browser extension will need to be added your chromium based browser of choice. You will need to go into "Manage extension", enable develop mode and "Load Unpacked" and then select the root folder of the YTMediaController browser extension. This will be located in C:\Program Files\YTMediaController\ui
-
-**Mobile app setup**
-On the desktop computer, in the browser, open the extension via icon in extension bar. This will create a QR code of the device local network IP.
-In the mobile app, open it and allow camera permissions then tap of the camera/code scanner UI to initiate the scanner. Scan the QR code to set/save the device IP.
-
-In an app that shows youtube videos, or youtube links in general perhaps via youtube website in an browser, long press on a video or open the share menu and select YTMediaController.
-Depending what you want to do, select "Play video" if you want to play the selected video immediately or "Queue video" if you want to play the selected video after the current video haas ended.
-
-## Project Overview
-This project consists of three components designed to enable seamless sending of YouTube video URLs from an Android device—via the native YouTube app or browser—without triggering casting issues, analytics events, or altering the YouTube recommendation feed.
-
 ## Inspiration
-The driving force behind this project is a strong desire to eliminate ads—completely. I dont want youtube premium, I like casting, and I can't stand ads at all, and I want to avoid them at all costs. At the same time, I need a quick and seamless way to play YouTube videos on my HTPC. Since I primarily use Android devices, there’s no easier method than leveraging the native Android share menu to send YouTube links directly from any app or browser. This project makes that process effortless while bypassing ads and avoiding the overhead and limitations of YouTube's official casting features.
 
+The driving force behind this project is that I watch a lot of YouTube content,
+but I don’t support the way YouTube is monetized or the way data is collected
+about what you watch. Another motivation is to bypass the ad-blocking mechanisms
+YouTube implements at this time.  
+I needed a quick and seamless way to send a YT video from mobile to my dedicated
+HTPC. Using Android’s casting feature—especially via the YT app—is not an option
+because casting affects the Android device.
 
-## 1. Browser Extension
-The Chrome extension enables communication with a background Windows service that runs an HTTP server. It is active only on tabs that are already open to YouTube.
+Since I primarily use Android devices, the easiest way to get a YT video to play
+on my HTPC is by leveraging Android’s share menu to send localhost API requests
+to the HTPC. From a usability perspective, it’s as easy as "long-pressing" on a
+video—whether it’s in a browser or the YT app—and selecting "Share," then
+pressing the "Play video" button. Three steps.
 
-**Frontend / Content Script**
-* Monitors the YouTube player to detect when a video starts or ends and sends corresponding events to the background script.
-* Allows URL changes directly within the current YouTube tab.
-* Displays a QR code containing the local device's IP address and the port used by the background server.
-* Provides a simple UI to update the background server or control server port.
-* Utilizes Chrome’s native messaging to communicate with a host executable (YTMediaControllerHost), which requires elevated privileges. As a result, a UAC prompt will appear when restarting the C# Windows service.
+## Overview
 
-**Background Script**
-* Listens for "playbackStarted" and "playbackEnded" events from the content script.
-* Forwards these events to the Windows service via a WebSocket connection.
+This project consists of 3 components:
 
----
+**The mobile plugin**
 
-## 2. C# Windows Background Service
-This Windows service runs under the "Local Network" service account to minimize permissions. It hosts two servers:
-* An HTTP server for communication with external devices (e.g., the Android app).
-* A WebSocket control server for internal communication with the browser extension.
-
-The Android app interacts with the HTTP server by sending a playVideo request that includes the original YouTube URL from the SHARE_INTENT action.
-
----
-### 3. Android App
+Currently only supports Android.  
 This lightweight app enhances the Android share menu by adding two options:
-* Send URL to YT Controller
-* Queue URL to YT Controller
+
+- Send URL to YT Controller
+- Queue URL to YT Controller
 
 When either action is triggered (usually via a long press), the app:
-* Validates that the shared URL is from YouTube.
-* Sends the URL to the Windows service using the endpoint http://DEVICE_IP:PORT/playVideo.
+
+- Validates that the shared URL is from YouTube.
+- Sends the URL to the Windows service using the endpoint
+  `POST http://DEVICE_IP:PORT/mobile/playVideo`.
+
+**The C# backend server**
+
+This Windows service runs under the "Local Network" service account to minimize
+permissions. It hosts two servers:
+
+- An HTTP server for communication with external devices (e.g., the Android
+  app).
+- A WebSocket control server for internal communication with the browser
+  extension.
+
+The Android app interacts with the HTTP server by sending a `playVideo` request
+that includes the original YouTube URL from the `SHARE_INTENT` action.
+
+**The external viewer (UI / browser extension)**
+
+The browser extension is a 3-part component that allows communication with an
+external C# HTTP server and WebSocket server so that the mobile app can send a
+YT link and have it play within the UI.
+
+The parts are as follows:
+
+- **The external viewer**
+  - This is the UI that can play HLS, DASH, and YouTube iframe videos.
+  - This viewer communicates with the C# backend server via a local WebSocket
+    connection.
+
+- **The mobile setup**
+  - This is a UI that renders a QR code containing the device's local network IP
+    and the port of the C# HTTP server.
+
+- **The native host exec**
+  - This is used to retrieve the local device IP and port of the C# HTTP server
+    and store it within the extension context.
+  - This only runs once when the extension loads.
+
+These three components are designed to enable seamless sending of YouTube video
+URLs from an Android device—via a "long-press" on video content. The idea is to
+send a YouTube video to a designated PC, like an HTPC, without the analytics
+gathering that occurs during casting or affecting the YouTube recommendation
+feed of your personal account.
+
+## Local Setup
+
+- Clone the repo
+- Navigate to the root folder
+- Run `yarn`
+- Adjust `backend/settings.example.json` ports if needed
+- Run `yarn build-service` to build the C# backend service and native host exec
+- Run `yarn build-browser` to build the extension
+- Open a Chromium browser and go to Settings > Manage Extensions
+  - Ensure Developer Mode is enabled
+  - Click on "Load unpacked"
+  - Navigate to the cloned repo folder and select the
+    `dist/browser-extension-unpacked` folder
+  - Copy the extension ID, then in your terminal set the environment variable:
+    `EXTENSION_ID=<your extension id>` (replace with the ID you copied)
+- Back in your terminal, re-run `yarn build-browser`
+- In the browser, go back to the extension page, reload the extension, and then
+  restart the browser  
+  **Native host exec IPC is not functional until the next browser restart!**
+- Either launch Visual Studio as admin or run `YTMediaControllerSrv.exe` as
+  admin
+- In the browser, click the Extensions/Puzzle icon in the top bar, then pin the
+  YTMediaController extension
+- Finally, click the YTMediaController extension to open the viewer. Then
+  right-click the extension icon to open the mobile config UI
+- Use your Android phone with the YTMediaController app running, then scan the
+  QR code to link your phone to the C# backend server
+- That’s it! You can now send any YouTube video from mobile to PC anonymously
