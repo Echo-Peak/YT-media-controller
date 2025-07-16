@@ -1,6 +1,7 @@
 const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
+const settings = require("../backend/settings.example.json");
 
 const makeNsisBin = "C:\\Program Files (x86)\\NSIS\\makensis.exe";
 
@@ -14,11 +15,14 @@ const ensureDir = async (dir) => {
       throw err;
     }
   }
-}
+};
 
 const makeInstaller = async (cwd) => {
   console.log("Creating installer");
-  const args = ["packager/installer.nsi"];
+  const args = [
+    `/DDEFAULTPORT=${settings.BackendServerPort}`,
+    "packager/installer.nsi",
+  ];
   await ensureDir(path.join(cwd, "dist"));
 
   return new Promise((resolve, reject) => {
