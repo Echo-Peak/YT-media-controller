@@ -8,19 +8,12 @@ namespace YTMediaControllerSrv.Settings
 {
     public class AppSettingsJson
     {
-        public int BackgroundServerPort { get; set; } = 9200;
-        public int UISocketServerPort { get; set; } = 9201;
-
-        public void Update(string property, object value)
-        {
-            switch (property)
-            {
-                case "BackgroundServerPort":
-                    BackgroundServerPort = Convert.ToInt32(value);
-                    break;
-                default:
-                    throw new ArgumentException($"Property '{property}' not found.");
-            }
+        public int BackendServerPort;
+        public int UISocketServerPort;
+        
+        public AppSettingsJson(int backendServerPort, int uiSocketServerPort) {
+            BackendServerPort = backendServerPort;
+            UISocketServerPort = uiSocketServerPort;
         }
     }
 }
