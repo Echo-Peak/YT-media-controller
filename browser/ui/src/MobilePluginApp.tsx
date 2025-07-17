@@ -10,7 +10,7 @@ export const MobilePluginApp = () => {
 
   useEffect(() => {
     if (deviceIp && devicePort) {
-      setDeviceEndpoint(`http://${deviceIp}:${devicePort}`);
+      setDeviceEndpoint(`http://${deviceIp}:${devicePort}/mobile`);
     }
   }, [deviceIp, devicePort]);
 
