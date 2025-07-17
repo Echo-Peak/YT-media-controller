@@ -89,7 +89,7 @@ namespace YTMediaControllerHost
 
         static object HandleAction(JsonResponse response)
         {
-            var settings = appSettings.settings;
+            var settings = appSettings.Load();
             switch (response.Action)
             {
                 case "getUISocketServerPort":
@@ -105,7 +105,7 @@ namespace YTMediaControllerHost
                         return new
                         {
                             status = true,
-                            result = settings.BackgroundServerPort
+                            result = settings.BackendServerPort
                         };
                     }
                 case "getDeviceNetworkIp":
@@ -115,23 +115,6 @@ namespace YTMediaControllerHost
                             status = true,
                             result = DeviceInfo.GetLocalIPAddress()
                         };
-                    }
-                case "updateBackendServerPort":
-                    {
-                        try
-                        {
-                            appSettings.UpdateSettingsFile("BackgroundServerPort", response.Port);
-                            return new { status = true };
-                        }catch (Exception err)
-                        {
-                            return new
-                            {
-                                status = false,
-                                message = "Unable to update backend server port",
-                                error = err.Message
-                            };
-                        }
-                        
                     }
             }
             return new { status = false, message = $"Unknown action \"{response.Action}\"" };
