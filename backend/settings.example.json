@@ -1,4 +1,4 @@
 {
   "BackendServerPort": 60166,
-  "ControlServerPort": 52000
+  "UISocketServerPort": 52000
 }

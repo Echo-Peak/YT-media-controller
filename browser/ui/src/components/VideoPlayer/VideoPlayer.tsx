@@ -76,9 +76,19 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           onError(new Error('Unable to play video'));
         }
       };
+      const handleDoubleClick = () => {
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(console.error);
+          setIsFullscreen(false);
+        } else {
+          video.requestFullscreen().catch(console.error);
+          setIsFullscreen(true);
+        }
+      };
 
       video.addEventListener('timeupdate', handleTimeUpdate);
       video.addEventListener('loadedmetadata', handleLoadedMetadata);
+      video.addEventListener('dblclick', handleDoubleClick);
 
       let hasEnteredFullscreen = false;
       video.addEventListener('play', handleVideoPlayEvent);
@@ -92,6 +102,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         video.removeEventListener('play', handleVideoPlayEvent);
         video.removeEventListener('end', handleVideoEndEvent);
         video.removeEventListener('pause', handleVideoPauseEvent);
+        video.removeEventListener('dblclick', handleDoubleClick);
       };
     }, []);
 

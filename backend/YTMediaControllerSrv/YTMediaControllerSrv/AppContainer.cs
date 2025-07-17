@@ -18,10 +18,11 @@ namespace YTMediaControllerSrv
             GlobalFFOptions.Configure(opt => opt.BinaryFolder = PathResolver.GetFFMpegDir());
 
             string deviceIP = DeviceInfo.GetLocalIPAddress();
-            AppSettingsJson settings = new AppSettings(settingsFile).settings;
+            var appSettings = new AppSettings(settingsFile);
+            var settingsJson = appSettings.Load();
 
-            uiSocketServer = new UISocketServer("localhost", settings.UISocketServerPort, settings.BackgroundServerPort);
-            backendServer = new BackendServer(deviceIP, settings.BackgroundServerPort, uiSocketServer);
+            uiSocketServer = new UISocketServer("localhost", settingsJson.UISocketServerPort, settingsJson.BackendServerPort);
+            backendServer = new BackendServer(deviceIP, settingsJson.BackendServerPort, uiSocketServer);
 
 
 
