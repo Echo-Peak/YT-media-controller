@@ -71,17 +71,6 @@ jobs:
       - name: Build installer
         run: npm run package
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${TAG_VERSION}
-          release_name: Release ${TAG_VERSION}
-          draft: ${{ github.ref_name != 'main' }}
-          prerelease: false
-
       - name: Upload installer asset
         uses: actions/upload-release-asset@v1
         env:
