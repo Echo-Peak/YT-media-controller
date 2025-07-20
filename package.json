@@ -9,7 +9,7 @@
     "build-browser": "npm run build-browser-extension && npm run build-browser-ui",
     "build-browser-extension": "yarn workspace @yt-media-controller/extension run build",
     "build-browser-ui": "yarn workspace @yt-media-controller/ui run build",
-    "package": "npm run build-service && npm run build-browser-extension && node packager/build.js",
+    "package": "npm run build-service && npm run build-browser-extension && npm run build-browser-ui && node packager/build.js",
     "install-android": "abd install -r .\\mobile\\android\\app\\build\\outputs\\debug\\app-debug.apk"
   },
   "keywords": [],

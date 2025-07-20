@@ -15,6 +15,7 @@ namespace YTMediaControllerSrv.Settings
 
         public AppSettings(string settingsFilePath)
         {
+            Logger.Info($"Using the settings path: {settingsFilePath}");
             this.settingsFilePath = settingsFilePath;
         }
 

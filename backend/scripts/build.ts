@@ -25,7 +25,7 @@ const msBuildPaths = [
 const createBackendSettings = async (destPath: string): Promise<void> => {
   const settings = {
     BackendServerPort: 60166,
-    ControlServerPort: 52000,
+    UISocketServerPort: 52000,
   };
   try {
     await writeFile(destPath, JSON.stringify(settings, null, 2));
