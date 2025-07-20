@@ -37,7 +37,7 @@ jobs:
           nuget restore ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
 
       - name: Build backend service
-        run: |
+        run:
           msbuild ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
           /p:Configuration=Release
 
