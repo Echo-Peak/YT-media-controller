@@ -1,4 +1,4 @@
-name: Build assets
+name: Build Desktop Installer
 on:
   push:
     branches: ["main", "pipeline-testing"]
