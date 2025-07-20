@@ -35,6 +35,17 @@ jobs:
           git push origin ${TAG_VERSION}
         shell: bash
 
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${TAG_VERSION}
+          release_name: Release ${TAG_VERSION}
+          draft: ${{ github.ref_name != 'main' }}
+          prerelease: false
+
       - name: Fetch external binaries
         run: node ./backend/scripts/installExternalDeps.js
 
