@@ -43,6 +43,14 @@ export class ChromeBackgroundRuntime {
   }
 
   private createPage = () => {
+    if (this.externalViewerTabId) {
+      chrome.tabs.update(this.externalViewerTabId, { active: true });
+      console.log(
+        "External viewer tab already exists, not creating a new one."
+      );
+      return;
+    }
+
     chrome.tabs.create(
       {
         url: chrome.runtime.getURL("ui/index.html"),

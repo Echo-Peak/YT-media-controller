@@ -11,7 +11,6 @@ namespace YTMediaControllerSrv.Settings
 {
     public class AppSettings
     {
-        private AppSettingsJson defaultSettings = new AppSettingsJson(9200, 9201);
         private string settingsFilePath { get; set; }
 
         public AppSettings(string settingsFilePath)
@@ -30,7 +29,7 @@ namespace YTMediaControllerSrv.Settings
             catch (Exception err)
             {
                 Logger.Error("Unable to read settings. Using default settings", err);
-                return defaultSettings;
+                return new AppSettingsJson(9200, 9201);
             }
         }
     }

@@ -12,7 +12,7 @@ namespace YTMediaControllerSrv
 {
     public class Logger
     {
-        static string solutionName = Assembly.GetExecutingAssembly().GetName().Name;
+        static string solutionName = Assembly.GetEntryAssembly().GetName().Name;
         static string logFile = Path.Combine(PathResolver.GetLogsDir(), solutionName + "-stdout.log");
         static string eventSourceName = "YTMediaController";
         static void CreateLog(string logLevel, string message)
@@ -27,7 +27,10 @@ namespace YTMediaControllerSrv
             }
             catch (Exception ex)
             {
-                WriteEventProfilerLog(logLevel, message, ex);
+                if (!solutionName.Contains("Host"))
+                {
+                    WriteEventProfilerLog(logLevel, message, ex);
+                }
             }
 #endif
         }
