@@ -34,8 +34,10 @@ jobs:
           cache: "yarn"
 
       - name: Install NPM modules
-        run: yarn
-        shell: base.exe
+        run: |
+          curl -I https://registry.yarnpkg.com;
+          yarn
+        shell: bash.exe
 
       - name: Restore NuGet packages
         run: |
