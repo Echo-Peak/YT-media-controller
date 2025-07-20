@@ -4,8 +4,8 @@
   "description": "",
   "main": "dist/background.js",
   "scripts": {
-    "build": "npm run clean-dist && webpack --mode production && npm run create-dev-native-host",
-    "clean-dist": "rmdir /s /q \"..\\..\\dist\\browser-extension-unpacked\"",
+    "build": "npm run clean-dist && webpack --mode production",
+    "clean-dist": "rmdir /s /q \"..\\..\\dist\\browser-extension-unpacked\" 2>nul || exit 0",
     "create-dev-native-host": "ts-node ./scripts/createDevNativeHost.ts",
     "package": "powershell -c \"Compress-Archive -Path .\\build\\* -DestinationPath .\\dist\\yt-extension.zip\""
   },
