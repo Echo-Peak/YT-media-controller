@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/background.js",
   "scripts": {
-    "build": "webpack --mode production && npm run create-dev-native-host",
+    "build": "webpack --mode production",
     "create-dev-native-host": "ts-node ./scripts/createDevNativeHost.ts",
     "package": "powershell -c \"Compress-Archive -Path .\\build\\* -DestinationPath .\\dist\\yt-extension.zip\""
   },
