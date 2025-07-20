@@ -16,7 +16,6 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Set version/tag variable
-        id: vars
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
             TAG_TYPE="prod"
@@ -24,16 +23,11 @@ jobs:
             TAG_TYPE="dev"
           fi
           VERSION="v1.0.0-${TAG_TYPE}.${{ github.run_number }}"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "TAG_VERSION=$VERSION" >> $GITHUB_ENV
         shell: bash
 
       - name: Fetch external binaries
         run: node ./backend/scripts/installExternalDeps.js
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22.12.0"
 
       - name: Setup Node with Yarn cache
         uses: actions/setup-node@v4
@@ -61,8 +55,8 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git tag ${{ steps.vars.outputs.version }}
-          git push origin ${{ steps.vars.outputs.version }}
+          git tag $TAG_VERSION
+          git push origin $TAG_VERSION
         shell: bash
 
       - name: Create GitHub Release
@@ -71,8 +65,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.vars.outputs.version }}
-          release_name: Release ${{ steps.vars.outputs.version }}
+          tag_name: $TAG_VERSION
+          release_name: Release $TAG_VERSION
           draft: ${{ github.ref_name != 'main' }}
           prerelease: false
 
