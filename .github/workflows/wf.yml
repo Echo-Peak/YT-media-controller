@@ -35,6 +35,7 @@ jobs:
 
       - name: Install NPM modules
         run: yarn
+        shell: base.exe
 
       - name: Restore NuGet packages
         run: |
