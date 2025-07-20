@@ -1,7 +1,7 @@
 name: Build Desktop Installer
 on:
   push:
-    branches: ["main", "staging"]
+    branches: ["main", "staging-ci-testing"]
 
 permissions:
   contents: write
@@ -16,7 +16,7 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Set version/tag variable
-        if: github.ref_name == 'main' || github.ref_name == 'staging'
+        if: github.ref_name == 'main' || github.ref_name == 'staging-ci-testing'
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
             TAG_TYPE="prod"
@@ -25,6 +25,14 @@ jobs:
           fi
           VERSION="v1.0.0-${TAG_TYPE}.${{ github.run_number }}"
           echo "TAG_VERSION=$VERSION" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag ${TAG_VERSION}
+          git push origin ${TAG_VERSION}
         shell: bash
 
       - name: Fetch external binaries
@@ -52,22 +60,14 @@ jobs:
       - name: Build installer
         run: npm run package
 
-      - name: Create Git tag
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git tag $TAG_VERSION
-          git push origin $TAG_VERSION
-        shell: bash
-
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: $TAG_VERSION
-          release_name: Release $TAG_VERSION
+          tag_name: ${TAG_VERSION}
+          release_name: Release ${TAG_VERSION}
           draft: ${{ github.ref_name != 'main' }}
           prerelease: false
 
