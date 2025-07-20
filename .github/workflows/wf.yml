@@ -34,7 +34,7 @@ jobs:
           cache: "yarn"
 
       - name: Install NPM modules
-        run: npm install
+        run: yarn
 
       - name: Restore NuGet packages
         run: |
