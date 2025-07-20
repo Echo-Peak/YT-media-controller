@@ -3,6 +3,9 @@ on:
   push:
     branches: ["main", "pipeline-testing"]
 
+permissions:
+  contents: write
+
 jobs:
   build-desktop-installer-asset:
     runs-on: windows-latest
