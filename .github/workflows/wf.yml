@@ -37,7 +37,7 @@ jobs:
         run: |
           curl -I https://registry.yarnpkg.com;
           yarn
-        shell: bash.exe
+        shell: bash
 
       - name: Restore NuGet packages
         run: |
