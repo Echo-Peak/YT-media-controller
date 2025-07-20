@@ -22,6 +22,11 @@ jobs:
       - name: Fetch external binaries
         run: node ./backend/scripts/installExternalDeps.js
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "21.12.0"
+
       - name: Setup Node with Yarn cache
         uses: actions/setup-node@v4
         with:
