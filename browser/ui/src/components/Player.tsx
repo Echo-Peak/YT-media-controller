@@ -7,7 +7,7 @@ import { DASHPlayer } from './players/DASHPlayer';
 import { useChromeRuntime } from '../services/useChromeRuntime';
 
 export const Player = () => {
-  const { source } = useVideoSource();
+  const { source, removeSource } = useVideoSource();
   const { sendEvent } = useChromeRuntime();
   const [HLSPlayerFailed, setHLSPlayerFailed] = useState(false);
   const [DASHPlayerFailed, setDASHPlayerFailed] = useState(false);
@@ -15,6 +15,10 @@ export const Player = () => {
   if (!source) {
     return <NoVideoPlaying />;
   }
+
+  const onVideoEnded = () => {
+    removeSource();
+  };
 
   const onHLSStreamError = (error: Error) => {
     console.error('Error loading video via HLS:', error);
@@ -44,6 +48,7 @@ export const Player = () => {
       <EmbeddedYoutubePlayer
         sourceUrl={source.originSource}
         onError={onEmbeddedYoutubePlayerError}
+        onEnded={onVideoEnded}
       />
     );
   }
@@ -54,6 +59,7 @@ export const Player = () => {
         sourceUrl={source.dashStreamUrl}
         videoData={source.videoData}
         onError={onDASHStreamError}
+        onEnded={onVideoEnded}
       />
     );
   }
@@ -63,6 +69,7 @@ export const Player = () => {
       sourceUrl={source.hlsStreamUrl}
       videoData={source.videoData}
       onError={onHLSStreamError}
+      onEnded={onVideoEnded}
     />
   );
 };

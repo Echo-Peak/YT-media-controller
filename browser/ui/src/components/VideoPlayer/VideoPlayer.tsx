@@ -16,6 +16,7 @@ type VideoPlayerProps = {
     uploader: string;
   };
   onError?: (error: Error) => void;
+  onEnd: () => void;
 };
 
 const PlayerContainer = styled.div({
@@ -41,7 +42,7 @@ const Video = styled.video({
 export type VideoPlayerRef = HTMLVideoElement | null;
 
 export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
-  ({ videoData, onError }, ref) => {
+  ({ videoData, onError, onEnd }, ref) => {
     const internalVideoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -65,6 +66,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       };
       const handleVideoEndEvent = () => {
         setIsPlaying(false);
+        onEnd();
       };
       const handleVideoPauseEvent = () => {
         setIsPlaying(false);
@@ -74,9 +76,19 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           onError(new Error('Unable to play video'));
         }
       };
+      const handleDoubleClick = () => {
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(console.error);
+          setIsFullscreen(false);
+        } else {
+          video.requestFullscreen().catch(console.error);
+          setIsFullscreen(true);
+        }
+      };
 
       video.addEventListener('timeupdate', handleTimeUpdate);
       video.addEventListener('loadedmetadata', handleLoadedMetadata);
+      video.addEventListener('dblclick', handleDoubleClick);
 
       let hasEnteredFullscreen = false;
       video.addEventListener('play', handleVideoPlayEvent);
@@ -90,6 +102,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         video.removeEventListener('play', handleVideoPlayEvent);
         video.removeEventListener('end', handleVideoEndEvent);
         video.removeEventListener('pause', handleVideoPauseEvent);
+        video.removeEventListener('dblclick', handleDoubleClick);
       };
     }, []);
 
