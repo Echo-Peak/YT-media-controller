@@ -26,5 +26,9 @@ Section "Info" Info
 
   SetOutPath "$INSTDIR/BrowserExtension"
   File /r "..\dist\browser-extension-unpacked"
+
+  SetOutPath "$INSTDIR/bin"
+  File /r "..\backend\externalBins\*.exe"
+
   call InstallService
 SectionEnd
