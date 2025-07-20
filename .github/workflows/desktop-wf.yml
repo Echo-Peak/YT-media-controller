@@ -18,7 +18,12 @@ jobs:
       - name: Set version/tag variable
         id: vars
         run: |
-          VERSION="v1.0.0-build.${{ github.run_number }}"
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            TAG_TYPE="prod"
+          else
+            TAG_TYPE="dev"
+          fi
+          VERSION="v1.0.0-${TAG_TYPE}.${{ github.run_number }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
         shell: bash
 
