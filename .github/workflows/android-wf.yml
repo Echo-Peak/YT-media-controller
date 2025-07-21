@@ -9,7 +9,6 @@ permissions:
 
 jobs:
   android-build:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Build APK
     runs-on: ubuntu-latest
 
