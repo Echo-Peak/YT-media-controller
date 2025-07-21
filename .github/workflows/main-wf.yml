@@ -113,6 +113,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.create-tag-and-dispatch.outputs.tag_version }}
-          files: ./mobile/android/app/build/outputs/apk/release/app-release.apk
+          files: ./mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
