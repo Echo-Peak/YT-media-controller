@@ -1,23 +1,50 @@
-name: Build Desktop Installer
+name: Create assets
 on:
-  repository_dispatch:
-    types: [build-desktop]
+  push:
+    branches: ["main", "staging", "android-pipeline-testing"]
 
 permissions:
   contents: write
 
 jobs:
-  build-desktop-installer-asset:
-    runs-on: windows-latest
+  create-tag-and-dispatch:
+    runs-on: ubuntu-latest
+    outputs:
+      tag_version: ${{ steps.set_tag_var.outputs.tag_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Set version/tag variable
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            TAG_TYPE="prod"
+          else
+            TAG_TYPE="rc"
+          fi
+          VERSION="v1.0.0-${TAG_TYPE}.${{ github.run_number }}"
+          echo "tag_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "TAG_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag ${TAG_VERSION}
+          git push origin ${TAG_VERSION}
+        shell: bash
+  build-desktop-app:
+    runs-on: windows-latest
+    needs: create-tag-and-dispatch
     steps:
       - uses: actions/checkout@v4
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
       - name: Set version/tag variable
-        run: |
-          echo "TAG_VERSION=${{ github.event.client_payload.tag }}" >> $GITHUB_ENV
+        run:
+          echo "TAG_VERSION=${{
+          needs.create-tag-and-dispatch.outputs.tag_version }}" >> $GITHUB_ENV
 
       - name: Fetch external binaries
         run: node ./backend/scripts/installExternalDeps.js
@@ -64,3 +91,47 @@ jobs:
           asset_path: ./dist/YoutubeMediaControllerInstaller.exe
           asset_name: YoutubeMediaControllerInstaller.exe
           asset_content_type: application/octet-stream
+  build-android-app:
+    name: Build APK
+    runs-on: ubuntu-latest
+    needs: create-tag-and-dispatch
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set version/tag variable
+        run:
+          echo "TAG_VERSION=${{
+          needs.create-tag-and-dispatch.outputs.tag_version }}" >> $GITHUB_ENV
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: 17
+
+      - name: Cache Gradle files
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key:
+            gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*',
+            '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Make gradlew executable
+        run: chmod +x ./mobile/android/gradlew
+
+      - name: Build Release APK
+        run: ./mobile/android/gradlew assembleRelease
+
+      - name: Upload Release APK to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_VERSION }}
+          files: mobile/android/app/build/outputs/apk/release/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
