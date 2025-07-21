@@ -43,13 +43,13 @@ jobs:
   #         event-type: build-desktop
   #         client-payload: '{"tag": "${{ env.TAG_VERSION }}"}'
 
-  trigger-mobile:
-    name: Trigger Mobile Workflow
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Mobile Workflow
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: build-mobile
-          client-payload: '{"tag": "flo"}'
+  # trigger-mobile:
+  #   name: Trigger Mobile Workflow
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Trigger Mobile Workflow
+  #       uses: peter-evans/repository-dispatch@v3
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }}
+  #         event-type: build-mobile
+  #         client-payload: '{"tag": "flo"}'
