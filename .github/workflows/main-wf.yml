@@ -1,0 +1,118 @@
+name: Create assets
+on:
+  push:
+    branches: ["main", "staging"]
+
+permissions:
+  contents: write
+
+jobs:
+  create-tag-and-dispatch:
+    runs-on: ubuntu-latest
+    outputs:
+      tag_version: ${{ steps.set_version.outputs.tag_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set version/tag variable
+        id: set_version
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            TAG_TYPE="prod"
+          else
+            TAG_TYPE="rc"
+          fi
+          VERSION="v1.0.0-${TAG_TYPE}.${{ github.run_number }}"
+          echo "tag_version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag ${{ steps.set_version.outputs.tag_version }}
+          git push origin ${{ steps.set_version.outputs.tag_version }}
+        shell: bash
+
+  build-desktop-app:
+    runs-on: windows-latest
+    needs: create-tag-and-dispatch
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Fetch external binaries
+        run: node ./backend/scripts/installExternalDeps.js
+
+      - name: Setup Node with Yarn cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+          cache: "yarn"
+
+      - name: Install NPM modules
+        run: yarn
+        shell: bash
+
+      - name: Restore NuGet packages
+        run: |
+          nuget restore ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
+
+      - name: Build backend service
+        run:
+          msbuild ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
+          /p:Configuration=Release
+
+      - name: Build installer
+        run: npm run package
+
+      - name: Upload Release APK to GitHub Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.create-tag-and-dispatch.outputs.tag_version }}
+          files: ./dist/YoutubeMediaControllerInstaller.exe
+
+  build-android-app:
+    needs: create-tag-and-dispatch
+    name: Build android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: 17
+
+      - name: Cache Gradle files
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key:
+            gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*',
+            '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Make gradlew executable
+        run: chmod +x ./mobile/android/gradlew
+
+      - name: Build Release APK
+        run: |
+          cd ./mobile/android
+          ./gradlew clean
+          ./gradlew assembleRelease
+
+      - name: Upload Release APK to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.create-tag-and-dispatch.outputs.tag_version }}
+          files: ./mobile/android/app/build/outputs/apk/release/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
