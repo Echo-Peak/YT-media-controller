@@ -1,8 +1,9 @@
 name: Release mobile apps
 
 on:
-  repository_dispatch:
-    types: [build-mobile]
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: write
