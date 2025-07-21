@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["Build Desktop Installer"]
     types:
-      - completed
+      - in_progress
 
 permissions:
   contents: write

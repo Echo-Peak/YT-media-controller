@@ -16,7 +16,6 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Set version/tag variable
-        if: github.ref_name == 'main' || github.ref_name == 'staging'
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
             TAG_TYPE="prod"
