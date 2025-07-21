@@ -52,4 +52,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           event-type: build-mobile
-          client-payload: '{"tag": "${{ env.TAG_VERSION }}"}'
+          client-payload: '{"tag": "flo"}'
