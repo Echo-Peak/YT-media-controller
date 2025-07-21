@@ -10,7 +10,7 @@ jobs:
   create-tag-and-dispatch:
     runs-on: ubuntu-latest
     outputs:
-      tag_version: $
+      tag_version: ${{ steps.set_version.outputs.tag_version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,14 +25,12 @@ jobs:
           fi
           VERSION="v1.0.0-${TAG_TYPE}.${{ github.run_number }}"
           echo "tag_version=$VERSION" >> $GITHUB_OUTPUT
-          echo "TAG_VERSION=$VERSION" >> $GITHUB_ENV
-
       - name: Create Git tag
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git tag ${TAG_VERSION}
-          git push origin ${TAG_VERSION}
+          git tag ${{ steps.set_version.outputs.tag_version }}
+          git push origin ${{ steps.set_version.outputs.tag_version }}
         shell: bash
   build-desktop-app:
     runs-on: windows-latest
@@ -93,12 +91,16 @@ jobs:
           asset_name: YoutubeMediaControllerInstaller.exe
           asset_content_type: application/octet-stream
   build-android-app:
+    needs: create-tag-and-dispatch
     name: Build android APK
     runs-on: ubuntu-latest
-    needs: create-tag-and-dispatch
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Access Variable
+        run: |
+          echo "var1=${{ needs.create-tag-and-dispatch.outputs.tag_version }}"
 
       - name: Set version/tag variable
         run: |
