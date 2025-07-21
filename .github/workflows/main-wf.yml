@@ -32,16 +32,16 @@ jobs:
           git push origin ${TAG_VERSION}
         shell: bash
 
-  trigger-desktop:
-    name: Trigger Desktop Workflow
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Desktop Workflow
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: build-desktop
-          client-payload: '{"tag": "${{ env.TAG_VERSION }}"}'
+  # trigger-desktop:
+  #   name: Trigger Desktop Workflow
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Trigger Desktop Workflow
+  #       uses: peter-evans/repository-dispatch@v3
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }}
+  #         event-type: build-desktop
+  #         client-payload: '{"tag": "${{ env.TAG_VERSION }}"}'
 
   trigger-mobile:
     name: Trigger Mobile Workflow
