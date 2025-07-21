@@ -1,10 +1,8 @@
 name: Release mobile apps
 
 on:
-  workflow_run:
-    workflows: ["Build Desktop Installer"]
-    types:
-      - in_progress
+  repository_dispatch:
+    types: [build-mobile]
 
 permissions:
   contents: write
@@ -20,15 +18,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set version/tag variable
-        if: github.ref_name == 'main' || github.ref_name == 'staging'
-        run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            TAG_TYPE="prod"
-          else
-            TAG_TYPE="rc"
-          fi
-          VERSION="v1.0.0-${TAG_TYPE}.${{ github.run_number }}"
-          echo "TAG_VERSION=$VERSION" >> $GITHUB_ENV
+        run:
+          echo "TAG_VERSION=${{ github.event.client_payload.tag }}" >>
+          $GITHUB_ENV
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
