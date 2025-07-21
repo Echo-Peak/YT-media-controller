@@ -1,7 +1,7 @@
 name: Build Desktop Installer
 on:
   push:
-    branches: ["main", "staging"]
+    branches: ["main", "staging", "android-pipeline-testing"]
 
 permissions:
   contents: write
