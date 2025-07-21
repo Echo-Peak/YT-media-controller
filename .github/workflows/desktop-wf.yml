@@ -10,12 +10,13 @@ jobs:
   create-tag-and-dispatch:
     runs-on: ubuntu-latest
     outputs:
-      tag_version: ${{ steps.set_tag_var.outputs.tag_version }}
+      tag_version: $
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set version/tag variable
+        id: set_version
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
             TAG_TYPE="prod"
