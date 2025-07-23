@@ -86,7 +86,15 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         }
       };
 
+      const handleSeekOperation = () => {
+        const video = internalVideoRef.current;
+        if (video) {
+          video.blur();
+        }
+      };
+
       video.addEventListener('timeupdate', handleTimeUpdate);
+      video.addEventListener('seeked', handleSeekOperation);
       video.addEventListener('loadedmetadata', handleLoadedMetadata);
       video.addEventListener('dblclick', handleDoubleClick);
 
@@ -98,6 +106,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
       return () => {
         video.removeEventListener('timeupdate', handleTimeUpdate);
+        video.removeEventListener('seeked', handleSeekOperation);
         video.removeEventListener('loadedmetadata', handleLoadedMetadata);
         video.removeEventListener('play', handleVideoPlayEvent);
         video.removeEventListener('end', handleVideoEndEvent);
@@ -117,16 +126,22 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
       if (video.paused) {
         video.play();
-        setIsPlaying(true);
       } else {
         video.pause();
-        setIsPlaying(false);
       }
     };
 
     const toggleFullscreen = () => {
+      const video = internalVideoRef.current;
+      if (!video) return;
+
       if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(console.error);
+        document.documentElement
+          .requestFullscreen()
+          .then(() => {
+            video.blur();
+          })
+          .catch(console.error);
         setIsFullscreen(true);
       } else {
         document.exitFullscreen().catch(console.error);
@@ -168,6 +183,74 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         clearTimeout(hideUITimeout);
       };
     }, [isPlaying]);
+
+    useEffect(() => {
+      const handleSpacebarToggle = () => {
+        const player = internalVideoRef.current;
+        if (
+          player !== null &&
+          document.activeElement !== internalVideoRef.current
+        ) {
+          isPlaying ? player.pause() : player.play();
+        }
+      };
+
+      const handleSeekReverse = () => {
+        const player = internalVideoRef.current;
+        if (player) {
+          player.currentTime = Math.max(0, player.currentTime - 5);
+          setCurrentTime(player.currentTime);
+        }
+      };
+
+      const handleSeekForward = () => {
+        const player = internalVideoRef.current;
+        if (player) {
+          player.currentTime = Math.min(
+            player.duration,
+            player.currentTime + 5,
+          );
+          setCurrentTime(player.currentTime);
+        }
+      };
+
+      const handleKeyDown = (event: KeyboardEvent) => {
+        const activeTag = document.activeElement?.tagName.toLowerCase();
+        if (
+          activeTag === 'input' ||
+          activeTag === 'textarea' ||
+          activeTag === 'button'
+        ) {
+          return;
+        }
+
+        switch (event.code) {
+          case 'Space':
+            event.preventDefault();
+            handleSpacebarToggle();
+            break;
+          case 'KeyF':
+            event.preventDefault();
+            toggleFullscreen();
+            break;
+          case 'ArrowLeft':
+            event.preventDefault();
+            handleSeekReverse();
+            break;
+          case 'ArrowRight':
+            event.preventDefault();
+            handleSeekForward();
+            break;
+          default:
+            // Do nothing for other keys
+            break;
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }, [isPlaying, internalVideoRef]);
 
     return (
       <PlayerContainer>
