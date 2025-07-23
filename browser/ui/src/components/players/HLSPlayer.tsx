@@ -3,7 +3,6 @@ import { Box } from '@chakra-ui/react';
 import { useHlsStreamer } from '../../services/useHlsStreamer';
 import { VideoPlayer, VideoPlayerRef } from '../VideoPlayer/VideoPlayer';
 import { StreamablePlayerProps } from '../../types/StreamablePlayerProps';
-import { useSpacebarPlayToggle } from '../VideoPlayer/useSpacebarToggle';
 
 const containerStyles: React.CSSProperties = {
   width: '100vw',
@@ -64,8 +63,6 @@ export const HLSPlayer = ({
       }
     };
   }, [playerRef, sourceUrl]);
-
-  useSpacebarPlayToggle(playerRef);
 
   return (
     <Box style={containerStyles}>
