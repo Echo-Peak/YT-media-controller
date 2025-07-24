@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Caching;
 using YTMediaControllerSrv.Server;
 using YTMediaControllerSrv.Types;
@@ -20,8 +21,16 @@ namespace YTMediaControllerSrv.YTDLP
         public YtdlpExec(VideoCache videoCache) {
             Cache = videoCache;
         }
-        public async Task<YTDlpJsonDump> Fetch(string sourceUrl)
+
+        private string RecreateSourceUrl(string originSourceUrl)
         {
+            var url = new Uri(originSourceUrl);
+            var urlParams = HttpUtility.ParseQueryString(url.Query);
+            return $"https://{url.Host}/watch?v={urlParams["v"]}";
+        }
+        public async Task<YTDlpJsonDump> Fetch(string originSourceUrl)
+        {
+            string sourceUrl = RecreateSourceUrl(originSourceUrl);
             Logger.Info($"Fetching json dump for {sourceUrl}");
             string jsonDump = await ExecCommand(sourceUrl, "--dump-json");
             if (string.IsNullOrWhiteSpace(jsonDump))
