@@ -103,6 +103,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BrowserExtensionNativeHost.cs" />
+    <Compile Include="I18n.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="PathResolver.cs" />
     <Compile Include="AppContainer.cs" />
