@@ -23,6 +23,7 @@ namespace YTMediaControllerSrv.YTDLP {
             var audioCandidates = formats
                 .Where(f => IsHttps(f) && IsAudioOnly(f))
                 .Select(f => new AudioScore(f))
+                .Where(f => FilterAudioByLanguage(f.SourceLanguage))
                 .OrderByDescending(a => a)
                 .ToList();
 
@@ -35,6 +36,7 @@ namespace YTMediaControllerSrv.YTDLP {
             var manifestCandidates = formats
                 .Where(f => IsManifestOnly(f))
                 .Select(f => new VideoScore(f, isManifest: true))
+                .Where(f => FilterAudioByLanguage(f.SourceLanguage))
                 .OrderByDescending(v => v)
                 .ToList();
 
@@ -43,6 +45,15 @@ namespace YTMediaControllerSrv.YTDLP {
             var manifestUrl = manifestCandidates.FirstOrDefault()?.Url;
 
             return new YTUrlSource(videoUrl, audioUrl, manifestUrl);
+        }
+
+        private static bool FilterAudioByLanguage(string sourceLanguage)
+        {
+            if(sourceLanguage == I18n.Language)
+            {
+                return true;
+            }
+            return false;
         }
 
         private static bool IsHttps(YtDlpFormat f)
@@ -71,9 +82,12 @@ namespace YTMediaControllerSrv.YTDLP {
             public double Abr { get; }
             public int NoteRank { get; }
 
+            public string SourceLanguage { get; }
+
             public AudioScore(YtDlpFormat f)
             {
                 Url = f.Url;
+                SourceLanguage = f.Language;
                 var acodec = (f.Acodec ?? "").ToLowerInvariant();
 
                 if (acodec.Contains("mp4a"))
@@ -113,9 +127,11 @@ namespace YTMediaControllerSrv.YTDLP {
             public int CodecRank { get; }
             public int Height { get; }
             public double Tbr { get; }
+            public string SourceLanguage { get; }
 
             public VideoScore(YtDlpFormat f, bool isManifest=false)
             {
+                SourceLanguage = f.Language;
                 Url = isManifest ? f.Manifest_Url : f.Url;
                 var vcodec = (f.Vcodec ?? "").ToLowerInvariant();
 
