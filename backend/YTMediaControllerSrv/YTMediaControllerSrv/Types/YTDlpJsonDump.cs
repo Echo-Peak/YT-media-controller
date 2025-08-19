@@ -15,6 +15,8 @@ namespace YTMediaControllerSrv.Types
         public string Ext { get; set; }
         public string Vcodec { get; set; }
         public string Acodec { get; set; }
+
+        public string Language { get; set; }
         public int? Width { get; set; }
         public int? Height { get; set; }
         public float? Fps { get; set; }

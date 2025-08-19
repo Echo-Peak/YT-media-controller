@@ -13,7 +13,6 @@ namespace YTMediaControllerSrv
     public class Logger
     {
         static string solutionName = Assembly.GetEntryAssembly().GetName().Name;
-        static string logFile = Path.Combine(PathResolver.GetLogsDir(), solutionName + "-stdout.log");
         static string eventSourceName = "YTMediaController";
         static void CreateLog(string logLevel, string message)
         {
@@ -50,11 +49,18 @@ namespace YTMediaControllerSrv
                 }
             }
 
-
-            using (var writer = new StreamWriter(logFile, append: true))
+            string logFilePath = CreateLogFilePath();
+            using (var writer = new StreamWriter(logFilePath, append: true))
             {
                 writer.WriteLine(entry);
             }
+        }
+
+        static string CreateLogFilePath()
+        {
+            string dateStamp = DateTime.Now.ToString("dd-MM-yyyy");
+            string filename = $"{dateStamp}-{solutionName}-stdout.log";
+            return Path.Combine(PathResolver.GetLogsDir(), filename);
         }
         public static void Info(string message)
         {

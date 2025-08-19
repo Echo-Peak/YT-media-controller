@@ -29,8 +29,19 @@ export class ChromeBackgroundRuntime {
         });
       }
     });
+
+    chrome.tabs.onRemoved.addListener(this.removeTabReference);
+
     this.init().catch(console.error);
   }
+
+  private removeTabReference = (tabId: number) => {
+    if (tabId === this.YTTabID) {
+      this.YTTabID = undefined;
+    } else if (tabId === this.externalViewerTabId) {
+      this.externalViewerTabId = undefined;
+    }
+  };
 
   private createYTTab() {
     chrome.tabs.create(

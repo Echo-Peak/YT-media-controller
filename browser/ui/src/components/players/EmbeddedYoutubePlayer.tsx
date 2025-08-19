@@ -31,6 +31,8 @@ const containerStyles: React.CSSProperties = {
   height: '100vh',
   position: 'fixed',
   overflow: 'hidden',
+  top: 0,
+  left: 0,
   zIndex: 9999,
 };
 

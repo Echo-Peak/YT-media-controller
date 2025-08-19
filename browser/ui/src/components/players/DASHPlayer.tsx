@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { Box } from '@chakra-ui/react';
 import { VideoPlayer, VideoPlayerRef } from '../VideoPlayer/VideoPlayer';
 import { StreamablePlayerProps } from '../../types/StreamablePlayerProps';
-import { useSpacebarPlayToggle } from '../VideoPlayer/useSpacebarToggle';
 
 export const DASHPlayer = ({
   sourceUrl,
@@ -17,8 +16,6 @@ export const DASHPlayer = ({
       playerRef.current.src = sourceUrl;
     }
   }, [playerRef, sourceUrl]);
-
-  useSpacebarPlayToggle(playerRef);
 
   const handleError = (error: Error) => {
     onError(error);
