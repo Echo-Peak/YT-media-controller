@@ -23,7 +23,7 @@ namespace YTMediaControllerSrv.YTDLP {
             var audioCandidates = formats
                 .Where(f => IsHttps(f) && IsAudioOnly(f))
                 .Select(f => new AudioScore(f))
-                .Where(f => FilterAudioByLanguage(f.SourceLanguage))
+                .Where(f => FilterByLanguage(f.SourceLanguage))
                 .OrderByDescending(a => a)
                 .ToList();
 
@@ -36,7 +36,7 @@ namespace YTMediaControllerSrv.YTDLP {
             var manifestCandidates = formats
                 .Where(f => IsManifestOnly(f))
                 .Select(f => new VideoScore(f, isManifest: true))
-                .Where(f => FilterAudioByLanguage(f.SourceLanguage))
+                .Where(f => FilterByLanguage(f.SourceLanguage))
                 .OrderByDescending(v => v)
                 .ToList();
 
@@ -47,9 +47,9 @@ namespace YTMediaControllerSrv.YTDLP {
             return new YTUrlSource(videoUrl, audioUrl, manifestUrl);
         }
 
-        private static bool FilterAudioByLanguage(string sourceLanguage)
+        private static bool FilterByLanguage(string sourceLanguage = null)
         {
-            if(sourceLanguage == I18n.Language)
+            if(String.IsNullOrEmpty(sourceLanguage) || (sourceLanguage == I18n.Language))
             {
                 return true;
             }
