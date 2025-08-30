@@ -7,13 +7,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using YTMediaControllerSrv;
+using YTMediaControllerSrv.Logging;
 using YTMediaControllerSrv.Types;
 
 namespace YTMediaControllerSrv
 {
     internal class BrowserExtensionNativeHost
     {
-        public BrowserExtensionNativeHost()
+        private readonly ILogger Logger;
+        public BrowserExtensionNativeHost(ILogger logger)
         {
             var (nativeHostId, nativeHostPath) = SetupManifest();
             SetupRegistryEntry(nativeHostId, nativeHostPath);

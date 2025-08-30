@@ -2,6 +2,7 @@
 using System;
 using System.Threading.Tasks;
 using YTMediaControllerSrv.Controller;
+using YTMediaControllerSrv.Logging;
 using YTMediaControllerSrv.Types;
 
 
@@ -11,12 +12,14 @@ namespace YTMediaControllerSrv.Server
     {
         public WebSocketConnectionManager wsManager;
         private int backendServerPort;
-        public UISocketServer(string host, int port, int backendServerPort)
+        private ILogger Logger;
+        public UISocketServer(string host, int port, int backendServerPort, ILogger logger)
         {
             this.backendServerPort = backendServerPort;
+            this.Logger = logger;
             string endpoint = $"http://{host}:{port}/";
 
-            wsManager = new WebSocketConnectionManager(endpoint);
+            wsManager = new WebSocketConnectionManager(endpoint, logger);
 
             wsManager.OnMessage += OnMessage;
             wsManager.OnConnect += OnConnected;
@@ -38,12 +41,12 @@ namespace YTMediaControllerSrv.Server
 
         private void OnConnected()
         {
-            Console.WriteLine($"Client connected");
+            Logger.Info($"Client connected");
         }
 
         private void OnDisconnected()
         {
-            Console.WriteLine($"Client disconnected");
+            Logger.Info($"Client disconnected");
         }
 
         public async Task Send(object jsonObject)
@@ -54,7 +57,7 @@ namespace YTMediaControllerSrv.Server
             }
             else
             {
-                Console.Error.WriteLine("[ControlServer] Cannot send: No client is connected.");
+                Logger.Warn("[ControlServer] Cannot send: No client is connected.");
             }
         }
 

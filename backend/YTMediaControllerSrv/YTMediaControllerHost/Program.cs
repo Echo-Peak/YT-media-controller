@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using YTMediaControllerSrv.Settings;
 using YTMediaControllerSrv;
 using System.Threading;
+using YTMediaControllerSrv.Logging;
 
 namespace YTMediaControllerHost
 {
@@ -23,10 +24,10 @@ namespace YTMediaControllerHost
         static AppSettings appSettings { get; set; }
         private static Stream output;
         private static readonly object outputLock = new object();
-
+        private static ILogger Logger = new Logger("NATIVE_HOST");
         static void Main(string[] args)
         {
-            appSettings = new AppSettings(PathResolver.GetSettingsFilePath());
+            appSettings = new AppSettings(PathResolver.GetSettingsFilePath(), Logger);
 
             var input = Console.OpenStandardInput();
             output = Console.OpenStandardOutput();
