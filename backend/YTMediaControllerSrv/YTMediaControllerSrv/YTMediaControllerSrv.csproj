@@ -104,7 +104,10 @@
   <ItemGroup>
     <Compile Include="BrowserExtensionNativeHost.cs" />
     <Compile Include="I18n.cs" />
-    <Compile Include="Logger.cs" />
+    <Compile Include="Logging\ConsoleLogger.cs" />
+    <Compile Include="Logging\FileLogger.cs" />
+    <Compile Include="Logging\ILogger.cs" />
+    <Compile Include="Logging\Logger.cs" />
     <Compile Include="PathResolver.cs" />
     <Compile Include="AppContainer.cs" />
     <Compile Include="ProjectInstaller.cs">
@@ -119,6 +122,7 @@
     <Compile Include="Server\Middleware\IHttpMiddleware.cs" />
     <Compile Include="Server\MiddlewarePipeline.cs" />
     <Compile Include="Server\Middleware\CORSMiddleware.cs" />
+    <Compile Include="Server\Middleware\LoggingMiddleware.cs" />
     <Compile Include="Server\Middleware\MobileRouterMiddleware.cs" />
     <Compile Include="YTDLP\VideoCache.cs" />
     <Compile Include="Server\WebSocketConnectionManager.cs" />

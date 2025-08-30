@@ -6,15 +6,17 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YTMediaControllerSrv.Logging;
 
 namespace YTMediaControllerSrv.Settings
 {
     public class AppSettings
     {
         private string settingsFilePath { get; set; }
-
-        public AppSettings(string settingsFilePath)
+        private readonly ILogger Logger;
+        public AppSettings(string settingsFilePath, ILogger logger)
         {
+            Logger = logger;
             Logger.Info($"Using the settings path: {settingsFilePath}");
             this.settingsFilePath = settingsFilePath;
         }

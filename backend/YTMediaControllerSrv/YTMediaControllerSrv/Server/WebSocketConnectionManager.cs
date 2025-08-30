@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using YTMediaControllerSrv.Logging;
 
 namespace YTMediaControllerSrv.Server
 {
@@ -21,9 +22,11 @@ namespace YTMediaControllerSrv.Server
         public event Action<string> OnMessage;
         private string wsUrl;
         private WebSocket _clientSocket;
+        private readonly ILogger Logger;
 
-        public WebSocketConnectionManager(string urlPrefix)
+        public WebSocketConnectionManager(string urlPrefix, ILogger logger)
         {
+            Logger = logger;
             wsUrl = urlPrefix;
             _httpListener = new HttpListener();
             _httpListener.Prefixes.Add(urlPrefix);

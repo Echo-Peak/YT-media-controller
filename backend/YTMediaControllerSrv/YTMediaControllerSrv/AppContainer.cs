@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using YTMediaControllerSrv.Logging;
 using YTMediaControllerSrv.Server;
 using YTMediaControllerSrv.Settings;
 using YTMediaControllerSrv.Types;
@@ -12,26 +13,27 @@ namespace YTMediaControllerSrv
     {
         private UISocketServer uiSocketServer;
         private BackendServer backendServer;
+        public ILogger defaultLogger = new Logger();
 
         public AppContainer() {
             string settingsFile = PathResolver.GetSettingsFilePath();
             GlobalFFOptions.Configure(opt => opt.BinaryFolder = PathResolver.GetFFMpegDir());
 
             string deviceIP = DeviceInfo.GetLocalIPAddress();
-            var appSettings = new AppSettings(settingsFile);
+            var appSettings = new AppSettings(settingsFile, defaultLogger);
             var settingsJson = appSettings.Load();
 
-            uiSocketServer = new UISocketServer("localhost", settingsJson.UISocketServerPort, settingsJson.BackendServerPort);
-            backendServer = new BackendServer(deviceIP, settingsJson.BackendServerPort, uiSocketServer);
+            uiSocketServer = new UISocketServer("localhost", settingsJson.UISocketServerPort, settingsJson.BackendServerPort, defaultLogger);
+            backendServer = new BackendServer(deviceIP, settingsJson.BackendServerPort, uiSocketServer, defaultLogger);
 
 
 
 #if DEBUG
             Console.CancelKeyPress += (sender, e) =>
             {
-                Logger.Info("SIGINT received. Cleaning up resources...");
+                defaultLogger.Info("SIGINT received. Cleaning up resources...");
                 Stop();
-                Logger.Info("Cleanup complete. Exiting application.");
+                defaultLogger.Info("Cleanup complete. Exiting application.");
             };
 #endif
         }

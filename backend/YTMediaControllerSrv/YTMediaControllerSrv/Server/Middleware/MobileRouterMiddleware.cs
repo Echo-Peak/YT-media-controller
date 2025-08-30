@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using YTMediaControllerSrv.Logging;
 using YTMediaControllerSrv.Types;
 using YTMediaControllerSrv.YTDLP;
 
@@ -17,8 +18,9 @@ namespace YTMediaControllerSrv.Server.Middleware
         private string BaseUrl { get; set; }
 
         private YtdlpExec Ytdlp { get; set; }
+        private readonly ILogger Logger;
 
-        public MobileRouterMiddleware(UISocketServer uiSocketServer, YtdlpExec ytdlp, string baseUrl)
+        public MobileRouterMiddleware(UISocketServer uiSocketServer, YtdlpExec ytdlp, string baseUrl, ILogger logger)
         {
             UISocketServer = uiSocketServer;
             BaseUrl = baseUrl;
