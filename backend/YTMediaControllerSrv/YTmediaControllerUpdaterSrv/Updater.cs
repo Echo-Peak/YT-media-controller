@@ -10,9 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using YTMediaControllerSrv;
 using YTMediaControllerSrv.Logging;
-using YTmediaControllerUpdaterSrv.Types;
+using YTMediaControllerUpdaterSrv.Types;
 
-namespace YTmediaControllerUpdaterSrv
+namespace YTMediaControllerUpdaterSrv
 {
     internal class Updater
     {

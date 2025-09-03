@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace YTmediaControllerUpdaterSrv.Types
+namespace YTMediaControllerUpdaterSrv.Types
 {
     internal class ManifestData
     {

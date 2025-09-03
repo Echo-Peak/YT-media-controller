@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using YTMediaControllerSrv;
 
-namespace YTmediaControllerUpdaterSrv
+namespace YTMediaControllerUpdaterSrv
 {
     internal static class Program
     {

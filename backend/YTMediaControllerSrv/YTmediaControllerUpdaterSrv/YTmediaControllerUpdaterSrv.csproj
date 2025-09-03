@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{2E5E42BB-2246-479C-8990-5BB4CE5A9BA7}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>YTmediaControllerUpdaterSrv</RootNamespace>
-    <AssemblyName>YTmediaControllerUpdaterSrv</AssemblyName>
+    <RootNamespace>YTMediaControllerUpdaterSrv</RootNamespace>
+    <AssemblyName>YTMediaControllerUpdaterSrv</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

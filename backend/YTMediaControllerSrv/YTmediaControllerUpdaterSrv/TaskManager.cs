@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace YTmediaControllerUpdaterSrv
+namespace YTMediaControllerUpdaterSrv
 {
     public sealed class TaskManager : IDisposable
     {

@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using YTMediaControllerSrv.Logging;
 
-namespace YTmediaControllerUpdaterSrv
+namespace YTMediaControllerUpdaterSrv
 {
     internal class UpdateOrchestrator
     {

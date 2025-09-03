@@ -1,4 +1,4 @@
-﻿namespace YTmediaControllerUpdaterSrv
+﻿namespace YTMediaControllerUpdaterSrv
 {
     partial class ProjectInstaller
     {

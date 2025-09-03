@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using YTMediaControllerSrv;
 
-namespace YTmediaControllerUpdaterSrv
+namespace YTMediaControllerUpdaterSrv
 {
     public partial class Service1 : ServiceBase
     {
