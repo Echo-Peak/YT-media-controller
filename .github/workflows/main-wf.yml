@@ -67,13 +67,18 @@ jobs:
       - name: Build installer
         run: npm run package
 
+      - name: Create manifest file
+        run: node ./packager/createManifest.js
+
       - name: Upload Release APK to GitHub Release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ needs.create-tag-and-dispatch.outputs.tag_version }}
-          files: ./dist/YoutubeMediaControllerInstaller.exe
+          files: |
+            ./dist/YoutubeMediaControllerInstaller.exe
+            ./dist/manifest.json
 
   build-android-app:
     needs: create-tag-and-dispatch
