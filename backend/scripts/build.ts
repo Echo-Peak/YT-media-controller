@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as child_process from "child_process";
 import path from "path";
 import { writeFile } from "fs/promises";
+import * as packageJson from "../../package.json";
 
 const msBuildPaths = [
   [
@@ -21,6 +22,15 @@ const msBuildPaths = [
     "Unable to check if 'choco installed' 2022 MSBuild was found",
   ],
 ];
+
+const buildNumber = process.env.BUILD_NUMBER || "0";
+const branch = process.env.GITHUB_HEAD_REF || "staging";
+
+const selectBuildEnv = () => {
+  if (branch === "main") return "Release";
+  if (branch === "staging") return "Staging";
+  return "Debug";
+};
 
 const createBackendSettings = async (destPath: string): Promise<void> => {
   const settings = {
@@ -75,7 +85,9 @@ const buildExec = async (args: string[]): Promise<void> => {
   const backendSettingsPath = path.resolve(__dirname, "../settings.json");
   const execArgs = [
     "backend\\YTMediaControllerSrv\\YTMediaControllerSrv.sln",
-    "/p:Configuration=Release",
+    `/p:Configuration=${selectBuildEnv()}`,
+    `/p:BUILD_NUMBER=${buildNumber}`,
+    `/p:VERSION_PREFIX=${packageJson.version}`,
   ];
 
   await createBackendSettings(backendSettingsPath);
