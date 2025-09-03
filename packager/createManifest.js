@@ -2,10 +2,8 @@ const fs = require("fs");
 const crypto = require("crypto");
 const path = require("path");
 
-const installer = path.join(
-  __dirname,
-  "../dist/YoutubeMediaControllerInstaller.exe"
-);
+const distDir = path.join(__dirname, "../dist");
+const installer = path.join(distDir, "YoutubeMediaControllerInstaller.exe");
 
 const manifest = {
   installerComponent: "YoutubeMediaControllerInstaller.exe",
@@ -15,4 +13,7 @@ const manifest = {
     .digest("hex"),
 };
 
-fs.writeFileSync("./dist/manifest.json", JSON.stringify(manifest, null, 2));
+fs.writeFileSync(
+  path.join(distDir, "manifest.json"),
+  JSON.stringify(manifest, null, 2)
+);
