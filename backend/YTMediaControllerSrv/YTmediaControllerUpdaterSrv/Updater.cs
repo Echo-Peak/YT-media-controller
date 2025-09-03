@@ -37,7 +37,7 @@ namespace YTMediaControllerUpdaterSrv
             return "staging"
 #endif
 
-            return "staging";
+            return "dev";
         }
 
         public async Task CheckForUpdate()
