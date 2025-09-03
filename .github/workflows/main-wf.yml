@@ -1,7 +1,7 @@
 name: Create assets
 on:
   push:
-    branches: ["main", "staging", "develop"]
+    branches: ["main", "staging", "develop-test"]
 
 permissions:
   contents: write
