@@ -1,7 +1,7 @@
 name: Create assets
 on:
   push:
-    branches: ["main", "staging"]
+    branches: ["main", "staging", "develop"]
 
 permissions:
   contents: write
@@ -71,12 +71,16 @@ jobs:
       - name: Create manifest file
         run: node ./packager/createManifest.js
 
+      - name: Grab last commit message
+        run: git log -1 --pretty=%B > RELEASE_BODY.txt
+
       - name: Upload Release APK to GitHub Release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ needs.create-tag-and-dispatch.outputs.tag_version }}
+          body_path: RELEASE_BODY.txt
           files: |
             ./dist/YoutubeMediaControllerInstaller.exe
             ./dist/manifest.json
