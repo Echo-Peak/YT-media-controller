@@ -1,0 +1,40 @@
+<Project>
+  <PropertyGroup>
+    <VersionPrefix
+      Condition="'$(VersionPrefix)' == '' and '$(VERSION_PREFIX)' != ''">$(VERSION_PREFIX)</VersionPrefix>
+    <VersionPrefix Condition="'$(VersionPrefix)' == ''">1.0.0</VersionPrefix>
+
+    <BuildNumber Condition="'$(BuildNumber)' == '' and '$(BUILD_NUMBER)' != ''">$(BUILD_NUMBER)</BuildNumber>
+    <BuildNumber Condition="'$(BuildNumber)' == ''">0</BuildNumber>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <PropertyGroup>
+        <PreRelease>dev</PreRelease>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(Configuration)' == 'Staging'">
+      <PropertyGroup>
+        <PreRelease>staging</PreRelease>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(Configuration)' == 'Release'">
+      <PropertyGroup>
+        <PreRelease>release</PreRelease>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <PreRelease>$([System.String]::Copy('$(Configuration)').ToLowerInvariant())</PreRelease>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <PropertyGroup>
+    <PreSuffix Condition="'$(PreRelease)' != ''">-$(PreRelease)</PreSuffix>
+    <ComputedAssemblyVersion>$(VersionPrefix).0</ComputedAssemblyVersion>
+    <ComputedFileVersion>$(VersionPrefix).$(BuildNumber)</ComputedFileVersion>
+    <ComputedInfoVersion>$(VersionPrefix)$(PreSuffix).$(BuildNumber)</ComputedInfoVersion>
+  </PropertyGroup>
+</Project>

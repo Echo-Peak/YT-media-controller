@@ -76,6 +76,29 @@ namespace YTMediaControllerSrv
             return Path.Combine(installDir, "bin");
         }
 
+        public static string GetYTControllerSrvBin()
+        {
+            var binName = "YTMediaControllerSrv";
+            if (!IsInstalled())
+            {
+                string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+                return Path.Combine(GetProjectRoot(), $"backend\\YTMediaControllerSrv\\{binName}\\bin\\{configuration}\\{binName}.exe");
+            }
+            return Path.Combine(installDir, $"{binName}.exe");
+        }
+
+        public static string GetPublicKey()
+        {
+            if (!IsInstalled())
+            {
+                string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+                return Path.Combine(GetProjectRoot(), $"backend\\keys\\updateServerSrv.pub");
+            }
+
+            // Convert into embedded asset and use asset streaming
+            return Path.Combine(installDir, $"keys/updateServerSrv.pub");
+        }
+
         public static string GetLogsDir()
         {
             return Path.Combine(installDir, "logs");

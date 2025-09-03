@@ -11,7 +11,11 @@ OutFile "..\dist\YoutubeMediaControllerInstaller.exe"
   !define DEFAULTPORT "9200"
 !endif
 
-Function InstallService 
+!ifndef INSTALLER_ENV
+  !define INSTALLER_ENV "Staging"
+!endif
+
+Function InstallCoreService 
   DetailPrint "Create YT Media Controller service"
 
   ExecWait 'sc create "YTMediaControllerService" binPath= "\"$PROGRAMFILES\YTMediaController\YTMediaControllerSrv.exe\"" start= auto DisplayName= "YT Media Controller Service"'
@@ -22,6 +26,19 @@ Function InstallService
 
   ExecWait 'sc start "YTMediaControllerService"'
   DetailPrint "YT Media Controller service created and started"
+FunctionEnd
+
+Function InstallUpdaterService 
+  DetailPrint "Create YT Media Controller updater service"
+
+  ExecWait 'sc create "YTMediaControllerUpdaterService" binPath= "\"$PROGRAMFILES\YTMediaController\YTMediaControllerUpdater.exe\"" start= auto DisplayName= "YT Media Controller Updater Service"'
+  WriteRegDWORD HKLM "SYSTEM\CurrentControlSet\Services\YTMediaControllerUpdaterService" "DelayedAutostart" 0
+  WriteRegDWORD HKLM "SYSTEM\CurrentControlSet\Services\YTMediaControllerUpdaterService" "FailureActionsOnNonCrashFailures" 1
+  WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Services\YTMediaControllerUpdaterService\Parameters" "AppDirectory" "$PROGRAMFILES\YTMediaController"
+  WriteRegStr HKLM "SYSTEM\CurrentControlSet\Services\YTMediaControllerUpdaterService\Parameters\AppExit" "" "Restart"
+
+  ExecWait 'sc start "YTMediaControllerUpdaterService"'
+  DetailPrint "YT Media Controller updater service created and started"
 FunctionEnd
 
 Function UpdateFirewallRules
@@ -37,8 +54,9 @@ Section "Info" Info
 
   SetOutPath "$INSTDIR"
   File "..\backend\settings.json"
-  File "..\backend\YTMediaControllerSrv\YTMediaControllerSrv\bin\Release\YTMediaControllerSrv.exe"
-  File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\Release\YTMediaControllerHost.exe"
+  File "..\backend\YTMediaControllerSrv\YTMediaControllerSrv\bin\$INSTALLER_ENV\YTMediaControllerSrv.exe"
+  File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\$INSTALLER_ENV\YTMediaControllerHost.exe"
+  File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\$INSTALLER_ENV\YTMediaControllerUpdaterSrv.exe"
 
   SetOutPath "$INSTDIR\bin"
   File /r "..\backend\externalBins\*.exe"
@@ -46,5 +64,6 @@ Section "Info" Info
   SetOutPath "$INSTDIR\BrowserExtension"
   File /r "..\dist\browser-extension-unpacked\*"
   call UpdateFirewallRules
-  call InstallService
+  call InstallCoreService
+  call InstallUpdaterService
 SectionEnd

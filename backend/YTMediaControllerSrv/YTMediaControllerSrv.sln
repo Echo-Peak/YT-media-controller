@@ -7,20 +7,33 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YTMediaControllerSrv", "YTM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YTMediaControllerHost", "YTMediaControllerHost\YTMediaControllerHost.csproj", "{5E8911AC-203F-470E-BEE4-AA9ABB2C15A6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YTMediaControllerUpdaterSrv", "YTMediaControllerUpdaterSrv\YTMediaControllerUpdaterSrv.csproj", "{2E5E42BB-2246-479C-8990-5BB4CE5A9BA7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Staging|Any CPU = Staging|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{99A09598-1B0F-4323-89ED-A7D73AFBAD1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{99A09598-1B0F-4323-89ED-A7D73AFBAD1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99A09598-1B0F-4323-89ED-A7D73AFBAD1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99A09598-1B0F-4323-89ED-A7D73AFBAD1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99A09598-1B0F-4323-89ED-A7D73AFBAD1D}.Staging|Any CPU.ActiveCfg = Staging|Any CPU
+		{99A09598-1B0F-4323-89ED-A7D73AFBAD1D}.Staging|Any CPU.Build.0 = Staging|Any CPU
 		{5E8911AC-203F-470E-BEE4-AA9ABB2C15A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5E8911AC-203F-470E-BEE4-AA9ABB2C15A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E8911AC-203F-470E-BEE4-AA9ABB2C15A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E8911AC-203F-470E-BEE4-AA9ABB2C15A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E8911AC-203F-470E-BEE4-AA9ABB2C15A6}.Staging|Any CPU.ActiveCfg = Staging|Any CPU
+		{5E8911AC-203F-470E-BEE4-AA9ABB2C15A6}.Staging|Any CPU.Build.0 = Staging|Any CPU
+		{2E5E42BB-2246-479C-8990-5BB4CE5A9BA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E5E42BB-2246-479C-8990-5BB4CE5A9BA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E5E42BB-2246-479C-8990-5BB4CE5A9BA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E5E42BB-2246-479C-8990-5BB4CE5A9BA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E5E42BB-2246-479C-8990-5BB4CE5A9BA7}.Staging|Any CPU.ActiveCfg = Staging|Any CPU
+		{2E5E42BB-2246-479C-8990-5BB4CE5A9BA7}.Staging|Any CPU.Build.0 = Staging|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

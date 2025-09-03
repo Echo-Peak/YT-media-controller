@@ -1,7 +1,7 @@
 name: Create assets
 on:
   push:
-    branches: ["main", "staging"]
+    branches: ["main", "staging", "develop"]
 
 permissions:
   contents: write
@@ -19,10 +19,11 @@ jobs:
         id: set_version
         run: |
           PACKAGE_JSON_VERSION=$(cat ./package.json | awk -F'"' '/"version":/ {print $4; exit}')
+          TAG_TYPE="dev"
           if [ "${{ github.ref_name }}" = "main" ]; then
-            TAG_TYPE="prod"
-          else
-            TAG_TYPE="rc"
+            TAG_TYPE="release"
+          else if [ "${{ github.ref_name }}" = "staging" ]; then
+            TAG_TYPE="staging"
           fi
           VERSION="v${PACKAGE_JSON_VERSION}-${TAG_TYPE}.${{ github.run_number }}"
           echo "tag_version=$VERSION" >> $GITHUB_OUTPUT
@@ -67,13 +68,22 @@ jobs:
       - name: Build installer
         run: npm run package
 
+      - name: Create manifest file
+        run: node ./packager/createManifest.js
+
+      - name: Grab last commit message
+        run: git log -1 --pretty=%B > RELEASE_BODY.txt
+
       - name: Upload Release APK to GitHub Release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ needs.create-tag-and-dispatch.outputs.tag_version }}
-          files: ./dist/YoutubeMediaControllerInstaller.exe
+          body_path: RELEASE_BODY.txt
+          files: |
+            ./dist/YoutubeMediaControllerInstaller.exe
+            ./dist/manifest.json
 
   build-android-app:
     needs: create-tag-and-dispatch

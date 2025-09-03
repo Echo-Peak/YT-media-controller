@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("YTMediaControllerHost")]
+[assembly: AssemblyTitle("YTMediaControllerUpdaterSrv")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("YTMediaControllerHost")]
+[assembly: AssemblyProduct("YTMediaControllerUpdaterSrv")]
 [assembly: AssemblyCopyright("Copyright ©  2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,4 +20,4 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("5e8911ac-203f-470e-bee4-aa9abb2c15a6")]
+[assembly: Guid("2e5e42bb-2246-479c-8990-5bb4ce5a9ba7")]
