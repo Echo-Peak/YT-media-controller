@@ -45,9 +45,22 @@ const makeInstaller = async (cwd) => {
   });
 };
 
+const makeUninstaller = async (cwd) => {
+  console.log("Creating uninstaller");
+  const args = ["packager/uninstaller.nsi"];
+  await ensureDir(path.join(cwd, "dist"));
+
+  return new Promise((resolve, reject) => {
+    const proc = spawn(makeNsisBin, args, { cwd, stdio: "inherit" });
+    proc.on("close", resolve);
+    proc.on("error", reject);
+  });
+};
+
 (async () => {
   console.log("Creating NSIS installer");
   const root = process.cwd();
   console.log(`Root path: ${root}`);
+  await makeUninstaller(root);
   await makeInstaller(root);
 })();
