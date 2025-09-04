@@ -24,12 +24,12 @@ const msBuildPaths = [
 ];
 
 const buildNumber = process.env.BUILD_NUMBER || "0";
-const branch = process.env.GITHUB_HEAD_REF || "staging";
+const branch = process.env.GITHUB_HEAD_REF || "Develop";
 
 const selectBuildEnv = () => {
   if (branch === "main") return "Release";
   if (branch === "staging") return "Staging";
-  return "Debug";
+  return "Develop";
 };
 
 const createBackendSettings = async (destPath: string): Promise<void> => {
