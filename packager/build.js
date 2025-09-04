@@ -4,7 +4,7 @@ const fs = require("fs");
 const settings = require("../backend/settings.example.json");
 
 const makeNsisBin = "C:\\Program Files (x86)\\NSIS\\makensis.exe";
-const branch = process.env.GITHUB_HEAD_REF || "staging";
+const branch = process.env.GITHUB_HEAD_REF || "Develop";
 
 const selectEnv = (branch) => {
   switch (branch) {
@@ -13,7 +13,7 @@ const selectEnv = (branch) => {
     case "staging":
       return "Staging";
     default:
-      return "Debug";
+      return "Develop";
   }
 };
 
