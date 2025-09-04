@@ -2,12 +2,9 @@
 using Octokit;
 using Semver;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.Remoting.Lifetime;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -20,6 +17,7 @@ namespace YTMediaControllerUpdaterSrv
         private Release latestRelese;
         private GitHubClient GitHubClient { get; set; }
         private HttpClient http = new HttpClient();
+        static readonly Regex TagRx = new Regex(@"^[vV]?(?<core>\d+\.\d+\.\d+)-(?<chan>[A-Za-z]+)\.(?<n>\d+)$", RegexOptions.Compiled);
         public GHReleases()
         {
             http.DefaultRequestHeaders.Accept.Add(
@@ -52,16 +50,19 @@ namespace YTMediaControllerUpdaterSrv
         {
             var allReleases = await GitHubClient.Repository.Release.GetAll(Owner, Repo);
 
-            return allReleases.Where(r => !r.Draft && !string.IsNullOrEmpty(r.TagName))
-            .Select(r =>
+            return allReleases
+            .Where(r => !r.Draft && !string.IsNullOrWhiteSpace(r.TagName))
+            .Select(r => new { r, m = TagRx.Match(r.TagName) })
+            .Where(x => x.m.Success && string.Equals(x.m.Groups["chan"].Value, channel, StringComparison.OrdinalIgnoreCase))
+            .Select(x => new
             {
-                var tag = r.TagName.TrimStart('v', 'V');
-                return new { Release = r, Sem = SemVersion.Parse(tag, SemVersionStyles.Strict) };
+                x.r,
+                core = Version.Parse(x.m.Groups["core"].Value),
+                n = int.Parse(x.m.Groups["n"].Value)
             })
-            .Where(x => !string.IsNullOrEmpty(x.Sem.Prerelease) &&
-                        (x.Sem.Prerelease == channel || x.Sem.Prerelease.StartsWith(channel + ".")))
-            .OrderByDescending(x => x.Sem.ToString())
-            .Select(x => x.Release)
+            .OrderByDescending(x => x.core)
+            .ThenByDescending(x => x.n)
+            .Select(x => x.r)
             .FirstOrDefault();
         }
 
