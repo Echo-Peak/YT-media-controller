@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Octokit;
+using System;
 using System.Diagnostics;
 using System.ServiceProcess;
 using System.Text;
@@ -11,29 +12,45 @@ namespace YTMediaControllerUpdaterSrv
     public partial class Service1 : ServiceBase
     {
         private Updater updater;
-        private readonly TimeSpan updateInterval = TimeSpan.FromHours(4);
+        private  TimeSpan updateInterval = TimeSpan.FromHours(4);
         private TaskManager checkForUpdatePeriodicTask;
-        private readonly Logger logger;
+        private  Logger logger;
+        private GHReleases ghRelease;
         public Service1()
         {
-            logger = new Logger("AUTO_UPDATER");
-            var ghRelease = new GHReleases();
-            updater = new Updater(logger, ghRelease);
-
             InitializeComponent();
+            this.ServiceName = "YTMediaControllerUpdaterService";
         }
 
         protected override void OnStart(string[] args)
         {
-            checkForUpdatePeriodicTask = new TaskManager(
-                CheckForUpdatePeriodicTask,
-                updateInterval,
-                runImmediately: true,
-                fixedRate: true,
-                HandleTaskError
+            try
+            {
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
+                logger = new Logger();
+                ghRelease = new GHReleases();
+                updater = new Updater(logger, ghRelease);
+
+                checkForUpdatePeriodicTask = new TaskManager(
+                    CheckForUpdatePeriodicTask,
+                    updateInterval,
+                    runImmediately: true,
+                    fixedRate: true,
+                    onError: HandleTaskError
                 );
 
-            checkForUpdatePeriodicTask.Start();
+                checkForUpdatePeriodicTask.Start();
+            }
+            catch (Exception ex)
+            {
+                EventLog.WriteEntry(
+                    "Application",
+                    $"[{ServiceName}] Fatal error in OnStart:\r\n{ex}",
+                    EventLogEntryType.Error);
+
+                throw;
+            }
         }
 
         private void HandleTaskError(Exception err)

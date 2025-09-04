@@ -31,7 +31,7 @@ FunctionEnd
 Function InstallUpdaterService 
   DetailPrint "Create YT Media Controller updater service"
 
-  ExecWait 'sc create "YTMediaControllerUpdaterService" binPath= "\"$PROGRAMFILES\YTMediaController\YTMediaControllerUpdater.exe\"" start= auto DisplayName= "YT Media Controller Updater Service"'
+  ExecWait 'sc create "YTMediaControllerUpdaterService" binPath= "\"$PROGRAMFILES\YTMediaController\YTMediaControllerUpdaterSrv.exe\"" start= auto DisplayName= "YT Media Controller Updater Service"'
   WriteRegDWORD HKLM "SYSTEM\CurrentControlSet\Services\YTMediaControllerUpdaterService" "DelayedAutostart" 0
   WriteRegDWORD HKLM "SYSTEM\CurrentControlSet\Services\YTMediaControllerUpdaterService" "FailureActionsOnNonCrashFailures" 1
   WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Services\YTMediaControllerUpdaterService\Parameters" "AppDirectory" "$PROGRAMFILES\YTMediaController"
