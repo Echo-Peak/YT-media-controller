@@ -35,12 +35,18 @@ namespace YTMediaControllerUpdaterSrv
 
         static void StartServiceApp()
         {
-            ServiceBase[] ServicesToRun;
-            ServicesToRun = new ServiceBase[]
+            try
             {
-                new Service1()
-            };
-            ServiceBase.Run(ServicesToRun);
+                ServiceBase.Run(new ServiceBase[] { new Service1() });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.EventLog.WriteEntry(
+                    "Application",
+                    $"[AutoUpdaterSvc] Fatal error before connecting to SCM:\r\n{ex}",
+                    System.Diagnostics.EventLogEntryType.Error);
+                throw;
+            }
         }
     }
 }
