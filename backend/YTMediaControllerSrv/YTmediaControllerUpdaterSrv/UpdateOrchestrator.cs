@@ -23,7 +23,7 @@ namespace YTMediaControllerUpdaterSrv
         {
             try
             {
-                bool isStopped = StopService("YTMediaControllerSrv", 3000);
+                bool isStopped = StopService("YTMediaControllerService", 3000);
                 if (!isStopped) {
                     throw new Exception("Unable to stop service");
                 }
@@ -38,7 +38,7 @@ namespace YTMediaControllerUpdaterSrv
         }
         private bool StopService(string serviceName, int timeout)
         {
-            logger.Info($"Attempting to stop service: \"{serviceName}\"");
+            logger.Info($"Stopping service: \"{serviceName}\"");
             try
             {
                 using (ServiceController service = new ServiceController(serviceName))
@@ -49,8 +49,9 @@ namespace YTMediaControllerUpdaterSrv
                         service.Stop();
                         service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromMilliseconds(timeout));
                     }
-
-                    return service.Status == ServiceControllerStatus.Stopped;
+                    bool isStopped = service.Status == ServiceControllerStatus.Stopped;
+                    logger.Info($"{serviceName} Service is stopped");
+                    return isStopped;
                 }
             }
             catch (Exception ex)
@@ -70,6 +71,11 @@ namespace YTMediaControllerUpdaterSrv
                 try
                 {
                     var processes = Process.GetProcessesByName(processName);
+                    if (processes.Length == 0)
+                    {
+                        logger.Info($"The process \"{processName}\" is not running");
+                        break;
+                    }
                     foreach (var proc in processes)
                     {
                         logger.Info($"Terminating process {proc.ProcessName} (PID {proc.Id})");
@@ -115,19 +121,24 @@ namespace YTMediaControllerUpdaterSrv
 
         private Task ExecInstaller(string installerPath)
         {
+            logger.Info($"Attempting to execute installer: {installerPath}");
             var tcs = new TaskCompletionSource<bool>();
 
             var proc = new Process
             {
-                StartInfo = new ProcessStartInfo(installerPath)
+                StartInfo = new ProcessStartInfo()
                 {
-                    UseShellExecute = true // change to false if you need redirecting
+                    FileName = installerPath,
+                    Arguments = "/S",
+                    UseShellExecute = true,
+                    CreateNoWindow = true,
                 },
                 EnableRaisingEvents = true
             };
 
             proc.Exited += (sender, args) =>
             {
+                logger.Info($"Inataller has terminated with exit code: {proc.ExitCode}");
                 tcs.TrySetResult(true);
                 proc.Dispose();
             };

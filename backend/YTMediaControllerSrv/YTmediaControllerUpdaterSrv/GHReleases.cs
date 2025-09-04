@@ -5,6 +5,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
+using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -20,9 +22,11 @@ namespace YTMediaControllerUpdaterSrv
         static readonly Regex TagRx = new Regex(@"^[vV]?(?<core>\d+\.\d+\.\d+)-(?<chan>[A-Za-z]+)\.(?<n>\d+)$", RegexOptions.Compiled);
         public GHReleases()
         {
+            var updaterVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             http.DefaultRequestHeaders.Accept.Add(
                 new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/octet-stream")
             );
+            http.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("YTMediaControllerUpdater", updaterVersion));
 
             GitHubClient = new GitHubClient(new ProductHeaderValue("YTMediaControllerUpdaterSrv"));
         }
@@ -88,8 +92,19 @@ namespace YTMediaControllerUpdaterSrv
             var assetUrl = SelectAssetUrl(assetName);
             if(assetUrl != null)
             {
-                    var content = await http.GetStringAsync(assetUrl);
-                    return JsonConvert.DeserializeObject<T>(content);
+                using (var resp = await http.GetAsync(assetUrl, HttpCompletionOption.ResponseContentRead))
+                {
+                    var body = await resp.Content.ReadAsStringAsync();
+
+                    if(resp.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        return JsonConvert.DeserializeObject<T>(body);
+                    }
+                    else
+                    {
+                        throw new HttpRequestException($"Invalid status code when retreiving asset. Got: {resp.StatusCode}");
+                    }
+                }
             }
 
             throw new Exception($"Unable to find {assetName}");
@@ -103,7 +118,9 @@ namespace YTMediaControllerUpdaterSrv
             }
 
             var assetUrl = SelectAssetUrl(assetName);
-            var outputPath = Path.Combine(destDir, assetName);
+            var guid = Guid.NewGuid().ToString();
+            var outputPath = Path.Combine(destDir, $"{guid}-{assetName}");
+
 
             using (HttpResponseMessage response = await http.GetAsync(assetUrl, HttpCompletionOption.ResponseHeadersRead))
             using (Stream contentStream = await response.Content.ReadAsStreamAsync(),

@@ -32,6 +32,8 @@ namespace YTMediaControllerUpdaterSrv
                 ghRelease = new GHReleases();
                 updater = new Updater(logger, ghRelease);
 
+               logger.Info("Starting service");
+
                 checkForUpdatePeriodicTask = new TaskManager(
                     CheckForUpdatePeriodicTask,
                     updateInterval,
@@ -66,6 +68,7 @@ namespace YTMediaControllerUpdaterSrv
 
         protected override void OnStop()
         {
+            logger.Info("Stopping service");
             Task.Run(updater.Cleanup);
             checkForUpdatePeriodicTask?.StopAsync().GetAwaiter().GetResult();
             checkForUpdatePeriodicTask?.Dispose();
