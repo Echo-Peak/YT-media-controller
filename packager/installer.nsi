@@ -54,9 +54,9 @@ Section "Info" Info
 
   SetOutPath "$INSTDIR"
   File "..\backend\settings.json"
-  File "..\backend\YTMediaControllerSrv\YTMediaControllerSrv\bin\$INSTALLER_ENV\YTMediaControllerSrv.exe"
-  File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\$INSTALLER_ENV\YTMediaControllerHost.exe"
-  File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\$INSTALLER_ENV\YTMediaControllerUpdaterSrv.exe"
+  File "..\backend\YTMediaControllerSrv\YTMediaControllerSrv\bin\${INSTALLER_ENV}\YTMediaControllerSrv.exe"
+  File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\${INSTALLER_ENV}\YTMediaControllerHost.exe"
+  File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\${INSTALLER_ENV}\YTMediaControllerUpdaterSrv.exe"
 
   SetOutPath "$INSTDIR\bin"
   File /r "..\backend\externalBins\*.exe"
