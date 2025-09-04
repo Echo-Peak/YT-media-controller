@@ -1,7 +1,7 @@
 name: Create assets
 on:
   push:
-    branches: ["main", "staging", "develop"]
+    branches: ["main", "staging", "develop-test"]
 
 permissions:
   contents: write
@@ -22,7 +22,7 @@ jobs:
           TAG_TYPE="dev"
           if [ "${{ github.ref_name }}" = "main" ]; then
             TAG_TYPE="release"
-          else if [ "${{ github.ref_name }}" = "staging" ]; then
+          elif [ "${{ github.ref_name }}" = "staging" ]; then
             TAG_TYPE="staging"
           fi
           VERSION="v${PACKAGE_JSON_VERSION}-${TAG_TYPE}.${{ github.run_number }}"
