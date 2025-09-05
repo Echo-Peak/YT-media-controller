@@ -1,5 +1,7 @@
 # YT-media-controller
 
+[![Current build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
+
 ## Inspiration
 
 The driving force behind this project is that I watch a lot of YouTube content,
