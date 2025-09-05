@@ -99,6 +99,16 @@ namespace YTMediaControllerSrv
             return Path.Combine(installDir, $"keys/updateServerSrv.pub");
         }
 
+        public static string GetUninstaller() 
+        {
+            if (!IsInstalled())
+            {
+                string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+                return Path.Combine(GetProjectRoot(), $"dist/YoutubeMediaControllerUninstaller.exe");
+            }
+
+            return Path.Combine(installDir, $"YoutubeMediaControllerUninstaller.exe");
+        }
         public static string GetLogsDir()
         {
             return Path.Combine(installDir, "logs");
