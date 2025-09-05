@@ -25,6 +25,17 @@ namespace YTMediaControllerUpdaterSrv
             this.Logger = logger;
             this.gHReleases = GHRelease;
             this.updateOrchestrator = new UpdateOrchestrator(logger);
+            PerformPreStartCleanup();
+        }
+        private void PerformPreStartCleanup()
+        {
+            try
+            {
+                updateOrchestrator.Cleanup().ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+            catch (Exception ex) {
+                Logger.Error("Unable to remove update task", ex);
+            }
         }
 
         private string SelectChannel()
