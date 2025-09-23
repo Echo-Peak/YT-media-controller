@@ -1,5 +1,5 @@
 import { useVideoSource } from '../providers/VideoSourceProvider';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { EmbeddedYoutubePlayer } from './players/EmbeddedYoutubePlayer';
 import { HLSPlayer } from './players/HLSPlayer';
 import { NoVideoPlaying } from './dialogs/NoVideoPlaying';
@@ -11,6 +11,12 @@ export const Player = () => {
   const { sendEvent } = useChromeRuntime();
   const [HLSPlayerFailed, setHLSPlayerFailed] = useState(false);
   const [DASHPlayerFailed, setDASHPlayerFailed] = useState(false);
+
+  useEffect(() => {
+    if (!source) return;
+    setHLSPlayerFailed(false);
+    setDASHPlayerFailed(false);
+  }, [source?.hlsStreamUrl, source?.dashStreamUrl, source?.originSource]);
 
   if (!source) {
     return <NoVideoPlaying />;
