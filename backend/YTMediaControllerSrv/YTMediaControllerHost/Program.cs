@@ -27,7 +27,7 @@ namespace YTMediaControllerHost
         private static ILogger Logger = new Logger("NATIVE_HOST");
         static void Main(string[] args)
         {
-            appSettings = new AppSettings(PathResolver.GetSettingsFilePath(), Logger);
+            appSettings = new AppSettings();
 
             var input = Console.OpenStandardInput();
             output = Console.OpenStandardOutput();
@@ -90,7 +90,7 @@ namespace YTMediaControllerHost
 
         static object HandleAction(JsonResponse response)
         {
-            var settings = appSettings.Load();
+
             switch (response.Action)
             {
                 case "getUISocketServerPort":
@@ -98,7 +98,7 @@ namespace YTMediaControllerHost
                         return new
                         {
                             status = true,
-                            result = settings.UISocketServerPort
+                            result = appSettings.UISocketServerPort
                         };
                     }
                 case "getBackendServerPort":
@@ -106,7 +106,7 @@ namespace YTMediaControllerHost
                         return new
                         {
                             status = true,
-                            result = settings.BackendServerPort
+                            result = appSettings.BackendServerPort
                         };
                     }
                 case "getDeviceNetworkIp":

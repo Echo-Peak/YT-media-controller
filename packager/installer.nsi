@@ -41,19 +41,9 @@ Function InstallUpdaterService
   DetailPrint "YT Media Controller updater service created and started"
 FunctionEnd
 
-Function UpdateFirewallRules
-  DetailPrint "Adding Windows Firewall rules for YTMediaController on port ${DEFAULTPORT}"
-  nsExec::ExecToLog 'cmd.exe /C netsh advfirewall firewall add rule name="YTMediaController" dir=in action=allow protocol=TCP localport=${DEFAULTPORT}'
-  Pop $0
-  ${If} $0 != 0
-    MessageBox MB_ICONEXCLAMATION "Failed to add Windows Firewall rule for YTMediaController on port $DEFAULTPORT"
-  ${EndIf}
-FunctionEnd
-
 Section "Info" Info
 
   SetOutPath "$INSTDIR"
-  File "..\backend\settings.json"
   File "..\backend\YTMediaControllerSrv\YTMediaControllerSrv\bin\${INSTALLER_ENV}\YTMediaControllerSrv.exe"
   File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\${INSTALLER_ENV}\YTMediaControllerHost.exe"
   File "..\backend\YTMediaControllerSrv\YTMediaControllerUpdaterSrv\bin\${INSTALLER_ENV}\YTMediaControllerUpdaterSrv.exe"
@@ -64,7 +54,6 @@ Section "Info" Info
 
   SetOutPath "$INSTDIR\BrowserExtension"
   File /r "..\dist\browser-extension-unpacked\*"
-  call UpdateFirewallRules
   call InstallCoreService
   call InstallUpdaterService
 SectionEnd

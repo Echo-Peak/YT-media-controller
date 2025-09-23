@@ -1,37 +1,82 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using YTMediaControllerSrv.Logging;
 
 namespace YTMediaControllerSrv.Settings
 {
     public class AppSettings
     {
-        private string settingsFilePath { get; set; }
-        private readonly ILogger Logger;
-        public AppSettings(string settingsFilePath, ILogger logger)
-        {
-            Logger = logger;
-            Logger.Info($"Using the settings path: {settingsFilePath}");
-            this.settingsFilePath = settingsFilePath;
+        public int BackendServerPort = 60166;
+        public int UISocketServerPort = 52000;
+
+        private readonly ILogger logger;
+        public AppSettings(ILogger Logger) {
+            logger = Logger;
+            SetBackendPort();
+            SetUISocketServerPort();
         }
 
-        public AppSettingsJson Load()
+        private void SetBackendPort()
         {
             try
             {
-                string content = File.ReadAllText(settingsFilePath);
-                return JsonConvert.DeserializeObject<AppSettingsJson>(content);
+                string backendServerPort = AppRegistry.Get(AppRegistryKeys.BackendServerPort);
+                if (backendServerPort != null)
+                {
+                    BackendServerPort = Convert.ToInt32(backendServerPort);
+                }
+                else
+                {
+                    UpdateRegistry(AppRegistryKeys.BackendServerPort, BackendServerPort.ToString());
+                }
             }
-            catch (Exception err)
+            catch (Exception err) {
+                logger.Error("Unable to set backend port", err);
+            }
+        }
+
+        private void SetUISocketServerPort()
+        {
+            try
             {
-                Logger.Error("Unable to read settings. Using default settings", err);
-                return new AppSettingsJson(9200, 9201);
+                string uiSocketServerPort = AppRegistry.Get(AppRegistryKeys.UISocketServerPort);
+                if (uiSocketServerPort != null)
+                {
+                    UISocketServerPort = Convert.ToInt32(uiSocketServerPort);
+                }
+                else
+                {
+                    UpdateRegistry(AppRegistryKeys.UISocketServerPort, UISocketServerPort.ToString());
+                }
+            }catch (Exception err)
+            {
+                logger.Error("Unable to set UI socket server port", err);
+            }
+        }
+
+        private void UpdateRegistry(string key, string value)
+        {
+            try
+            {
+                AppRegistry.Update(AppRegistryKeys.BackendServerPort, BackendServerPort.ToString());
+            }catch(Exception err)
+            {
+                logger.Error($"Unable to update {key}", err);
+            }
+        }
+        public void Update(string property, object value)
+        {
+            switch (property)
+            {
+                case "BackendServerPort":
+                    BackendServerPort = Convert.ToInt32(value);
+                    UpdateRegistry(AppRegistryKeys.BackendServerPort, BackendServerPort.ToString());
+                    break;
+                case "UISocketServerPort":
+                    UISocketServerPort = Convert.ToInt32(value);
+                    UpdateRegistry(AppRegistryKeys.UISocketServerPort, UISocketServerPort.ToString());
+                    break;
+                default:
+                    throw new ArgumentException($"Property '{property}' not found.");
             }
         }
     }
