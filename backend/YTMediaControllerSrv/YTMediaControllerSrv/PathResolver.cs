@@ -22,15 +22,6 @@ namespace YTMediaControllerSrv
             return Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.Parent.Parent.FullName;
         }
 
-        public static string GetSettingsFilePath()
-        {
-            if (!IsInstalled())
-            {
-                return Path.Combine(GetProjectRoot(), "backend\\settings.example.json");
-            }
-
-            return Path.Combine(installDir, "settings.json");
-        }
 
         static string GetBrowserExtentionDir()
         {

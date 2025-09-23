@@ -82,7 +82,8 @@ feed of your personal account.
 - Clone the repo
 - Navigate to the root folder
 - Run `yarn`
-- Adjust `backend/settings.example.json` ports if needed
+- Adjust _BackgroundServerPort_ setting via
+  HKLM\SOFTWARE\WOW6432Node\YTMediaController as necessary
 - Run `yarn build-service` to build the C# backend service and native host exec
 - Run `yarn build-browser` to build the extension
 - Open a Chromium browser and go to Settings > Manage Extensions
