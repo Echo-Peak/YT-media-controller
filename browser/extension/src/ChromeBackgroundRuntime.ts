@@ -8,10 +8,10 @@ export class ChromeBackgroundRuntime {
   private backendServerPort?: number;
   private YTTabID?: number;
   private externalViewerTabId?: number;
+  private externalViewerWindowId?: number;
 
   constructor() {
     this.nativeHost = new NativeHostApi();
-    console.log("ChromeBackgroundRuntime initialized 2");
 
     chrome.runtime.onMessage.addListener(this.handleMessage);
     chrome.runtime.onInstalled.addListener(() => {
@@ -56,6 +56,7 @@ export class ChromeBackgroundRuntime {
   private createPage = () => {
     if (this.externalViewerTabId) {
       chrome.tabs.update(this.externalViewerTabId, { active: true });
+
       console.log(
         "External viewer tab already exists, not creating a new one."
       );
@@ -68,6 +69,7 @@ export class ChromeBackgroundRuntime {
       },
       (tab) => {
         this.externalViewerTabId = tab.id;
+        this.externalViewerWindowId = tab.windowId;
         console.log(
           "External viewer tab created with ID:",
           this.externalViewerTabId
@@ -156,6 +158,22 @@ export class ChromeBackgroundRuntime {
     }
   };
 
+  private setFullScreen = async () => {
+    if (this.externalViewerWindowId) {
+      chrome.windows.update(this.externalViewerWindowId, {
+        state: "fullscreen",
+      });
+    }
+  };
+
+  private setExitFullScreen = async () => {
+    if (this.externalViewerWindowId) {
+      chrome.windows.update(this.externalViewerWindowId, {
+        state: "normal",
+      });
+    }
+  };
+
   private handleMessage = (
     message: Record<string, any>,
     sender: chrome.runtime.MessageSender,
@@ -166,7 +184,13 @@ export class ChromeBackgroundRuntime {
         this.openInYTTab(message.data.url).catch(console.error);
         break;
       }
-      case "enforcementDialogRemoved": {
+      case "setFullScreen": {
+        this.setFullScreen().catch(console.error);
+        break;
+      }
+      case "setExitFullScreen": {
+        this.setExitFullScreen().catch(console.error);
+        break;
       }
     }
   };
