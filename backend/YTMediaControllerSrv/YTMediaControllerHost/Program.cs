@@ -27,7 +27,7 @@ namespace YTMediaControllerHost
         private static ILogger Logger = new Logger("NATIVE_HOST");
         static void Main(string[] args)
         {
-            appSettings = new AppSettings();
+            appSettings = new AppSettings(Logger);
 
             var input = Console.OpenStandardInput();
             output = Console.OpenStandardOutput();
