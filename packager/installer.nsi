@@ -7,10 +7,6 @@ RequestExecutionLevel admin
 
 OutFile "..\dist\YoutubeMediaControllerInstaller.exe"
 
-!ifndef DEFAULTPORT
-  !define DEFAULTPORT "9200"
-!endif
-
 !ifndef INSTALLER_ENV
   !define INSTALLER_ENV "Staging"
 !endif

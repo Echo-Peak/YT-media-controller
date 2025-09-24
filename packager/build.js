@@ -1,8 +1,6 @@
 const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
-const settings = require("../backend/settings.example.json");
-
 const makeNsisBin = "C:\\Program Files (x86)\\NSIS\\makensis.exe";
 const branch = process.env.GITHUB_HEAD_REF || "Develop";
 
@@ -32,7 +30,6 @@ const ensureDir = async (dir) => {
 const makeInstaller = async (cwd) => {
   console.log("Creating installer");
   const args = [
-    `/DDEFAULTPORT=${settings.BackendServerPort}`,
     `/DINSTALLER_ENV=${selectEnv(branch)}`,
     "packager/installer.nsi",
   ];
