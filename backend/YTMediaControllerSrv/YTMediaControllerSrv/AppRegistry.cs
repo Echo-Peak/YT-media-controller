@@ -11,8 +11,10 @@ namespace YTMediaControllerSrv
     {
             public static string BackendServerPort = "backendServerPort";
             public static string UISocketServerPort = "uiSocketServerPort";
+            public static string DisableAutoUpdate = "disableAutoUpdate";
+            public static string AutoUpdateIntervalMins = "autoUpdateIntervalMins";
 
-     }
+    }
     public class AppRegistry
     {
         static string appPath = "SOFTWARE\\YTMediaController";

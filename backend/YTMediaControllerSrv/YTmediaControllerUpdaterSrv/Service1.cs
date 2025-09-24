@@ -12,7 +12,7 @@ namespace YTMediaControllerUpdaterSrv
     public partial class Service1 : ServiceBase
     {
         private Updater updater;
-        private  TimeSpan updateInterval = TimeSpan.FromHours(4);
+        private  TimeSpan defaultUpdateInterval = TimeSpan.FromHours(4);
         private TaskManager checkForUpdatePeriodicTask;
         private  Logger logger;
         private GHReleases ghRelease;
@@ -20,6 +20,22 @@ namespace YTMediaControllerUpdaterSrv
         {
             InitializeComponent();
             this.ServiceName = "YTMediaControllerUpdaterService";
+        }
+
+        private TimeSpan GetUpdateInterval()
+        {
+            try
+            {
+                var result = AppRegistry.Get(AppRegistryKeys.AutoUpdateIntervalMins);
+                if (result != null) {
+
+                    return TimeSpan.FromMinutes(Convert.ToInt32(result) * 60);
+                }
+            }
+            catch (Exception err) {
+                logger.Warn("Unable to get update interval from registry. Using default update interval");
+            }
+            return defaultUpdateInterval;
         }
 
         protected override void OnStart(string[] args)
@@ -36,7 +52,7 @@ namespace YTMediaControllerUpdaterSrv
 
                 checkForUpdatePeriodicTask = new TaskManager(
                     CheckForUpdatePeriodicTask,
-                    updateInterval,
+                    GetUpdateInterval(),
                     runImmediately: true,
                     fixedRate: true,
                     onError: HandleTaskError

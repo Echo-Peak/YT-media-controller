@@ -51,9 +51,31 @@ namespace YTMediaControllerUpdaterSrv
             return "dev";
         }
 
+        private bool GetAutoUpdateFlag()
+        {
+            try
+            {
+                var result = AppRegistry.Get(AppRegistryKeys.DisableAutoUpdate);
+
+                if (result != null) {
+                    return bool.Parse(result);
+                }
+            }catch(Exception err)
+            {
+                Logger.Warn("Unable to get autoupdate flag. Defaulting to true");
+            }
+            return true;
+        }
+
         public async Task CheckForUpdate()
         {
             currentUpdaterCts = new CancellationTokenSource();
+            bool canUpdate = GetAutoUpdateFlag();
+            if (!canUpdate) {
+                Logger.Info("Skipping checking for update. AutoUpdate is disabled via registry");
+                currentUpdaterCts.Cancel();
+                return;
+            }
             Logger.Info("Checking for update");
             try
             {
