@@ -156,7 +156,7 @@ namespace YTMediaControllerUpdaterSrv
             var privatePart = versionInfo.ProductPrivatePart;
             var minor = versionInfo.ProductMinorPart;
             var build = versionInfo.ProductBuildPart;
-            var channel = GetUpdateChannel();
+            var channel = GetBuiltInUpdateChannel();
             var semVer = $"{major}.{privatePart}.{minor}-{channel}.{build}";
 
             SemVersion.TryParse(semVer, SemVersionStyles.Any, out var version);
