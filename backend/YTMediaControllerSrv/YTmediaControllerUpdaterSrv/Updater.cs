@@ -20,6 +20,12 @@ namespace YTMediaControllerUpdaterSrv
         private readonly GHReleases gHReleases;
         private readonly UpdateOrchestrator updateOrchestrator;
         private CancellationTokenSource currentUpdaterCts;
+        private readonly List<string> updateChannels = new List<string>()
+        {
+            "release",
+            "staging",
+            "dev"
+        };
         public Updater(ILogger logger, GHReleases GHRelease)
         {
             this.Logger = logger;
@@ -38,7 +44,7 @@ namespace YTMediaControllerUpdaterSrv
             }
         }
 
-        private string SelectChannel()
+        private string GetBuiltInUpdateChannel()
         {
 #if RELEASE
             return "release";
@@ -49,6 +55,21 @@ namespace YTMediaControllerUpdaterSrv
 #endif
 
             return "dev";
+        }
+        private string GetUpdateChannel()
+        {
+            try
+            {
+                var result = AppRegistry.Get(AppRegistryKeys.AutoUpdateChannel);
+                if(result != null && updateChannels.Contains(result))
+                {
+                    return result;
+                }
+            }catch(Exception err)
+            {
+                Logger.Warn("Unable to get AutoUpdateChannel via registry. Using built-in channel");
+            }
+            return GetBuiltInUpdateChannel();
         }
 
         private bool GetAutoUpdateFlag()
@@ -80,7 +101,7 @@ namespace YTMediaControllerUpdaterSrv
             try
             {
                 var currentVersion = GetInstalledVersion();
-                var latestVersion = await gHReleases.GetLatest(SelectChannel());
+                var latestVersion = await gHReleases.GetLatest(GetUpdateChannel());
 
                 bool updateAvailable = latestVersion.ComparePrecedenceTo(currentVersion) > 0;
                 if (!updateAvailable)
@@ -135,7 +156,7 @@ namespace YTMediaControllerUpdaterSrv
             var privatePart = versionInfo.ProductPrivatePart;
             var minor = versionInfo.ProductMinorPart;
             var build = versionInfo.ProductBuildPart;
-            var channel = SelectChannel();
+            var channel = GetUpdateChannel();
             var semVer = $"{major}.{privatePart}.{minor}-{channel}.{build}";
 
             SemVersion.TryParse(semVer, SemVersionStyles.Any, out var version);
