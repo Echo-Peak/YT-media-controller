@@ -13,6 +13,7 @@ namespace YTMediaControllerSrv
             public static string UISocketServerPort = "uiSocketServerPort";
             public static string DisableAutoUpdate = "disableAutoUpdate";
             public static string AutoUpdateIntervalMins = "autoUpdateIntervalMins";
+            public static string AutoUpdateChannel = "autoUpdateChannel";
 
     }
     public class AppRegistry
