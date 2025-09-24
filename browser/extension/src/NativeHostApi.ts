@@ -6,20 +6,27 @@ export type NativeHostMessage = {
 export class NativeHostApi {
   private readonly nativeAppId = "com.ytmediacontroller.app";
   private nativeHost?: chrome.runtime.Port;
-  private eventListeners: Record<string, Array<(msg: NativeHostMessage) => void>> = {};
+  private eventListeners: Record<
+    string,
+    Array<(msg: NativeHostMessage) => void>
+  > = {};
 
-  constructor() {
+  public init() {
     this.attemptReconnect();
   }
 
   private attemptReconnect = () => {
     this.nativeHost = chrome.runtime.connectNative(this.nativeAppId);
-    this.nativeHost.onMessage.addListener(this.handleMessage);
-    this.nativeHost.onDisconnect.addListener(this.handleDisconnect);
+    if (this.nativeHost) {
+      this.nativeHost.onMessage.addListener(this.handleMessage);
+      this.nativeHost.onDisconnect.addListener(this.handleDisconnect);
+    } else {
+      console.error("Failed to connect to native host");
+    }
   };
 
   private handleMessage = (msg: NativeHostMessage) => {
-    if(msg.action){
+    if (msg.action) {
       this.emitMessage(msg.action, msg.data);
     }
   };
@@ -31,7 +38,7 @@ export class NativeHostApi {
         listener({ action, data });
       }
     }
-  }
+  };
 
   private handleDisconnect = () => {
     console.error("Disconnected from native host");

@@ -12,6 +12,7 @@ export class ChromeBackgroundRuntime {
 
   constructor() {
     this.nativeHost = new NativeHostApi();
+    this.nativeHost.init();
 
     chrome.runtime.onMessage.addListener(this.handleMessage);
     chrome.runtime.onInstalled.addListener(() => {
@@ -31,8 +32,6 @@ export class ChromeBackgroundRuntime {
     });
 
     chrome.tabs.onRemoved.addListener(this.removeTabReference);
-
-    this.init().catch(console.error);
   }
 
   private removeTabReference = (tabId: number) => {
@@ -78,7 +77,7 @@ export class ChromeBackgroundRuntime {
     );
   };
 
-  private init = async () => {
+  public init = async () => {
     const uiSocketServerPort = await this.nativeHost.postMessageAsync<{
       status: boolean;
       result: number;
