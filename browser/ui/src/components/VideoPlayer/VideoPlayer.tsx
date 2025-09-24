@@ -57,10 +57,6 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       const handleTimeUpdate = () => setCurrentTime(video.currentTime);
       const handleLoadedMetadata = () => setDuration(video.duration);
       const handleVideoPlayEvent = () => {
-<<<<<<< Updated upstream
-=======
-        const isFirstPlay = video.currentTime === 0;
->>>>>>> Stashed changes
         setIsPlaying(true);
         if (!hasEnteredFullscreen && document.fullscreenElement !== video) {
           video.requestFullscreen().catch(console.error);
