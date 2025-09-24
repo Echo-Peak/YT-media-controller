@@ -60,6 +60,10 @@ jobs:
         run: |
           nuget restore ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
 
+      - name: Run UI tests
+        run: yarn test-browser
+        continue-on-error: false
+
       - name: Build backend service
         run:
           msbuild ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln

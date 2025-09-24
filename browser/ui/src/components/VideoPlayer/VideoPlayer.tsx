@@ -8,7 +8,6 @@ import React, {
 import { VideoPlayerControlBar } from './VideoPlayerControlBar';
 import { VideoPlayerTitleBar } from './VideoPlayerTitleBar';
 import styled from '@emotion/styled';
-import { useChromeRuntime } from '../../services/useChromeRuntime';
 
 type VideoPlayerProps = {
   ref: React.RefObject<HTMLVideoElement>;
@@ -51,28 +50,6 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [hideUI, setHideUI] = useState(false);
 
-    const chromeRuntime = useChromeRuntime();
-
-    const triggerFullScreen = () => {
-      internalVideoRef.current?.requestFullscreen().catch(() => {
-        console.log('Failed to enter fullscreen');
-        chromeRuntime.sendEvent({
-          action: 'setFullScreen',
-          data: {},
-        });
-      });
-    };
-
-    const triggerExitFullScreen = () => {
-      document.exitFullscreen().catch(() => {
-        console.log('Failed to exit fullscreen');
-        chromeRuntime.sendEvent({
-          action: 'setExitFullScreen',
-          data: {},
-        });
-      });
-    };
-
     useEffect(() => {
       const video = internalVideoRef.current;
       if (!video) return;
@@ -80,16 +57,13 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       const handleTimeUpdate = () => setCurrentTime(video.currentTime);
       const handleLoadedMetadata = () => setDuration(video.duration);
       const handleVideoPlayEvent = () => {
-        const isFirstPlay = video.currentTime === 0;
-        console.log(video.currentTime);
         setIsPlaying(true);
-        if (isFirstPlay && !isFullscreen) {
-          console.log('Triggering fullscreen on first play');
+        if (!hasEnteredFullscreen && document.fullscreenElement !== video) {
+          video.requestFullscreen().catch(console.error);
           setIsFullscreen(true);
-          triggerFullScreen();
+          hasEnteredFullscreen = true;
         }
       };
-
       const handleVideoEndEvent = () => {
         setIsPlaying(false);
         onEnd();
@@ -124,6 +98,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       video.addEventListener('loadedmetadata', handleLoadedMetadata);
       video.addEventListener('dblclick', handleDoubleClick);
 
+      let hasEnteredFullscreen = false;
       video.addEventListener('play', handleVideoPlayEvent);
       video.addEventListener('pause', handleVideoPauseEvent);
       video.addEventListener('ended', handleVideoEndEvent);
@@ -160,12 +135,17 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       const video = internalVideoRef.current;
       if (!video) return;
 
-      if (!isFullscreen) {
+      if (!document.fullscreenElement) {
+        document.documentElement
+          .requestFullscreen()
+          .then(() => {
+            video.blur();
+          })
+          .catch(console.error);
         setIsFullscreen(true);
-        triggerFullScreen();
       } else {
+        document.exitFullscreen().catch(console.error);
         setIsFullscreen(false);
-        triggerExitFullScreen();
       }
     };
 

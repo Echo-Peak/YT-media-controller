@@ -4,7 +4,9 @@ let backendService: BackendService | null = null;
 
 export const initBackendService = async () => {
   if (!backendService) {
-    backendService = await BackendService.init();
+    const srv = new BackendService();
+    await srv.init();
+    backendService = srv;
   }
 };
 
