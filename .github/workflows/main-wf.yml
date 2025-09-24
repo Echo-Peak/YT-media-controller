@@ -36,7 +36,7 @@ jobs:
         shell: bash
 
   build-desktop-app:
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: create-tag-and-dispatch
     steps:
       - uses: actions/checkout@v4
