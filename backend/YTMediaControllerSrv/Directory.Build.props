@@ -11,6 +11,11 @@
   <Choose>
     <When Condition="'$(Configuration)' == 'Debug'">
       <PropertyGroup>
+        <PreRelease>debug</PreRelease>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(Configuration)' == 'Develop'">
+      <PropertyGroup>
         <PreRelease>dev</PreRelease>
       </PropertyGroup>
     </When>
