@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag_version: ${{ steps.set_version.outputs.tag_version }}
-      package_version: ${{ steps.set_version.outputs.package_version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,7 +27,6 @@ jobs:
           fi
           VERSION="v${PACKAGE_JSON_VERSION}-${TAG_TYPE}.${{ github.run_number }}"
           echo "tag_version=$VERSION" >> $GITHUB_OUTPUT
-          echo "package_version=${PACKAGE_JSON_VERSION}" >> $GITHUB_OUTPUT
       - name: Create Git tag
         run: |
           git config user.name "github-actions"
@@ -66,16 +64,9 @@ jobs:
         run: yarn test-browser
         continue-on-error: false
 
-      - name: Build backend service
+      - name: Build installer
         env:
           BUILD_NUMBER: ${{ github.run_number }}
-          VERSION_PREFIX:
-            ${{ needs.create-tag-and-dispatch.outputs.package_version }}
-        run:
-          msbuild ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
-          /p:Configuration=Release
-
-      - name: Build installer
         run: npm run package
 
       - name: Create manifest file
