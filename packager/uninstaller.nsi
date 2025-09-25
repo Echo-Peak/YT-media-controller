@@ -11,6 +11,20 @@ ShowInstDetails show
 !define SERVICE_UPD    "YTMediaControllerUpdaterService"
 !define FW_RULE_NAME   "YTMediaController"
 
+!ifndef APP_VERSION_NUM
+  !define APP_VERSION_NUM "1.0.0.0"
+!endif
+
+!ifndef APP_VERSION_STR
+  !define APP_VERSION_STR "1.0.0-dev.0"
+!endif
+
+VIProductVersion "${APP_VERSION_NUM}"
+
+VIAddVersionKey /LANG=1033 "OriginalFilename"  "YoutubeMediaControllerUninstaller.exe"
+VIAddVersionKey /LANG=1033 "ProductVersion"    "${APP_VERSION_STR}"
+VIAddVersionKey /LANG=1033 "FileVersion"       "${APP_VERSION_STR}"
+
 Function GetInstallLocation
   SetShellVarContext all
   StrCpy $INSTDIR ""
