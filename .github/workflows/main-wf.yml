@@ -65,6 +65,10 @@ jobs:
         continue-on-error: false
 
       - name: Build backend service
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+          VERSION_PREFIX:
+            ${{ needs.create-tag-and-dispatch.outputs.tag_version }}
         run:
           msbuild ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
           /p:Configuration=Release
