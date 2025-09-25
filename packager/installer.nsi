@@ -1,14 +1,31 @@
 !include "LogicLib.nsh"
-
+!define APP_NAME "Youtube Media Controller installer"
 Name "Youtube Media Controller installer"
+
+!ifndef APP_VERSION_NUM
+  !define APP_VERSION_NUM "1.0.0.0"
+!endif
+
+!ifndef APP_VERSION_STR
+  !define APP_VERSION_STR "1.0.0-dev.0"
+!endif
+
+VIProductVersion "${APP_VERSION_NUM}"
+
+VIAddVersionKey /LANG=1033 "ProductName"       "${APP_NAME}"
+VIAddVersionKey /LANG=1033 "CompanyName"       "${APP_COMPANY}"
+VIAddVersionKey /LANG=1033 "FileDescription"   "${APP_NAME} Installer"
+VIAddVersionKey /LANG=1033 "OriginalFilename"  "YoutubeMediaControllerInstaller.exe"
+VIAddVersionKey /LANG=1033 "ProductVersion"    "${APP_VERSION_STR}"
+VIAddVersionKey /LANG=1033 "FileVersion"       "${APP_VERSION_STR}"
 
 InstallDir $PROGRAMFILES\YTMediaController
 RequestExecutionLevel admin
 
 OutFile "..\dist\YoutubeMediaControllerInstaller.exe"
 
-!ifndef INSTALLER_ENV
-  !define INSTALLER_ENV "Staging"
+!ifndef INSTALLER_BUILD_ENV
+  !define INSTALLER_BUILD_ENV "Staging"
 !endif
 
 Function InstallCoreService 
@@ -40,9 +57,9 @@ FunctionEnd
 Section "Info" Info
 
   SetOutPath "$INSTDIR"
-  File "..\backend\YTMediaControllerSrv\YTMediaControllerSrv\bin\${INSTALLER_ENV}\YTMediaControllerSrv.exe"
-  File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\${INSTALLER_ENV}\YTMediaControllerHost.exe"
-  File "..\backend\YTMediaControllerSrv\YTMediaControllerUpdaterSrv\bin\${INSTALLER_ENV}\YTMediaControllerUpdaterSrv.exe"
+  File "..\backend\YTMediaControllerSrv\YTMediaControllerSrv\bin\${INSTALLER_BUILD_ENV}\YTMediaControllerSrv.exe"
+  File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\${INSTALLER_BUILD_ENV}\YTMediaControllerHost.exe"
+  File "..\backend\YTMediaControllerSrv\YTMediaControllerUpdaterSrv\bin\${INSTALLER_BUILD_ENV}\YTMediaControllerUpdaterSrv.exe"
   File "..\dist\YoutubeMediaControllerUninstaller.exe"
 
   SetOutPath "$INSTDIR\bin"

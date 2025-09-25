@@ -152,12 +152,12 @@ namespace YTMediaControllerUpdaterSrv
         {
             var mainSrvBinPath = PathResolver.GetYTControllerSrvBin();
             var versionInfo = FileVersionInfo.GetVersionInfo(mainSrvBinPath);
-            var major = versionInfo.ProductMajorPart;
-            var privatePart = versionInfo.ProductPrivatePart;
-            var minor = versionInfo.ProductMinorPart;
-            var build = versionInfo.ProductBuildPart;
+            var major = versionInfo.FileMajorPart;
+            var privatePart = versionInfo.FilePrivatePart;
+            var minor = versionInfo.FileMinorPart;
+            var build = versionInfo.FileBuildPart;
             var channel = GetBuiltInUpdateChannel();
-            var semVer = $"{major}.{privatePart}.{minor}-{channel}.{build}";
+            var semVer = $"{major}.{minor}.{build}-{channel}.{privatePart}";
 
             SemVersion.TryParse(semVer, SemVersionStyles.Any, out var version);
 
