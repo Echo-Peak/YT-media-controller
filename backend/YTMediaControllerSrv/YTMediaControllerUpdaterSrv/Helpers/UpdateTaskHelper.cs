@@ -8,15 +8,14 @@ namespace YTMediaControllerUpdaterSrv.Helpers
 {
     internal class UpdateTaskHelper
     {
-        private static readonly string TaskName = @"\YTMC_Update";
+        private static readonly string TaskName = @"YTMC_Update";
 
         public static Task CreateTask(string installerPath)
         {
             var uninstallerPath = PathResolver.GetUninstaller();
-            var commandLine = $"\"{uninstallerPath}\" /S && \"{installerPath}\" /qn /norestart";
             var startAt = DateTime.Now.AddMinutes(1);
             startAt = new DateTime(startAt.Year, startAt.Month, startAt.Day, startAt.Hour, startAt.Minute, 0);
-            var cmdBin = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\System32\cmd.exe");
+            var powershellBin = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe");
             using (var ts = new TaskScheduler.TaskService())
             {
                 var td = ts.NewTask();
@@ -25,20 +24,31 @@ namespace YTMediaControllerUpdaterSrv.Helpers
                 td.Principal.LogonType = TaskLogonType.ServiceAccount;
                 td.Principal.RunLevel = TaskRunLevel.Highest;
                 td.Settings.Hidden = true;
-                td.Settings.StartWhenAvailable = true;
+                td.Settings.StartWhenAvailable = false;
                 td.Settings.DisallowStartIfOnBatteries = false;
                 td.Settings.StopIfGoingOnBatteries = false;
                 td.Settings.MultipleInstances = TaskInstancesPolicy.IgnoreNew;
                 td.Triggers.Add(new TimeTrigger(startAt));
-                td.Actions.Add(new ExecAction(uninstallerPath, "/S", null));
-                td.Actions.Add(new ExecAction(installerPath, "/S", null));
-                td.Actions.Add(new ExecAction(cmdBin, $"/c del \"{installerPath}\"", null));
+
+                td.Actions.Add(CreateInstallerAction(powershellBin, uninstallerPath));
+                td.Actions.Add(CreateInstallerAction(powershellBin, installerPath));
+                td.Actions.Add(new ExecAction(powershellBin, $"-NoProfile -ExecutionPolicy Bypass -Command \"Remove-Item -Path '{installerPath}'\"", null));
+
 
                 ts.RootFolder.RegisterTaskDefinition(TaskName, td, TaskScheduler.TaskCreation.CreateOrUpdate, null, null, TaskScheduler.TaskLogonType.ServiceAccount, null);
                 ts.GetTask(TaskName)?.Run();
             }
 
             return Task.CompletedTask;
+        }
+
+        private static ExecAction CreateInstallerAction(string powershellBin, string binPath)
+        {
+            
+            string command = $"-NoProfile -ExecutionPolicy Bypass -Command \"Start-Process -FilePath '{binPath}' -ArgumentList '/S' -Wait\"";
+
+            return new ExecAction(powershellBin, command, null);
+            
         }
 
         public static async Task Cleanup()
