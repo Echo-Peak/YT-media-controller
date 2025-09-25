@@ -77,13 +77,108 @@ send a YouTube video to a designated PC, like an HTPC, without the analytics
 gathering that occurs during casting or affecting the YouTube recommendation
 feed of your personal account.
 
+## Usage for end-users
+
+**Download the installer**
+
+Go to [releases section](https://github.com/Echo-Peak/YT-media-controller/tags)
+and choose which channel/environment you would like to install.
+
+There are 3 "channels" to choose from. Dev channel being the most unstable.
+Release channel being the most stable.
+
+- Dev
+- Staging
+- Release
+
+Install the EXE installer.
+
+**Install the APK**
+
+Either install the .apk file via sideloading. To do this, you will need to go to
+Settings > Security and select "Allow untrusted sources" then re-download the
+.apk to install. After install, **make sure** you disable "Allow untrusted
+sources" option!
+
+If you have android studio installed on computer or at the very least a android
+SDK environment, you can use **adb** to install the app.
+
+- Download the .apk file
+- open Command Prompt and check if abd is installed by typing `abd` and press
+  enter
+- On your android device, you will need to have it in "developer mode". To do
+  this, it will vary by device manufacture, its usually done by opening
+  Settings > About phone > Software information and tapping Build number 7
+  times.
+- Once device has been setup for developer mode, enable USB debugging via
+  developer options. To do this, open Settings and scroll all the way to the
+  bottom, you should see something like "Developer options". Open it and scroll
+  slowly to find "USB debugging" and enable it.
+- Plug in your android device to your computer. You should see a "Allow this
+  device" prompt on the android device after a few seconds. Make sure you press
+  allow.
+- Back in command prompt, type `adb list` and press enter. You should see your
+  device listed.
+- Install the apk on the device by running `abd install <apk path>`. Copy/Paste
+  the path of the .apk file downloaded and replace <apk path\> with it. e.g:
+  `abd install C:\downloads\app-release-unsigned.apk`
+
+**Installing the browser extension**
+
+- After the app is installed. There is one more step that is needed.
+- In your browser of choice, must be chromium based, go to Settings >
+  Extensions > Manage extensions and enable Developer mode
+- Click on "Load unpacked" and navigate to
+  `C:\Program Files (x86)\YTMediaController\BrowserExtension` and click Select
+  folder.
+
+**Linking mobile to host**
+
+- On the computer/host, Right-click on extension icon and select Configure
+  Mobile plugin option
+- On your android phone, open the YTMediaController app and tap on the camera
+  view-box to load the QR code scanner.
+- Point camera at the QR code thats displayed on the computer to link your
+  phone.
+
+**Testing**
+
+- When all previous steps have been done, you should now be able to play/send
+  any youtube link on your android device to the computer to be played without
+  any ads / interruptions / tracking.
+- Open a browser and find a youtube video you want to try. Hold tap on the video
+  to open the context menu and select share.
+- You should see YTMediaContrller as an option with the "Play video" as a
+  action. Select on "Play video".
+- Watch as the video will be playing on the computer within a couple seconds.
+
+**Configurability**
+
+There are a number of config options to change the behavior of the app. These
+settings are located in the registry at this path:
+`HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\YTMediaController`.
+
+These are the possible settings:
+
+- **backendServerPort** - Change the background HTTP server port. Changing this
+  will require service restart.
+- **uiSocketServerPort** - Change the IPC port between the UI and background
+  service. Changing this will require service restart.
+- **disableAutoUpdate** - If set to "true", it will disable the auto updater.
+- **autoUpdateIntervalMins** - Changes how often the updater checks for an
+  update. This is in minutes. Default is 4 hours (240 mins)
+- **autoUpdateChannel** - Changes what update channel/environment to choose
+  from. Use this if you want to go from "dev" to "release" if you want a more
+  stable build. Its possible values are: "dev", "staging", "release"
+
+Restarting the background service
+`net stop YTMediaControllerService && net start YTMediaControllerService`
+
 ## Local Setup
 
 - Clone the repo
 - Navigate to the root folder
 - Run `yarn`
-- Adjust _BackgroundServerPort_ setting via
-  HKLM\SOFTWARE\WOW6432Node\YTMediaController as necessary
 - Run `yarn build-service` to build the C# backend service and native host exec
 - Run `yarn build-browser` to build the extension
 - Open a Chromium browser and go to Settings > Manage Extensions
