@@ -106,7 +106,7 @@ and choose which channel/environment you would like to install.
 
 There are 3 "channels" to choose from. Alpha channel being the least stable.
 
-- ALpha
+- Alpha
 - Beta
 - Stable
 
@@ -114,16 +114,16 @@ Install the EXE installer.
 
 **Install the APK**
 
-Either install the .apk file via sideloading. To do this, you will need to go to
-Settings > Security and select "Allow untrusted sources" then re-download the
+Either install the .apk file via side-loading. To do this, you will need to go
+to Settings > Security and select "Allow untrusted sources" then re-download the
 .apk to install. After install, **make sure** you disable "Allow untrusted
 sources" option!
 
 If you have android studio installed on computer or at the very least a android
-SDK environment, you can use **adb** to install the app.
+SDK environment, you can use `adb` to install the app.
 
 - Download the .apk file
-- open Command Prompt and check if abd is installed by typing `abd` and press
+- open Command Prompt and check if `abd` is installed by typing `abd` and press
   enter
 - On your android device, you will need to have it in "developer mode". To do
   this, it will vary by device manufacture, its usually done by opening
