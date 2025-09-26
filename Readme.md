@@ -95,7 +95,7 @@ send a YouTube video to a designated PC, like an HTPC, without the analytics
 gathering that occurs during casting or affecting the YouTube recommendation
 feed of your personal account.
 
-![High-level architecture](./docs/high-level.png "High-level architecture")
+**High-level architecture** ![High-level architecture](./doc/high-level.png)
 
 ## Usage for end-users
 
