@@ -128,3 +128,18 @@ jobs:
           files: ./mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  cleanup-on-failure:
+    needs: [create-tag-and-dispatch, build-desktop-app, build-android-app]
+    if: ${{ always() && failure() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cleanup tag via script
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x scripts/cleanup-tag.sh
+          bash scripts/cleanup-tag.sh '${{ needs.create-tag-and-dispatch.outputs.tag_version }}'
