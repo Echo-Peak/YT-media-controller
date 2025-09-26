@@ -3,15 +3,13 @@
 <title>Redirecting…</title>
 <script>
   (async () => {
-    const url =
-      "https://cdn.jsdelivr.net/gh/Echo-Peak/YT-media-controller@update-metadata/channels.json";
-    const res = await fetch(url, { cache: "no-store" });
+    const params = new URLSearchParams(location.search);
+    const channel = (params.get("latest") || "alpha").toLowerCase();
+    const res = await fetch("./channels.json", { cache: "no-store" });
     const manifest = await res.json();
-    const target = manifest.alpha.installerUrl; // beta/stable accordingly
-    if (typeof target === "string" && target.startsWith("https://")) {
+    const target = manifest?.[channel]?.installerUrl;
+    if (typeof target === "string" && /^https:\/\//.test(target))
       location.replace(target);
-    } else {
-      document.body.textContent = "No installerUrl found.";
-    }
+    else document.body.textContent = "No installerUrl for channel: " + channel;
   })();
 </script>
