@@ -1,0 +1,17 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Redirecting…</title>
+<script>
+  (async () => {
+    const url =
+      "https://cdn.jsdelivr.net/gh/Echo-Peak/YT-media-controller@update-metadata/channels.json";
+    const res = await fetch(url, { cache: "no-store" });
+    const manifest = await res.json();
+    const target = manifest.alpha.installerUrl; // beta/stable accordingly
+    if (typeof target === "string" && target.startsWith("https://")) {
+      location.replace(target);
+    } else {
+      document.body.textContent = "No installerUrl found.";
+    }
+  })();
+</script>
