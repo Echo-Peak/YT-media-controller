@@ -25,7 +25,7 @@ RequestExecutionLevel admin
 OutFile "..\dist\YoutubeMediaControllerInstaller.exe"
 
 !ifndef INSTALLER_BUILD_ENV
-  !define INSTALLER_BUILD_ENV "Staging"
+  !define INSTALLER_BUILD_ENV "Alpha"
 !endif
 
 Function InstallCoreService 

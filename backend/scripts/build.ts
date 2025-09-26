@@ -25,9 +25,9 @@ const buildNumber = process.env.BUILD_NUMBER || "0";
 const branch = process.env.GITHUB_HEAD_REF || "Develop";
 
 const selectBuildEnv = () => {
-  if (branch === "main") return "Release";
-  if (branch === "staging") return "Staging";
-  return "Develop";
+  if (branch === "main") return "Stable";
+  if (branch === "staging") return "Beta";
+  return "Alpha";
 };
 
 const validateFile = (path: string, errorMessage: string) => {
