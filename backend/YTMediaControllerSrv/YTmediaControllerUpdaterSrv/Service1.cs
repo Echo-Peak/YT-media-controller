@@ -15,7 +15,7 @@ namespace YTMediaControllerUpdaterSrv
         private  TimeSpan defaultUpdateInterval = TimeSpan.FromHours(4);
         private TaskManager checkForUpdatePeriodicTask;
         private  Logger logger;
-        private GHReleases ghRelease;
+        private UpdaterApi updaterApi;
         public Service1()
         {
             InitializeComponent();
@@ -45,8 +45,8 @@ namespace YTMediaControllerUpdaterSrv
                 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
                 logger = new Logger();
-                ghRelease = new GHReleases();
-                updater = new Updater(logger, ghRelease);
+                updaterApi = new UpdaterApi();
+                updater = new Updater(logger, updaterApi);
 
                logger.Info("Starting service");
 

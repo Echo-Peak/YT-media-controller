@@ -24,8 +24,8 @@ namespace YTMediaControllerUpdaterSrv
         static void StartCliApp()
         {
             var logger = new Logger("AUTO_UPDATER");
-            var ghRelease = new GHReleases();
-            var updater = new Updater(logger, ghRelease);
+            var updaterApi = new UpdaterApi();
+            var updater = new Updater(logger, updaterApi);
 
             Task.Run(async () =>
             {
