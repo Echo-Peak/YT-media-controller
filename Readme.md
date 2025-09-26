@@ -212,3 +212,7 @@ Restarting the background service
   solution
 - Run `yarn package`
 - Open generated installer in `dist` folder
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE).
