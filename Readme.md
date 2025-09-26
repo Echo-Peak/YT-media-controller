@@ -1,24 +1,34 @@
 # YT-media-controller
 
-[![Current build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
+### Build status
 
-## Inspiration
+**Alpha build**
 
-The driving force behind this project is that I watch a lot of YouTube content,
-but I don’t support the way YouTube is monetized or the way data is collected
-about what you watch. Another motivation is to bypass the ad-blocking mechanisms
-YouTube implements at this time.  
-I needed a quick and seamless way to send a YT video from mobile to my dedicated
-HTPC. Using Android’s casting feature—especially via the YT app—is not an option
-because casting affects the Android device.
+[![Alpha build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg?branch=develop)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
 
-Since I primarily use Android devices, the easiest way to get a YT video to play
-on my HTPC is by leveraging Android’s share menu to send localhost API requests
-to the HTPC. From a usability perspective, it’s as easy as "long-pressing" on a
-video—whether it’s in a browser or the YT app—and selecting "Share," then
-pressing the "Play video" button. Three steps.
+[Latest alpha build](https://echo-peak.github.io/YT-media-controller?latest=alpha)
 
-## Overview
+**Beta build**
+
+[![Beta build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg?branch=staging)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
+
+[Latest beta build](https://echo-peak.github.io/YT-media-controller?latest=beta)
+
+**Stable build**
+
+[![Stable build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg?branch=main)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
+
+[Latest stable build](https://echo-peak.github.io/YT-media-controller?latest=stable)
+
+## What this project does
+
+Playing YT videos via the website/app is quite frustrating to say the least.
+This project attempts to bypass as much of the tracking / ads / interruptions
+youtube enforces on those who do not have YT premium and/or using a ad-blocker.
+
+This project consists of 3 projects that work in tandem to allow you to use your
+android phone to send any Youtube video URL from any app to a computer
+(dedicated host) to play said video
 
 This project consists of 3 components:
 
@@ -84,12 +94,11 @@ feed of your personal account.
 Go to [releases section](https://github.com/Echo-Peak/YT-media-controller/tags)
 and choose which channel/environment you would like to install.
 
-There are 3 "channels" to choose from. Dev channel being the most unstable.
-Release channel being the most stable.
+There are 3 "channels" to choose from. Alpha channel being the least stable.
 
-- Dev
-- Staging
-- Release
+- ALpha
+- Beta
+- Stable
 
 Install the EXE installer.
 
@@ -148,7 +157,7 @@ SDK environment, you can use **adb** to install the app.
   any ads / interruptions / tracking.
 - Open a browser and find a youtube video you want to try. Hold tap on the video
   to open the context menu and select share.
-- You should see YTMediaContrller as an option with the "Play video" as a
+- You should see YTMediaController as an option with the "Play video" as a
   action. Select on "Play video".
 - Watch as the video will be playing on the computer within a couple seconds.
 
@@ -168,8 +177,8 @@ These are the possible settings:
 - **autoUpdateIntervalMins** - Changes how often the updater checks for an
   update. This is in minutes. Default is 4 hours (240 mins)
 - **autoUpdateChannel** - Changes what update channel/environment to choose
-  from. Use this if you want to go from "dev" to "release" if you want a more
-  stable build. Its possible values are: "dev", "staging", "release"
+  from. Use this if you want to go from "alpha" to "stable" if you want a more
+  stable build. Its possible values are: "alpha", "beta", "stable"
 
 Restarting the background service
 `net stop YTMediaControllerService && net start YTMediaControllerService`
