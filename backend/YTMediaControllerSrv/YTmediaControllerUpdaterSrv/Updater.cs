@@ -17,7 +17,7 @@ namespace YTMediaControllerUpdaterSrv
     internal class Updater
     {
         private readonly ILogger Logger;
-        private readonly GHReleases gHReleases;
+        private readonly UpdaterApi updaterApi;
         private readonly UpdateOrchestrator updateOrchestrator;
         private CancellationTokenSource currentUpdaterCts;
         private readonly List<string> updateChannels = new List<string>()
@@ -26,10 +26,10 @@ namespace YTMediaControllerUpdaterSrv
             "beta",
             "alpha"
         };
-        public Updater(ILogger logger, GHReleases GHRelease)
+        public Updater(ILogger logger, UpdaterApi updaterApi)
         {
             this.Logger = logger;
-            this.gHReleases = GHRelease;
+            this.updaterApi = updaterApi;
             this.updateOrchestrator = new UpdateOrchestrator(logger);
             PerformPreStartCleanup();
         }
@@ -101,7 +101,8 @@ namespace YTMediaControllerUpdaterSrv
             try
             {
                 var currentVersion = GetInstalledVersion();
-                var latestVersion = await gHReleases.GetLatest(GetUpdateChannel());
+                var latestInfo = await updaterApi.GetLatest(GetUpdateChannel());
+                var latestVersion = SemVersion.Parse(latestInfo.Version);
 
                 bool updateAvailable = latestVersion.ComparePrecedenceTo(currentVersion) > 0;
                 if (!updateAvailable)
@@ -112,12 +113,11 @@ namespace YTMediaControllerUpdaterSrv
 
                 Logger.Info($"Update is available. Remote version: {latestVersion}, Installed version: {currentVersion}");
 
-                var manifest = await gHReleases.GetAsset<ManifestData>("manifest.json");
                 string downloadDir = Path.GetTempPath();
 
-                var installerDownloadPath = await gHReleases.DownloadAsset(manifest.InstallerComponent, downloadDir);
+                var installerDownloadPath = await updaterApi.Download(latestInfo, downloadDir);
 
-                bool validDownload = VerifyInstall(manifest, installerDownloadPath);
+                bool validDownload = VerifyInstall(latestInfo.Checksum, installerDownloadPath);
                 if (!validDownload)
                 {
                     throw new Exception("Checksum missmatch");
@@ -135,7 +135,7 @@ namespace YTMediaControllerUpdaterSrv
             }
         }
 
-        private bool VerifyInstall(ManifestData manifest, string downloadedInstallerPath)
+        private bool VerifyInstall(string expectedChecksum, string downloadedInstallerPath)
         {
             Logger.Info("Verifying file");
             using (FileStream stream = File.OpenRead(downloadedInstallerPath))
@@ -144,7 +144,7 @@ namespace YTMediaControllerUpdaterSrv
                 byte[] hashBytes = sha256.ComputeHash(stream);
                 string actualChecksum = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
 
-                return string.Equals(manifest.Sha256Checksum.ToLowerInvariant(), actualChecksum, StringComparison.OrdinalIgnoreCase);
+                return string.Equals(expectedChecksum.ToLowerInvariant(), actualChecksum, StringComparison.OrdinalIgnoreCase);
             }
         }
 

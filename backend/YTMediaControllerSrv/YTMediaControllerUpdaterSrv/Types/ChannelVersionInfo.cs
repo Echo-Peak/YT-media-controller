@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace YTMediaControllerUpdaterSrv.Types
 {
-    internal class ManifestData
+    internal class ChannelVersionInfo
     {
-        public string Sha256Checksum { get; set; }
-        public string InstallerComponent { get; set; }
+        public string Checksum { get; set; }
+        public string InstallerUrl { get; set; }
+        public string Version { get; set; }
 
     }
 }
