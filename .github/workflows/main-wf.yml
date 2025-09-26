@@ -19,11 +19,11 @@ jobs:
         id: set_version
         run: |
           PACKAGE_JSON_VERSION=$(cat ./package.json | awk -F'"' '/"version":/ {print $4; exit}')
-          TAG_TYPE="dev"
+          TAG_TYPE="alpha"
           if [ "${{ github.ref_name }}" = "main" ]; then
-            TAG_TYPE="release"
+            TAG_TYPE="stable"
           elif [ "${{ github.ref_name }}" = "staging" ]; then
-            TAG_TYPE="staging"
+            TAG_TYPE="beta"
           fi
           VERSION="v${PACKAGE_JSON_VERSION}-${TAG_TYPE}.${{ github.run_number }}"
           echo "tag_version=$VERSION" >> $GITHUB_OUTPUT
