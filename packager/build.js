@@ -8,22 +8,11 @@ const packageJson = require("../package.json");
 const selectBuildEnv = (branch) => {
   switch (branch) {
     case "main":
-      return "Release";
+      return "Stable";
     case "staging":
-      return "Staging";
+      return "Beta";
     default:
-      return "Develop";
-  }
-};
-
-const selectUpdateChannel = (branch) => {
-  switch (branch) {
-    case "main":
-      return "release";
-    case "staging":
-      return "staging";
-    default:
-      return "dev";
+      return "Alpha";
   }
 };
 
@@ -42,7 +31,7 @@ const ensureDir = async (dir) => {
 const buildNumber = process.env.BUILD_NUMBER || "0";
 
 const createAppVersionStr = () => {
-  const channel = selectUpdateChannel(branch);
+  const channel = selectBuildEnv(branch).toLowerCase();
   return `${packageJson.version}-${channel}.${buildNumber}`;
 };
 

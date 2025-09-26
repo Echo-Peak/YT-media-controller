@@ -14,19 +14,19 @@
         <PreRelease>debug</PreRelease>
       </PropertyGroup>
     </When>
-    <When Condition="'$(Configuration)' == 'Develop'">
+    <When Condition="'$(Configuration)' == 'Alpha'">
       <PropertyGroup>
-        <PreRelease>dev</PreRelease>
+        <PreRelease>alpha</PreRelease>
       </PropertyGroup>
     </When>
-    <When Condition="'$(Configuration)' == 'Staging'">
+    <When Condition="'$(Configuration)' == 'Beta'">
       <PropertyGroup>
-        <PreRelease>staging</PreRelease>
+        <PreRelease>beta</PreRelease>
       </PropertyGroup>
     </When>
-    <When Condition="'$(Configuration)' == 'Release'">
+    <When Condition="'$(Configuration)' == 'Stable'">
       <PropertyGroup>
-        <PreRelease>release</PreRelease>
+        <PreRelease>stable</PreRelease>
       </PropertyGroup>
     </When>
     <Otherwise>
