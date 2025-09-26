@@ -22,9 +22,9 @@ namespace YTMediaControllerUpdaterSrv
         private CancellationTokenSource currentUpdaterCts;
         private readonly List<string> updateChannels = new List<string>()
         {
-            "release",
-            "staging",
-            "dev"
+            "stable",
+            "beta",
+            "alpha"
         };
         public Updater(ILogger logger, GHReleases GHRelease)
         {
@@ -46,15 +46,15 @@ namespace YTMediaControllerUpdaterSrv
 
         private string GetBuiltInUpdateChannel()
         {
-#if RELEASE
-            return "release";
+#if STABLE
+            return "stable";
 #endif
 
-#if STAGING
-            return "staging"
+#if BETA
+            return "beta";
 #endif
 
-            return "dev";
+            return "alpha";
         }
         private string GetUpdateChannel()
         {
