@@ -28,7 +28,15 @@ youtube enforces on those who do not have YT premium and/or using a ad-blocker.
 
 This project consists of 3 projects that work in tandem to allow you to use your
 android phone to send any Youtube video URL from any app to a computer
-(dedicated host) to play said video
+(dedicated host) to play said video.
+
+## System Requirements
+
+- Android 13+
+- Windows 11
+- Chromium based browser
+
+## Component overview
 
 This project consists of 3 components:
 
@@ -86,6 +94,8 @@ URLs from an Android device—via a "long-press" on video content. The idea is t
 send a YouTube video to a designated PC, like an HTPC, without the analytics
 gathering that occurs during casting or affecting the YouTube recommendation
 feed of your personal account.
+
+![High-level architecture](./docs/high-level.png "High-level architecture")
 
 ## Usage for end-users
 
@@ -183,30 +193,22 @@ These are the possible settings:
 Restarting the background service
 `net stop YTMediaControllerService && net start YTMediaControllerService`
 
-## Local Setup
+## Local Setup (for developers)
+
+**Requirements**
+
+- VS 2022+
+- C# build environment
+- .NET Framework 4.8
+- NSIS 2.x
+- Chromium based browser (brave, chrome, edge)
+
+**Setup**
 
 - Clone the repo
-- Navigate to the root folder
 - Run `yarn`
-- Run `yarn build-service` to build the C# backend service and native host exec
-- Run `yarn build-browser` to build the extension
-- Open a Chromium browser and go to Settings > Manage Extensions
-  - Ensure Developer Mode is enabled
-  - Click on "Load unpacked"
-  - Navigate to the cloned repo folder and select the
-    `dist/browser-extension-unpacked` folder
-  - Copy the extension ID, then in your terminal set the environment variable:
-    `EXTENSION_ID=<your extension id>` (replace with the ID you copied)
-- Back in your terminal, re-run `yarn build-browser`
-- In the browser, go back to the extension page, reload the extension, and then
-  restart the browser  
-  **Native host exec IPC is not functional until the next browser restart!**
-- Either launch Visual Studio as admin or run `YTMediaControllerSrv.exe` as
-  admin
-- In the browser, click the Extensions/Puzzle icon in the top bar, then pin the
-  YTMediaController extension
-- Finally, click the YTMediaController extension to open the viewer. Then
-  right-click the extension icon to open the mobile config UI
-- Use your Android phone with the YTMediaController app running, then scan the
-  QR code to link your phone to the C# backend server
-- That’s it! You can now send any YouTube video from mobile to PC anonymously
+- Run `node ./backend/scripts/installExternalDeps.js`
+- Open `./backend/YTMediaControllerSrv/YTMediaController.sln` and rebuild
+  solution
+- Run `yarn package`
+- Open generated installer in `dist` folder
