@@ -6,19 +6,19 @@
 
 [![Alpha build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg?branch=develop)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
 
-[Latest alpha build](https://echo-peak.github.io/YT-media-controller?latest=alpha)
+[Latest alpha build](https://echo-peak.github.io/YT-media-controller?latestUpdateChannel=alpha)
 
 **Beta build**
 
 [![Beta build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg?branch=staging)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
 
-[Latest beta build](https://echo-peak.github.io/YT-media-controller?latest=beta)
+[Latest beta build](https://echo-peak.github.io/YT-media-controller?latestUpdateChannel=beta)
 
 **Stable build**
 
 [![Stable build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg?branch=main)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
 
-[Latest stable build](https://echo-peak.github.io/YT-media-controller?latest=stable)
+[Latest stable build](https://echo-peak.github.io/YT-media-controller?latestUpdateChannel=stable)
 
 ## What this project does
 
