@@ -62,7 +62,7 @@ else {
 }
 
 
-$channelsPath = Join-Path $repoRoot 'channels.json'
+$channelsPath = Join-Path $repoRoot 'docs\channels.json'
 
 if (-not (Test-Path $channelsPath)) {
   '{}' | Out-File -FilePath $channelsPath -Encoding UTF8
