@@ -106,12 +106,14 @@ jobs:
             ./dist/YoutubeMediaControllerInstaller.exe
             ./dist/manifest.json
       - name: Ensure channel alias release exists
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release view "${{ needs.create-tags.outputs.channel_alias }}" >/dev/null 2>&1 \
           || gh release create "${{ needs.create-tags.outputs.channel_alias }}" --title "${{ needs.create-tags.outputs.channel_alias }}" --prerelease
       - name: Upload (overwrite) assets to channel alias
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -175,7 +177,6 @@ jobs:
         run: |
           gh release upload "${{ needs.create-tags.outputs.channel_alias }}" \
             "./mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk" \
-            "./dist/manifest.json" \
             --clobber
 
   cleanup-on-failure:
