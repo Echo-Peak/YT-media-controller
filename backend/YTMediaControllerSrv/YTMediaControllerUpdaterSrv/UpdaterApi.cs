@@ -39,13 +39,13 @@ namespace YTMediaControllerUpdaterSrv
             {
                 throw new Exception("Unable to get version info");
             }
-            var uri = new Uri(versionInfo.InstallerUrl);
-            var assetName = uri.LocalPath;
+            string[] urlParts = versionInfo.InstallerUrl.Split('/');
+            var assetName = urlParts[urlParts.Length - 1];
             var guid = Guid.NewGuid().ToString();
             var outputPath = Path.Combine(destDir, $"{guid}-{assetName}");
 
 
-            using (HttpResponseMessage response = await http.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead))
+            using (HttpResponseMessage response = await http.GetAsync(versionInfo.InstallerUrl, HttpCompletionOption.ResponseHeadersRead))
             using (Stream contentStream = await response.Content.ReadAsStreamAsync(),
                           fileStream = new FileStream(outputPath, System.IO.FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
             {
