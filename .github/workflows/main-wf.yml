@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag_version: ${{ steps.set_version.outputs.tag_version }}
-      channel_alias: ${{ steps.set_version.outputs.channel_alias }}
+      channel_alias: ${{ steps.create_channel_alias.outputs.channel_alias }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,15 +42,16 @@ jobs:
           ${{ github.ref_name == 'develop' || github.ref_name == 'staging' ||
           github.ref_name == 'main' }}
         shell: bash
+        id: create_channel_alias
         run: |
           case "${{ github.ref_name }}" in
             develop) CHANNEL_ALIAS="alpha-latest" ;;
             staging) CHANNEL_ALIAS="beta-latest" ;;
             main)    CHANNEL_ALIAS="stable-latest" ;;
           esac
-          echo "channel_alias=$CHANNEL_ALIAS" >> $GITHUB_OUTPUT
           git tag -fa "$CHANNEL_ALIAS" -m "Update $CHANNEL_ALIAS -> $GITHUB_SHA"
           git push -f origin "$CHANNEL_ALIAS"
+          echo "channel_alias=$CHANNEL_ALIAS" >> $GITHUB_OUTPUT
 
   build-desktop-app:
     runs-on: windows-2022
@@ -109,9 +110,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release view "${{ needs.create-tags.outputs.channel_alias }}" >/dev/null 2>&1 \
-                || gh release create "${{ needs.create-tags.outputs.channel_alias }}" \
-                    --title "${{ needs.create-tags.outputs.channel_alias }}" \
-                    --prerelease
+          || gh release create "${{ needs.create-tags.outputs.channel_alias }}" --title "${{ needs.create-tags.outputs.channel_alias }}" --prerelease
       - name: Upload (overwrite) assets to channel alias
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -164,13 +163,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Release APK to GitHub Release (channel alias tag)
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.create-tags.outputs.channel_alias }}
-          files: ./mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk
+      - name: Ensure channel alias release exists
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "${{ needs.create-tags.outputs.channel_alias }}" >/dev/null 2>&1 \
+          || gh release create "${{ needs.create-tags.outputs.channel_alias }}" --title "${{ needs.create-tags.outputs.channel_alias }}" --prerelease
+      - name: Upload (overwrite) assets to channel alias
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ needs.create-tags.outputs.channel_alias }}" \
+            "./mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk" \
+            "./dist/manifest.json" \
+            --clobber
 
   cleanup-on-failure:
     needs: [create-tags, build-desktop-app, build-android-app]
