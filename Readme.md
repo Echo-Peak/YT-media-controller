@@ -105,6 +105,10 @@ feed of your personal account.
 
 ## Usage for end-users
 
+**Note** Because the app/assets are unsigned, you may have issues downloading
+the installer. You may need to whitelist or disable your AV temporarily then
+re-enable once installed
+
 **Download the installer**
 
 Go to [releases section](https://github.com/Echo-Peak/YT-media-controller/tags)
@@ -198,6 +202,16 @@ These are the possible settings:
 
 Restarting the background service
 `net stop YTMediaControllerService && net start YTMediaControllerService`
+
+**Uninstalling**
+
+Currently, the only way to uninstall the app is to use the
+`YoutubeMediaControllerUninstaller.exe` located in `C:\Program Files (x86)`. You
+will need to open a Command prompt with administrator privileges and copy/paste
+the path of the uninstaller (must include double quotes) and press enter.
+
+Like this:
+`"C:\Program Files (x86)\YTMediaController\YoutubeMediaControllerUninstaller.exe" /S`
 
 ## Local Setup (for developers)
 
