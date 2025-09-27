@@ -32,21 +32,6 @@ namespace YTMediaControllerSrv
             return Path.Combine(installDir, "ui");
         }
 
-        public static string GetNativeHostManifestPath()
-        {
-            return Path.Combine(GetBrowserExtentionDir(), "nativeHost.json");
-        }
-
-        public static string GetNativeHostBinPath()
-        {
-            if (!IsInstalled())
-            {
-                string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
-                return Path.Combine(GetProjectRoot(), $"backend\\YTMediaControllerSrv\\YTMediaControllerHost\\bin\\{configuration}\\YTMediaControllerHost.exe");
-            }
-            return Path.Combine(installDir, "YTMediaControllerHost.exe");
-        }
-
         public static string GetYtDlpBin()
         {
             if (!IsInstalled())

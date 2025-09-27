@@ -102,7 +102,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppRegistry.cs" />
-    <Compile Include="BrowserExtensionNativeHost.cs" />
     <Compile Include="FirewallManager.cs" />
     <Compile Include="I18n.cs" />
     <Compile Include="Logging\ConsoleLogger.cs" />
@@ -144,7 +143,6 @@
     <Compile Include="YTDLP\YTUrlSource.cs" />
     <Compile Include="Types\BackendRequest.cs" />
     <Compile Include="Types\NamedPipeMessage.cs" />
-    <Compile Include="Types\NativeHostManifestJson.cs" />
     <Compile Include="Types\YTDlpJsonDump.cs" />
     <Compile Include="Types\YTUrlData.cs" />
     <Compile Include="YTDLP\YtdlpExec.cs" />
