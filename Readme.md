@@ -6,19 +6,19 @@
 
 [![Alpha build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg?branch=develop)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
 
-[Latest alpha build](https://echo-peak.github.io/YT-media-controller?latestUpdateChannel=alpha)
+[Latest alpha build](https://github.com/Echo-Peak/YT-media-controller/releases/download/alpha-latest/YoutubeMediaControllerInstaller.exe)
 
 **Beta build**
 
 [![Beta build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg?branch=staging)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
 
-[Latest beta build](https://echo-peak.github.io/YT-media-controller?latestUpdateChannel=beta)
+[Latest beta build](https://github.com/Echo-Peak/YT-media-controller/releases/download/beta-latest/YoutubeMediaControllerInstaller.exe)
 
 **Stable build**
 
 [![Stable build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg?branch=main)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
 
-[Latest stable build](https://echo-peak.github.io/YT-media-controller?latestUpdateChannel=stable)
+[Latest stable build](https://github.com/Echo-Peak/YT-media-controller/releases/download/stable-latest/YoutubeMediaControllerInstaller.exe)
 
 ## What this project does
 
