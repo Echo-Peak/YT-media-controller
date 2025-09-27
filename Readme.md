@@ -8,7 +8,7 @@
 ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fecho-peak.github.io%2FYT-media-controller%2Fchannels.json&query=%24.alpha.version&label=Version)
 ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fecho-peak.github.io%2FYT-media-controller%2Fchannels.json&query=%24.alpha.checksum&label=SHA256)
 
-[Latest alpha build](https://echo-peak.github.io/YT-media-controller?latestUpdateChannel=alpha)
+[Latest alpha build](https://github.com/Echo-Peak/YT-media-controller/releases/download/alpha-latest/YoutubeMediaControllerInstaller.exe)
 
 **Beta build**
 
@@ -16,7 +16,7 @@
 ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fecho-peak.github.io%2FYT-media-controller%2Fchannels.json&query=%24.beta.version&label=Version)
 ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fecho-peak.github.io%2FYT-media-controller%2Fchannels.json&query=%24.beta.checksum&label=SHA256)
 
-[Latest beta build](https://echo-peak.github.io/YT-media-controller?latestUpdateChannel=beta)
+[Latest beta build](https://github.com/Echo-Peak/YT-media-controller/releases/download/beta-latest/YoutubeMediaControllerInstaller.exe)
 
 **Stable build**
 
@@ -24,7 +24,7 @@
 ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fecho-peak.github.io%2FYT-media-controller%2Fchannels.json&query=%24.stable.version&label=Version)
 ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fecho-peak.github.io%2FYT-media-controller%2Fchannels.json&query=%24.stable.checksum&label=SHA256)
 
-[Latest stable build](https://echo-peak.github.io/YT-media-controller?latestUpdateChannel=stable)
+[Latest stable build](https://github.com/Echo-Peak/YT-media-controller/releases/download/stable-latest/YoutubeMediaControllerInstaller.exe)
 
 ## What this project does
 
