@@ -4,19 +4,25 @@
 
 **Alpha build**
 
-[![Alpha build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg?branch=develop)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
+[![Build state](https://img.shields.io/github/actions/workflow/status/Echo-Peak/YT-media-controller/main-wf.yml?branch=develop&label=Build%20state)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
+![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fecho-peak.github.io%2FYT-media-controller%2Fchannels.json&query=%24.alpha.version&label=Version)
+![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fecho-peak.github.io%2FYT-media-controller%2Fchannels.json&query=%24.alpha.checksum&label=SHA256)
 
 [Latest alpha build](https://echo-peak.github.io/YT-media-controller?latestUpdateChannel=alpha)
 
 **Beta build**
 
-[![Beta build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg?branch=staging)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
+[![Build state](https://img.shields.io/github/actions/workflow/status/Echo-Peak/YT-media-controller/main-wf.yml?branch=staging&label=Build%20state)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
+![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fecho-peak.github.io%2FYT-media-controller%2Fchannels.json&query=%24.beta.version&label=Version)
+![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fecho-peak.github.io%2FYT-media-controller%2Fchannels.json&query=%24.beta.checksum&label=SHA256)
 
 [Latest beta build](https://echo-peak.github.io/YT-media-controller?latestUpdateChannel=beta)
 
 **Stable build**
 
-[![Stable build status](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml/badge.svg?branch=main)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
+[![Build state](https://img.shields.io/github/actions/workflow/status/Echo-Peak/YT-media-controller/main-wf.yml?branch=main&label=Build%20state)](https://github.com/Echo-Peak/YT-media-controller/actions/workflows/main-wf.yml)
+![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fecho-peak.github.io%2FYT-media-controller%2Fchannels.json&query=%24.stable.version&label=Version)
+![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fecho-peak.github.io%2FYT-media-controller%2Fchannels.json&query=%24.stable.checksum&label=SHA256)
 
 [Latest stable build](https://echo-peak.github.io/YT-media-controller?latestUpdateChannel=stable)
 
