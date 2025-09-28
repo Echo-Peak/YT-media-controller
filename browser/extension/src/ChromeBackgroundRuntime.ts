@@ -1,4 +1,3 @@
-import { doesTabExist } from "./helpers/doesTabExists";
 import { BackendSettingsMessage } from "./types/BackendSettingsMessage";
 import { WebSocketResponse } from "./types/WebSocketResponse";
 import { WebSocketClient } from "./WebSocketClient";
@@ -221,11 +220,14 @@ export class ChromeBackgroundRuntime {
   };
 
   private attemptReconnect = async (userDefinedPort: number) => {
+    console.log("Attempting to reconnect with port:", userDefinedPort);
     try {
       await this.createSocketConnection({
         userDefinedPort,
         defaultPort: this.defaultWsPort,
       });
+
+      console.log("Storing UI Socket Server Port:", this.uiSocketServerPort);
 
       await chrome.storage.local.set({
         uiSocketServerPort: this.uiSocketServerPort,

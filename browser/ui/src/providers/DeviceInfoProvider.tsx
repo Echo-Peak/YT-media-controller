@@ -5,7 +5,6 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react';
-import { getChromeStorageKeys } from '../services/helpers/getChromeStorageKeys';
 
 type DeviceInfo = {
   deviceIp?: string;
@@ -33,6 +32,8 @@ export const DeviceInfoProvider: React.FC<DeviceInfoProviderProps> = ({
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>({
     deviceIp: undefined,
     devicePort: undefined,
+    uiSocketServerPort: undefined,
+    connectionError: undefined,
   });
 
   const location = window.location;
