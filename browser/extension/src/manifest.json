@@ -9,8 +9,7 @@
     "storage",
     "tabs",
     "contextMenus",
-    "windows",
-    "nativeMessaging"
+    "windows"
   ],
   "background": {
     "service_worker": "background.js"

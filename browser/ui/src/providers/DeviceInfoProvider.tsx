@@ -10,11 +10,15 @@ import { getChromeStorageKeys } from '../services/helpers/getChromeStorageKeys';
 type DeviceInfo = {
   deviceIp?: string;
   devicePort?: number;
+  uiSocketServerPort?: number;
+  connectionError?: string;
 };
 
 const DeviceInfoContext = createContext<DeviceInfo>({
   deviceIp: undefined,
   devicePort: undefined,
+  uiSocketServerPort: undefined,
+  connectionError: undefined,
 });
 
 export const useDeviceInfo = () => useContext(DeviceInfoContext);
@@ -31,23 +35,29 @@ export const DeviceInfoProvider: React.FC<DeviceInfoProviderProps> = ({
     devicePort: undefined,
   });
 
+  const location = window.location;
+  const params = new URLSearchParams(location.search);
+  const deviceIpParam = params.get('deviceIp');
+  const devicePortParam = params.get('devicePort');
+  const uiSocketServerPortParam = params.get('uiSocketServerPort');
+
   useEffect(() => {
-    getChromeStorageKeys()
-      .then((data) => {
-        const { backendServerPort, deviceNetworkIp } = data as Record<
-          string,
-          unknown
-        >;
-        setDeviceInfo({
-          deviceIp: deviceNetworkIp as string | undefined,
-          devicePort: backendServerPort
-            ? parseInt(backendServerPort as string, 10)
-            : undefined,
-        });
-      })
-      .catch((err) => {
-        console.error('Error fetching Chrome storage keys:', err);
+    if (deviceIpParam) {
+      setDeviceInfo((prev) => ({ ...prev, deviceIp: deviceIpParam }));
+    }
+    if (devicePortParam && uiSocketServerPortParam) {
+      setDeviceInfo((prev) => ({
+        ...prev,
+        devicePort: parseInt(devicePortParam, 10),
+        uiSocketServerPort: parseInt(uiSocketServerPortParam, 10),
+      }));
+    }
+    if (!deviceIpParam || !devicePortParam) {
+      setDeviceInfo({
+        connectionError:
+          'Unable to retrieve device information. Please ensure the backend service is running and try again.',
       });
+    }
   }, []);
 
   return (

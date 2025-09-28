@@ -25,7 +25,7 @@ namespace YTMediaControllerSrv
 
             string deviceIP = DeviceInfo.GetLocalIPAddress();
 
-            uiSocketServer = new UISocketServer("localhost", appSettings.UISocketServerPort, appSettings.BackendServerPort, defaultLogger);
+            uiSocketServer = new UISocketServer("localhost", appSettings, defaultLogger);
             backendServer = new BackendServer(deviceIP, appSettings.BackendServerPort, uiSocketServer, defaultLogger);
 
 

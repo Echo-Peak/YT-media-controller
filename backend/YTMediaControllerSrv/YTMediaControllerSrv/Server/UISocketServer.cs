@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Runtime;
 using System.Threading.Tasks;
 using YTMediaControllerSrv.Controller;
 using YTMediaControllerSrv.Logging;
+using YTMediaControllerSrv.Settings;
 using YTMediaControllerSrv.Types;
 
 
@@ -13,11 +15,13 @@ namespace YTMediaControllerSrv.Server
         public WebSocketConnectionManager wsManager;
         private int backendServerPort;
         private ILogger Logger;
-        public UISocketServer(string host, int port, int backendServerPort, ILogger logger)
+        private readonly AppSettings appSettings;
+        public UISocketServer(string host, AppSettings settings, ILogger logger)
         {
-            this.backendServerPort = backendServerPort;
+            this.backendServerPort = settings.BackendServerPort;
+            this.appSettings = settings;
             this.Logger = logger;
-            string endpoint = $"http://{host}:{port}/";
+            string endpoint = $"http://{host}:{settings.UISocketServerPort}/";
 
             wsManager = new WebSocketConnectionManager(endpoint, logger);
 
@@ -75,6 +79,20 @@ namespace YTMediaControllerSrv.Server
 
             switch (obj.Action)
             {
+                case "getBackendSettings":
+                    {
+                        SendSync(new
+                        {
+                            Action = "backendSettings",
+                            Data = new
+                            {
+                                DeviceNetworkIp = DeviceInfo.GetLocalIPAddress(),
+                                appSettings.BackendServerPort,
+                                appSettings.UISocketServerPort
+                            }
+                        });
+                        break;
+                    }
                 case "webPlaybackStarted":
                     {
                         SystemController.TriggerYoutubeFullsceen();
