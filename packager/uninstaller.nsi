@@ -97,7 +97,6 @@ Section "Uninstall ${APP_NAME}"
 
   DetailPrint "Removing files and directories"
   Delete /REBOOTOK "$INSTDIR\YTMediaControllerSrv.exe"
-  Delete /REBOOTOK "$INSTDIR\YTMediaControllerHost.exe"
   Delete /REBOOTOK "$INSTDIR\YTMediaControllerUpdaterSrv.exe"
   Delete /REBOOTOK "$INSTDIR\Uninstall.exe"
 

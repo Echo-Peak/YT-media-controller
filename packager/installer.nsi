@@ -58,7 +58,6 @@ Section "Info" Info
 
   SetOutPath "$INSTDIR"
   File "..\backend\YTMediaControllerSrv\YTMediaControllerSrv\bin\${INSTALLER_BUILD_ENV}\YTMediaControllerSrv.exe"
-  File "..\backend\YTMediaControllerSrv\YTMediaControllerHost\bin\${INSTALLER_BUILD_ENV}\YTMediaControllerHost.exe"
   File "..\backend\YTMediaControllerSrv\YTMediaControllerUpdaterSrv\bin\${INSTALLER_BUILD_ENV}\YTMediaControllerUpdaterSrv.exe"
   File "..\dist\YoutubeMediaControllerUninstaller.exe"
 
