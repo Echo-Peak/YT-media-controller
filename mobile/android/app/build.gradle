@@ -4,6 +4,14 @@ plugins {
     id 'com.github.triplet.play' version '3.9.1'
 }
 
+def unq = { s -> s?.replaceAll('^\"|\"$','')?.trim() }
+def ksPathProv   = providers.environmentVariable("SIGNING_STORE_FILE").map { unq(it) }
+def ksPassProv   = providers.environmentVariable("SIGNING_STORE_PASSWORD").map { unq(it) }
+def keyAliasProv = providers.environmentVariable("SIGNING_KEY_ALIAS").map { unq(it) }
+def keyPassProv  = providers.environmentVariable("SIGNING_KEY_PASSWORD").map { unq(it) }
+def hasKeystore  = ksPathProv.isPresent() && ksPassProv.isPresent() && keyAliasProv.isPresent()
+def saPathProv = providers.environmentVariable("PLAY_SERVICE_ACCOUNT_JSON").map { unq(it) }
+
 android {
     namespace 'com.youtube.media.controller'
     compileSdk 34
@@ -12,26 +20,36 @@ android {
         applicationId "com.ytmediacontroller.app"
         minSdk 24
         targetSdk 35
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "1.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
-        release {
-            storeFile file(System.getenv("SIGNING_STORE_FILE"))
-            storePassword System.getenv("SIGNING_STORE_PASSWORD")
-            keyAlias System.getenv("SIGNING_KEY_ALIAS")
-            keyPassword System.getenv("SIGNING_KEY_PASSWORD")
+        if (hasKeystore) {
+            release {
+                storeFile file(ksPathProv.get())
+                storePassword ksPassProv.get()
+                keyAlias keyAliasProv.get()
+                keyPassword keyPassProv.get()
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release; 
-            minifyEnabled true 
+            if (hasKeystore) {
+                signingConfig signingConfigs.release
+            } else {
+                // Let debug builds work without env vars; fail only if someone tries to make a signed release
+                println "[gradle] No SIGNING_* env vars found; release will be unsigned. Set SIGNING_STORE_FILE, SIGNING_STORE_PASSWORD, SIGNING_KEY_ALIAS, SIGNING_KEY_PASSWORD to enable signing."
+            }
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            // Always buildable without signing env vars
         }
     }
     compileOptions {
@@ -47,9 +65,11 @@ android {
 }
 
 play {
-    serviceAccountCredentials.set(file(System.getenv("PLAY_SERVICE_ACCOUNT_JSON")))
     track.set("internal")
     defaultToAppBundles.set(true)
+    if (saPathProv.isPresent()) {
+        serviceAccountCredentials.set(file(saPathProv.get()))
+    }
 }
 
 dependencies {
