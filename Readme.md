@@ -90,11 +90,6 @@ The parts are as follows:
   - This is a UI that renders a QR code containing the device's local network IP
     and the port of the C# HTTP server.
 
-- **The native host exec**
-  - This is used to retrieve the local device IP and port of the C# HTTP server
-    and store it within the extension context.
-  - This only runs once when the extension loads.
-
 These three components are designed to enable seamless sending of YouTube video
 URLs from an Android device—via a "long-press" on video content. The idea is to
 send a YouTube video to a designated PC, like an HTPC, without the analytics

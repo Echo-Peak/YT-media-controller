@@ -36,6 +36,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Costura, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
@@ -102,7 +103,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppRegistry.cs" />
-    <Compile Include="BrowserExtensionNativeHost.cs" />
     <Compile Include="FirewallManager.cs" />
     <Compile Include="I18n.cs" />
     <Compile Include="Logging\ConsoleLogger.cs" />
@@ -144,7 +144,6 @@
     <Compile Include="YTDLP\YTUrlSource.cs" />
     <Compile Include="Types\BackendRequest.cs" />
     <Compile Include="Types\NamedPipeMessage.cs" />
-    <Compile Include="Types\NativeHostManifestJson.cs" />
     <Compile Include="Types\YTDlpJsonDump.cs" />
     <Compile Include="Types\YTUrlData.cs" />
     <Compile Include="YTDLP\YtdlpExec.cs" />
