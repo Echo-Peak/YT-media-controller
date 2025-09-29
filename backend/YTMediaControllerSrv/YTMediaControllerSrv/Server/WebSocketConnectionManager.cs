@@ -67,7 +67,7 @@ namespace YTMediaControllerSrv.Server
                 {
                     context.Response.StatusCode = 409;
                     context.Response.Close();
-                    Logger.Info($"[WebSocketServer] Rejected connection for '{ns}': already connected.");
+                    Logger.Info($"[WebSocketServer] Rejected connection for '{ns.Value}': already connected.");
                     continue;
                 }
 
@@ -77,7 +77,6 @@ namespace YTMediaControllerSrv.Server
 
                 OnConnect?.Invoke();
                 OnConnectNs?.Invoke(ns);
-                Logger.Info($"[WebSocketServer] Client connected [{ns}]");
 
                 _ = ListenAsync(ns, socket, cancellationToken);
             }
@@ -103,13 +102,12 @@ namespace YTMediaControllerSrv.Server
             }
             catch (Exception ex)
             {
-                Logger.Error($"[WebSocketServer] error [{ns}]", ex);
+                Logger.Error($"[WebSocketServer] error [{ns.Value}]", ex);
             }
             finally
             {
                 OnDisconnect?.Invoke();
                 OnDisconnectNs?.Invoke(ns);
-                Logger.Info($"[WebSocketServer] Client disconnected [{ns}]");
 
                 if (socket.State == WebSocketState.Open)
                     await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", ct);
