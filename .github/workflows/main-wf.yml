@@ -148,20 +148,32 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
+      - name: Materialize secrets
+        run: |
+          echo "$PLAY_SERVICE_ACCOUNT_JSON_B64" | base64 -d > /home/runner/play-sa.json
+          echo "$RELEASE_KEYSTORE_B64" | base64 -d > /home/runner/release.keystore
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON_B64:
+            ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON_B64 }}
+          RELEASE_KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
+
       - name: Make gradlew executable
         run: chmod +x ./mobile/android/gradlew
 
-      - name: Build Release APK
-        run: |
-          cd ./mobile/android
-          ./gradlew clean
-          ./gradlew assembleRelease
+      - name: Build & upload to Play
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: /home/runner/play-sa.json
+          SIGNING_STORE_FILE: /home/runner/release.keystore
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: ./gradlew clean bundleRelease publishRelease
 
       - name: Upload Release APK to GitHub Release (immutable tag)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.create-tags.outputs.tag_version }}
-          files: ./mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          files: ./mobile/android/app/build/outputs/apk/release/app-release.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -176,7 +188,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "${{ needs.create-tags.outputs.channel_alias }}" \
-            "./mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk" \
+            "./mobile/android/app/build/outputs/apk/release/app-release.aab" \
             --clobber
 
   cleanup-on-failure:
