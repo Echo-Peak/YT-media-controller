@@ -32,7 +32,7 @@ export class BackendService {
 
   private connect() {
     if (!this.port) return;
-    this.socket = new WebSocket(`ws://localhost:${this.port}`);
+    this.socket = new WebSocket(`ws://localhost:${this.port}/externalViewer`);
 
     this.socket.addEventListener('open', () => {
       if (this.reconnectTimer) {
