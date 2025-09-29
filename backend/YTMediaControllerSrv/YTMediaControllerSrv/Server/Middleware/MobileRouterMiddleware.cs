@@ -99,7 +99,7 @@ namespace YTMediaControllerSrv.Server.Middleware
                     string videoId = new YTUrlData(originSource).VideoId;
                     bool isDashAvailable = !string.IsNullOrEmpty(localSource.VideoSourceUrl) && !string.IsNullOrEmpty(localSource.AudioSourceUrl);
 
-                    await UISocketServer.Send(new
+                    await UISocketServer.Send(WSNamespace.ExternalViewer, new
                     {
                         action = "playVideo",
                         data = new

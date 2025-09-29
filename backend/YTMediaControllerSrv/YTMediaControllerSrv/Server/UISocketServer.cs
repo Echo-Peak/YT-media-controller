@@ -25,9 +25,9 @@ namespace YTMediaControllerSrv.Server
 
             wsManager = new WebSocketConnectionManager(endpoint, logger);
 
-            wsManager.OnMessage += OnMessage;
-            wsManager.OnConnect += OnConnected;
-            wsManager.OnDisconnect += OnDisconnected;
+            wsManager.OnMessageNs += OnMessage;
+            wsManager.OnConnectNs += OnConnected;
+            wsManager.OnDisconnectNs += OnDisconnected;
         }
 
         public void Start()
@@ -43,37 +43,37 @@ namespace YTMediaControllerSrv.Server
             wsManager.Stop();
         }
 
-        private void OnConnected()
+        private void OnConnected(WSNamespace ns)
         {
-            Logger.Info($"Client connected");
+            Logger.Info($"Client connected in namespace: \"{ns.Value}\"");
         }
 
-        private void OnDisconnected()
+        private void OnDisconnected(WSNamespace ns)
         {
-            Logger.Info($"Client disconnected");
+            Logger.Info($"Client disconnected from namespace: \"{ns.Value}\"");
         }
 
-        public async Task Send(object jsonObject)
+        public async Task Send(WSNamespace ns, object jsonObject)
         {
             if (wsManager.IsConnected())
             {
-                await wsManager.SendAsync(jsonObject);
+                await wsManager.SendAsync(ns, jsonObject);
             }
             else
             {
-                Logger.Warn("[ControlServer] Cannot send: No client is connected.");
+                Logger.Warn($"[ControlServer] Cannot send: No client is connected in the namespace \"{ns.Value}\"");
             }
         }
 
-        public void SendSync(object jsonObject)
+        public void SendSync(WSNamespace ns, object jsonObject)
         {
             Task.Run(async () =>
             {
-                await Send(jsonObject);
+                await Send(ns, jsonObject);
             });
         }
 
-        public void OnMessage(string jsonString)
+        public void OnMessage(WSNamespace ns, string jsonString)
         {
             var obj = JsonConvert.DeserializeObject<UISocketMessage>(jsonString);
 
@@ -81,7 +81,7 @@ namespace YTMediaControllerSrv.Server
             {
                 case "getBackendSettings":
                     {
-                        SendSync(new
+                        SendSync(ns, new
                         {
                             Action = "backendSettings",
                             Data = new

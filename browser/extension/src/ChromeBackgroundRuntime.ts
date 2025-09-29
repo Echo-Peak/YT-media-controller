@@ -99,28 +99,21 @@ export class ChromeBackgroundRuntime {
   }) => {
     const portToUse = options.userDefinedPort || options.defaultPort;
     this.uiSocketServerPort = portToUse;
-
-    const wsUrl = `ws://localhost:${portToUse}`;
-
+    const wsUrl = `ws://localhost:${portToUse}/chromeBackend`;
     return new Promise<boolean>((resolve, reject) => {
       this.wsClient = new WebSocketClient<WebSocketResponse>(wsUrl);
-
       this.wsClient.on("open", () => {
         console.log(`WebSocket connected to ${wsUrl}`);
         resolve(true);
       });
-
       this.wsClient.on("message", (event: WebSocketResponse) => {
         try {
           if (event.Action === "backendSettings") {
             const settings = event.Data as BackendSettingsMessage;
-
             console.log("Received backend settings:", settings);
-
             this.deviceNetworkIP = settings.DeviceNetworkIp;
             this.backendServerPort = settings.BackendServerPort;
             this.uiSocketServerPort = settings.UISocketServerPort;
-
             this.windowManager.update(
               WindowManager.windows.mobile,
               WindowManager.tabs.mobileSetup,
@@ -133,16 +126,13 @@ export class ChromeBackgroundRuntime {
           console.error("Failed to parse WebSocket message:", err);
         }
       });
-
       this.wsClient.on("close", () => {
         console.warn(`WebSocket disconnected from ${wsUrl}`);
       });
-
       this.wsClient.on("error", (event) => {
         console.error("WebSocket error:", event);
         reject(new Error(`WebSocket error: ${event}`));
       });
-
       this.wsClient.send({
         Action: "getBackendSettings",
         Data: {},
