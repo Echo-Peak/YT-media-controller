@@ -40,6 +40,7 @@ jest.mock('../helpers/getChromeStorageKeys', () => ({
 const { getChromeStorageKeys } = jest.requireMock(
   '../helpers/getChromeStorageKeys',
 );
+const componentNamespace = 'externalViewer';
 
 describe('BackendService (original API)', () => {
   test('init uses uiSocketServerPort from chrome storage and connects', async () => {
@@ -50,7 +51,7 @@ describe('BackendService (original API)', () => {
     const svc = new BackendService();
     await svc.init();
 
-    expect(wsCtorCalls[0]).toBe('ws://localhost:8081');
+    expect(wsCtorCalls[0]).toBe(`ws://localhost:8081/${componentNamespace}`);
     expect(addListenerSpy).toHaveBeenCalledTimes(1);
   });
 
@@ -62,7 +63,7 @@ describe('BackendService (original API)', () => {
     const svc = new BackendService();
     await svc.init();
 
-    expect(wsCtorCalls[0]).toBe('ws://localhost:7777');
+    expect(wsCtorCalls[0]).toBe(`ws://localhost:7777/${componentNamespace}`);
   });
 
   test('sendData queues before socket open, then flushes on open', async () => {
@@ -136,7 +137,7 @@ describe('BackendService (original API)', () => {
 
     jest.advanceTimersByTime(1);
     expect(wsCtorCalls).toHaveLength(2);
-    expect(wsCtorCalls[1]).toBe('ws://localhost:9300');
+    expect(wsCtorCalls[1]).toBe(`ws://localhost:9300/${componentNamespace}`);
   });
 
   test('error triggers reconnect after 5s', async () => {
