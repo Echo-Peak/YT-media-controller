@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Heading } from '@chakra-ui/react';
+import { Box, Center, Heading, Image } from '@chakra-ui/react';
 
 export const NoVideoPlaying = () => {
   return (
@@ -8,11 +8,20 @@ export const NoVideoPlaying = () => {
         No video is currently playing.
       </Heading>
 
-      <Heading textAlign="center" as="h3" size="sm" color="gray.300" mt={40}>
+      <Box mt={2}>
+        <Center>
+          <Image
+            src="./assets/no-video-playing.png"
+            alt="No video playing"
+            height="300px"
+          />
+        </Center>
+      </Box>
+      <Heading textAlign="center" as="h3" size="sm" color="gray.300" mt={10}>
         To play a video, use your phone to send a youtube link via "Sharing"
         menu.
       </Heading>
-      <Heading textAlign="center" as="h5" mt={8} size="sm" color="gray.300">
+      <Heading textAlign="center" as="h5" mt={4} size="sm" color="gray.300">
         In a browser navigate to youtube and long-press on any video link, then
         select "Share" and choose "Send to TV" option. If using the YouTube
         mobile app, find the video you want to play and select the vertical
