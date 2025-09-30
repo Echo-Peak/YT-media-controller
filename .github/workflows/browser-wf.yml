@@ -1,0 +1,67 @@
+name: Browser extension build
+
+on:
+  workflow_call:
+    inputs:
+      tag_version:
+        required: true
+        type: string
+      channel_alias:
+        required: true
+        type: string
+
+jobs:
+  build-browser-extension:
+    runs-on: ubuntu-latest
+    needs: create-tags
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node with Yarn cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+          cache: "yarn"
+
+      - name: Install NPM modules
+        run: yarn
+        shell: bash
+      - name: Run UI tests
+        run: yarn test-browser
+        continue-on-error: false
+      - name: Build browser extension
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: npm run build-browser
+      - name: Package extension
+        run: zip -r ./dist/extension.zip ./dist/browser-extension-unpacked
+
+      - name: Upload extension to GitHub Release (immutable tag)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag_version }}
+          files: ./dist/extension.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure channel alias release exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "${{ inputs.channel_alias }}" >/dev/null 2>&1 \
+          || gh release create "${{ inputs.channel_alias }}" --title "${{ inputs.channel_alias }}" --prerelease
+
+      - name: Upload (overwrite) assets to channel alias
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ inputs.channel_alias }}" "./dist/extension.zip" --clobber
+
+      - name: Upload & Publish to Chrome Web Store
+        uses: mnao305/chrome-extension-upload@v5.0.0
+        if: github.ref == "refs/tags/main" || github.ref == "refs/tags/staging"
+        with:
+          file-path: extension.zip
+          extension-id: ${{ vars.CWS_EXTENSION_ID }}
+          client-id: ${{ secrets.CWS_CLIENT_ID }}
+          client-secret: ${{ secrets.CWS_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CWS_REFRESH_TOKEN }}

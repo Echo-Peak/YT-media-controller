@@ -64,28 +64,14 @@ jobs:
       - name: Fetch external binaries
         run: node ./backend/scripts/installExternalDeps.js
 
-      - name: Setup Node with Yarn cache
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22.12.0"
-          cache: "yarn"
-
-      - name: Install NPM modules
-        run: yarn
-        shell: bash
-
       - name: Restore NuGet packages
         run: |
           nuget restore ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
 
-      - name: Run UI tests
-        run: yarn test-browser
-        continue-on-error: false
-
       - name: Build installer
         env:
           BUILD_NUMBER: ${{ github.run_number }}
-        run: npm run package
+        run: npm run build-service
 
       - name: Create manifest file
         run: node ./packager/createManifest.js
@@ -124,75 +110,28 @@ jobs:
 
   build-android-app:
     needs: create-tags
-    name: Build android APK
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    uses: ./.github/workflows/android-build.yml
+    with:
+      tag_version: ${{ needs.create-tags.outputs.tag_version }}
+      channel_alias: ${{ needs.create-tags.outputs.channel_alias }}
+    secrets: inherit
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: 17
-
-      - name: Cache Gradle files
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key:
-            gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*',
-            '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
-
-      - name: Materialize secrets
-        run: |
-          echo "$PLAY_SERVICE_ACCOUNT_JSON_B64" | base64 -d > /home/runner/play-sa.json
-          echo "$RELEASE_KEYSTORE_B64" | base64 -d > /home/runner/release.keystore
-        env:
-          PLAY_SERVICE_ACCOUNT_JSON_B64:
-            ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON_B64 }}
-          RELEASE_KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
-
-      - name: Make gradlew executable
-        run: chmod +x ./mobile/android/gradlew
-
-      - name: Build & upload to Play
-        env:
-          PLAY_SERVICE_ACCOUNT_JSON: /home/runner/play-sa.json
-          SIGNING_STORE_FILE: /home/runner/release.keystore
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-        run: ./gradlew clean bundleRelease publishRelease
-
-      - name: Upload Release APK to GitHub Release (immutable tag)
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.create-tags.outputs.tag_version }}
-          files: ./mobile/android/app/build/outputs/apk/release/app-release.aab
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Ensure channel alias release exists
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release view "${{ needs.create-tags.outputs.channel_alias }}" >/dev/null 2>&1 \
-          || gh release create "${{ needs.create-tags.outputs.channel_alias }}" --title "${{ needs.create-tags.outputs.channel_alias }}" --prerelease
-      - name: Upload (overwrite) assets to channel alias
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload "${{ needs.create-tags.outputs.channel_alias }}" \
-            "./mobile/android/app/build/outputs/apk/release/app-release.aab" \
-            --clobber
+  build-browser-extension:
+    needs: create-tags
+    uses: ./.github/workflows/browser-build.yml
+    with:
+      tag_version: ${{ needs.create-tags.outputs.tag_version }}
+      channel_alias: ${{ needs.create-tags.outputs.channel_alias }}
+    secrets: inherit
 
   cleanup-on-failure:
-    needs: [create-tags, build-desktop-app, build-android-app]
+    needs:
+      [
+        create-tags,
+        build-desktop-app,
+        build-android-app,
+        build-browser-extension,
+      ]
     if: ${{ always() && failure() }}
     runs-on: ubuntu-latest
     permissions:

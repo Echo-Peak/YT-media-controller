@@ -1,0 +1,84 @@
+name: Android build
+
+on:
+  workflow_call:
+    inputs:
+      tag_version:
+        required: true
+        type: string
+      channel_alias:
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-android-app:
+    name: Build android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Gradle files
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key:
+            gradle-${{ runner.os }}-${{
+            hashFiles('**/*.gradle*','**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Materialize secrets
+        run: |
+          echo "$PLAY_SERVICE_ACCOUNT_JSON_B64" | base64 -d > /home/runner/play-sa.json
+          echo "$RELEASE_KEYSTORE_B64" | base64 -d > /home/runner/release.keystore
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON_B64:
+            ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON_B64 }}
+          RELEASE_KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
+
+      - name: Make gradlew executable
+        run: chmod +x ./mobile/android/gradlew
+
+      - name: Build & upload to Play
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: /home/runner/play-sa.json
+          SIGNING_STORE_FILE: /home/runner/release.keystore
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: ./gradlew clean bundleRelease publishRelease
+
+      - name: Upload Release AAB to GitHub Release (immutable tag)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag_version }}
+          files: ./mobile/android/app/build/outputs/apk/release/app-release.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure channel alias release exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "${{ inputs.channel_alias }}" >/dev/null 2>&1 \
+          || gh release create "${{ inputs.channel_alias }}" --title "${{ inputs.channel_alias }}" --prerelease
+
+      - name: Upload (overwrite) assets to channel alias
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ inputs.channel_alias }}" \
+            "./mobile/android/app/build/outputs/apk/release/app-release.aab" \
+            --clobber
