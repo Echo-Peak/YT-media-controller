@@ -22,15 +22,6 @@ namespace YTMediaControllerSrv
             return Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.Parent.Parent.FullName;
         }
 
-        public static string GetSettingsFilePath()
-        {
-            if (!IsInstalled())
-            {
-                return Path.Combine(GetProjectRoot(), "backend\\settings.example.json");
-            }
-
-            return Path.Combine(installDir, "settings.json");
-        }
 
         static string GetBrowserExtentionDir()
         {
@@ -39,21 +30,6 @@ namespace YTMediaControllerSrv
                 return Path.Combine(GetProjectRoot(), "extension\\build");
             }
             return Path.Combine(installDir, "ui");
-        }
-
-        public static string GetNativeHostManifestPath()
-        {
-            return Path.Combine(GetBrowserExtentionDir(), "nativeHost.json");
-        }
-
-        public static string GetNativeHostBinPath()
-        {
-            if (!IsInstalled())
-            {
-                string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
-                return Path.Combine(GetProjectRoot(), $"backend\\YTMediaControllerSrv\\YTMediaControllerHost\\bin\\{configuration}\\YTMediaControllerHost.exe");
-            }
-            return Path.Combine(installDir, "YTMediaControllerHost.exe");
         }
 
         public static string GetYtDlpBin()
@@ -76,6 +52,39 @@ namespace YTMediaControllerSrv
             return Path.Combine(installDir, "bin");
         }
 
+        public static string GetYTControllerSrvBin()
+        {
+            var binName = "YTMediaControllerSrv";
+            if (!IsInstalled())
+            {
+                string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+                return Path.Combine(GetProjectRoot(), $"backend\\YTMediaControllerSrv\\{binName}\\bin\\{configuration}\\{binName}.exe");
+            }
+            return Path.Combine(installDir, $"{binName}.exe");
+        }
+
+        public static string GetPublicKey()
+        {
+            if (!IsInstalled())
+            {
+                string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+                return Path.Combine(GetProjectRoot(), $"backend\\keys\\updateServerSrv.pub");
+            }
+
+            // Convert into embedded asset and use asset streaming
+            return Path.Combine(installDir, $"keys/updateServerSrv.pub");
+        }
+
+        public static string GetUninstaller() 
+        {
+            if (!IsInstalled())
+            {
+                string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+                return Path.Combine(GetProjectRoot(), $"dist/YoutubeMediaControllerUninstaller.exe");
+            }
+
+            return Path.Combine(installDir, $"YoutubeMediaControllerUninstaller.exe");
+        }
         public static string GetLogsDir()
         {
             return Path.Combine(installDir, "logs");

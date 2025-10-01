@@ -1,0 +1,28 @@
+<Project>
+  <Target Name="GenerateVersionInfo"
+    BeforeTargets="BeforeCompile"
+    Condition="'$(DisableSharedVersioning)' != 'true'">
+
+    <ItemGroup>
+      <AssemblyAttributes Include="System.Reflection.AssemblyVersionAttribute">
+        <_Parameter1>$(ComputedAssemblyVersion)</_Parameter1>
+      </AssemblyAttributes>
+      <AssemblyAttributes Include="System.Reflection.AssemblyFileVersionAttribute">
+        <_Parameter1>$(ComputedFileVersion)</_Parameter1>
+      </AssemblyAttributes>
+      <AssemblyAttributes Include="System.Reflection.AssemblyInformationalVersionAttribute">
+        <_Parameter1>$(ComputedInfoVersion)</_Parameter1>
+      </AssemblyAttributes>
+    </ItemGroup>
+
+    <MakeDir Directories="Properties" Condition="!Exists('Properties')" />
+
+    <WriteCodeFragment Language="C#"
+      OutputFile="Properties\VersionInfo.g.cs"
+      AssemblyAttributes="@(AssemblyAttributes)" />
+
+    <ItemGroup>
+      <Compile Include="Properties\VersionInfo.g.cs" />
+    </ItemGroup>
+  </Target>
+</Project>

@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Open external YT viewer",
+  "name": "Open YTMediaController UI",
   "version": "1.0",
-  "description": "A Chrome extension to render YT videos via an external streaming server.",
+  "description": "Send YouTube video links from mobile to desktop to be played back without ads, tracking or interruptions.",
   "permissions": [
     "background",
     "webRequest",
     "storage",
     "tabs",
     "contextMenus",
-    "nativeMessaging"
+    "windows"
   ],
   "background": {
     "service_worker": "background.js"
@@ -31,8 +31,13 @@
     "ws://localhost/*",
     "wss://localhost/*"
   ],
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
   "action": {
-    "default_title": "YT ext",
+    "default_title": "YTMediaController",
     "default_icon": {
       "16": "assets/icon16.png",
       "48": "assets/icon48.png",

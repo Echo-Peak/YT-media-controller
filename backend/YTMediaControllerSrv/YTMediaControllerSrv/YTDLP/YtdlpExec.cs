@@ -31,7 +31,6 @@ namespace YTMediaControllerSrv.YTDLP
         public async Task<YTDlpJsonDump> Fetch(string originSourceUrl)
         {
             string sourceUrl = RecreateSourceUrl(originSourceUrl);
-            Logger.Info($"Fetching json dump for {sourceUrl}");
             string jsonDump = await ExecCommand(sourceUrl, "--dump-json");
             if (string.IsNullOrWhiteSpace(jsonDump))
             {

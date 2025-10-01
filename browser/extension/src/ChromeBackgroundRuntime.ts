@@ -1,18 +1,17 @@
-import { doesTabExist } from "./helpers/doesTabExists";
-import { NativeHostApi } from "./NativeHostApi";
+import { BackendSettingsMessage } from "./types/BackendSettingsMessage";
+import { WebSocketResponse } from "./types/WebSocketResponse";
+import { WebSocketClient } from "./WebSocketClient";
+import { WindowManager } from "./WindowManager";
 
 export class ChromeBackgroundRuntime {
-  private nativeHost: NativeHostApi;
   private deviceNetworkIP?: string;
   private uiSocketServerPort?: number;
   private backendServerPort?: number;
-  private YTTabID?: number;
-  private externalViewerTabId?: number;
+  private wsClient?: WebSocketClient;
+  private defaultWsPort = 52000;
+  private windowManager = new WindowManager();
 
   constructor() {
-    this.nativeHost = new NativeHostApi();
-    console.log("ChromeBackgroundRuntime initialized 2");
-
     chrome.runtime.onMessage.addListener(this.handleMessage);
     chrome.runtime.onInstalled.addListener(() => {
       chrome.contextMenus.create({
@@ -31,128 +30,211 @@ export class ChromeBackgroundRuntime {
     });
 
     chrome.tabs.onRemoved.addListener(this.removeTabReference);
-
-    this.init().catch(console.error);
+    chrome.windows.onRemoved.addListener(this.handleWindowClosed);
   }
 
   private removeTabReference = (tabId: number) => {
-    if (tabId === this.YTTabID) {
-      this.YTTabID = undefined;
-    } else if (tabId === this.externalViewerTabId) {
-      this.externalViewerTabId = undefined;
-    }
+    const main = WindowManager.windows.main;
+    this.windowManager.removeTab(main, WindowManager.tabs.externalViewer);
+    this.windowManager.removeTab(main, WindowManager.tabs.youtube);
+  };
+
+  private handleWindowClosed = (windowId: number) => {
+    this.windowManager.removeWindowById(windowId);
   };
 
   private createYTTab() {
-    chrome.tabs.create(
-      { url: "https://www.youtube.com", pinned: true, active: false },
-      (tab) => {
-        this.YTTabID = tab.id;
-        console.log("YouTube tab created with ID:", this.YTTabID);
+    this.windowManager.addTabToWindow(
+      WindowManager.windows.main,
+      WindowManager.tabs.youtube,
+      {
+        url: "https://www.youtube.com",
+        pinned: true,
+        active: false,
       }
     );
   }
 
   private createPage = () => {
-    if (this.externalViewerTabId) {
-      chrome.tabs.update(this.externalViewerTabId, { active: true });
-      console.log(
-        "External viewer tab already exists, not creating a new one."
-      );
-      return;
-    }
+    this.windowManager
+      .has(WindowManager.windows.main, WindowManager.tabs.externalViewer)
+      .then((tabExists) => {
+        if (tabExists) {
+          this.windowManager.update(
+            WindowManager.windows.main,
+            WindowManager.tabs.externalViewer,
+            { active: true }
+          );
 
-    chrome.tabs.create(
-      {
-        url: chrome.runtime.getURL("ui/index.html"),
-      },
-      (tab) => {
-        this.externalViewerTabId = tab.id;
-        console.log(
-          "External viewer tab created with ID:",
-          this.externalViewerTabId
+          console.log(
+            "External viewer tab already exists, not creating a new one."
+          );
+          return;
+        }
+
+        this.windowManager.addTabToWindow(
+          WindowManager.windows.main,
+          WindowManager.tabs.externalViewer,
+          {
+            url: chrome.runtime.getURL("ui/index.html"),
+            active: true,
+          }
         );
-      }
-    );
+      })
+      .catch((err) => console.error("Error checking for existing tab:", err));
   };
 
-  private init = async () => {
-    const uiSocketServerPort = await this.nativeHost.postMessageAsync<{
-      status: boolean;
-      result: number;
-    }>({ action: "getUISocketServerPort" });
-    const backendServerPort = await this.nativeHost.postMessageAsync<{
-      status: boolean;
-      result: number;
-    }>({ action: "getBackendServerPort" });
-    const deviceNetworkIP = await this.nativeHost.postMessageAsync<{
-      status: boolean;
-      result: string;
-    }>({ action: "getDeviceNetworkIp" });
-
-    if (!uiSocketServerPort.status) {
-      throw new Error("Failed to get backend settings from native app");
+  public init = async () => {
+    try {
+      const cachedWsPort = await chrome.storage.local.get("uiSocketServerPort");
+      await this.attemptReconnect(cachedWsPort.uiSocketServerPort!);
+    } catch (error) {
+      throw new Error(`Failed to initialize WebSocket connection: ${error}`);
     }
+  };
 
-    if (!deviceNetworkIP.status) {
-      throw new Error("Failed to get device network IP from native app");
-    }
+  private createSocketConnection = (options: {
+    userDefinedPort?: number;
+    defaultPort: number;
+  }) => {
+    const portToUse = options.userDefinedPort || options.defaultPort;
+    this.uiSocketServerPort = portToUse;
+    const wsUrl = `ws://localhost:${portToUse}/chromeBackend`;
+    return new Promise<boolean>((resolve, reject) => {
+      this.wsClient = new WebSocketClient<WebSocketResponse>(wsUrl);
+      this.wsClient.on("open", () => {
+        console.log(`WebSocket connected to ${wsUrl}`);
+        resolve(true);
+      });
+      this.wsClient.on("message", (event: WebSocketResponse) => {
+        try {
+          if (event.Action === "backendSettings") {
+            const settings = event.Data as BackendSettingsMessage;
+            console.log("Received backend settings:", settings);
+            this.deviceNetworkIP = settings.DeviceNetworkIp;
+            this.backendServerPort = settings.BackendServerPort;
+            this.uiSocketServerPort = settings.UISocketServerPort;
+            this.windowManager.update(
+              WindowManager.windows.mobile,
+              WindowManager.tabs.mobileSetup,
+              {
+                url: this.createMobileConfigUrl(),
+              }
+            );
+          }
+        } catch (err) {
+          console.error("Failed to parse WebSocket message:", err);
+        }
+      });
+      this.wsClient.on("close", () => {
+        console.warn(`WebSocket disconnected from ${wsUrl}`);
+      });
+      this.wsClient.on("error", (event) => {
+        console.error("WebSocket error:", event);
+        reject(new Error(`WebSocket error: ${event}`));
+      });
+      this.wsClient.send({
+        Action: "getBackendSettings",
+        Data: {},
+      });
+    });
+  };
 
-    if (!backendServerPort.status) {
-      throw new Error("Failed to get backend server port from native app");
-    }
+  private createMobileConfigUrl = () => {
+    const deviceIp = this.deviceNetworkIP || "";
+    const devicePort = this.backendServerPort || "";
+    const uiSocketServerPort = this.uiSocketServerPort || "";
 
-    this.uiSocketServerPort = uiSocketServerPort.result;
-    this.deviceNetworkIP = deviceNetworkIP.result;
-    this.backendServerPort = backendServerPort.result;
-    await this.addBackendSettingsToStorage(
-      this.uiSocketServerPort,
-      this.backendServerPort,
-      this.deviceNetworkIP
-    );
+    const query = new URLSearchParams({
+      deviceIp: deviceIp,
+      devicePort: devicePort.toString(),
+      uiSocketServerPort: uiSocketServerPort.toString(),
+    });
+    return chrome.runtime.getURL("ui/index.html") + "?" + query.toString();
   };
 
   private createMobilePluginSetup = async () => {
-    if (!this.uiSocketServerPort || !this.deviceNetworkIP) {
-      console.error(
-        "Backend settings or device network IP is not available. Cannot create mobile plugin setup."
+    const tabExists = await this.windowManager.has(
+      WindowManager.windows.mobile,
+      WindowManager.tabs.mobileSetup
+    );
+
+    if (tabExists) {
+      this.windowManager.update(
+        WindowManager.windows.mobile,
+        WindowManager.tabs.mobileSetup,
+        { active: true }
       );
-      return;
+    } else {
+      this.windowManager.createWindow(
+        WindowManager.windows.mobile,
+        WindowManager.tabs.mobileSetup,
+        {
+          url: this.createMobileConfigUrl(),
+          type: "popup",
+          width: 500,
+          height: 600,
+        }
+      );
     }
-
-    const query = new URLSearchParams({
-      deviceIp: this.deviceNetworkIP,
-      uiSocketServerPort: this.uiSocketServerPort.toString(),
-    });
-
-    chrome.windows.create({
-      url: chrome.runtime.getURL("ui/index.html") + "?" + query.toString(),
-      type: "popup",
-      width: 500,
-      height: 600,
-    });
-  };
-
-  private addBackendSettingsToStorage = async (
-    uiSocketServerPort: number,
-    backendServerPort: number,
-    deviceNetworkIp: string
-  ) => {
-    await chrome.storage.local.set({
-      uiSocketServerPort: uiSocketServerPort,
-      backendServerPort: backendServerPort,
-      deviceNetworkIp: deviceNetworkIp,
-    });
   };
 
   private openInYTTab = async (url: string) => {
-    const tabExists = await doesTabExist(this.YTTabID!);
+    const tabExists = await this.windowManager.has(
+      WindowManager.windows.main,
+      WindowManager.tabs.youtube
+    );
 
     if (tabExists) {
-      chrome.tabs.update(this.YTTabID!, { url: url, active: true });
+      this.windowManager.update(
+        WindowManager.windows.main,
+        WindowManager.tabs.youtube,
+        { url: url, active: true }
+      );
     } else {
       console.warn("YouTube tab does not exist, creating a new one.");
       this.createYTTab();
+    }
+  };
+
+  private setFullScreen = async () => {
+    this.windowManager.updateWindow(WindowManager.windows.main, {
+      state: "fullscreen",
+    });
+  };
+
+  private setExitFullScreen = async () => {
+    this.windowManager.updateWindow(WindowManager.windows.main, {
+      state: "normal",
+    });
+  };
+
+  private attemptReconnect = async (userDefinedPort: number) => {
+    console.log("Attempting to reconnect with port:", userDefinedPort);
+    try {
+      await this.createSocketConnection({
+        userDefinedPort,
+        defaultPort: this.defaultWsPort,
+      });
+
+      console.log("Storing UI Socket Server Port:", this.uiSocketServerPort);
+
+      await chrome.storage.local.set({
+        uiSocketServerPort: this.uiSocketServerPort,
+      });
+      this.uiSocketServerPort = userDefinedPort;
+
+      this.windowManager.update(
+        WindowManager.windows.mobile,
+        WindowManager.tabs.mobileSetup,
+        {
+          url: this.createMobileConfigUrl(),
+        }
+      );
+
+      console.log("Reconnection successful");
+    } catch (error) {
+      console.error("Reconnection attempt failed:", error);
     }
   };
 
@@ -166,7 +248,19 @@ export class ChromeBackgroundRuntime {
         this.openInYTTab(message.data.url).catch(console.error);
         break;
       }
-      case "enforcementDialogRemoved": {
+      case "setFullScreen": {
+        this.setFullScreen().catch(console.error);
+        break;
+      }
+      case "setExitFullScreen": {
+        this.setExitFullScreen().catch(console.error);
+        break;
+      }
+      case "updateUiSocketServerPort": {
+        const newPort = parseInt(message.data.uiSocketServerPort);
+        console.log("Updating UI Socket Server Port to:", newPort);
+        this.attemptReconnect(newPort).catch(console.error);
+        break;
       }
     }
   };

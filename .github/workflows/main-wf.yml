@@ -1,16 +1,17 @@
 name: Create assets
 on:
   push:
-    branches: ["main", "staging"]
+    branches: ["main", "staging", "develop"]
 
 permissions:
   contents: write
 
 jobs:
-  create-tag-and-dispatch:
+  create-tags:
     runs-on: ubuntu-latest
     outputs:
       tag_version: ${{ steps.set_version.outputs.tag_version }}
+      channel_alias: ${{ steps.create_channel_alias.outputs.channel_alias }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,24 +19,43 @@ jobs:
       - name: Set version/tag variable
         id: set_version
         run: |
+          PACKAGE_JSON_VERSION=$(cat ./package.json | awk -F'"' '/"version":/ {print $4; exit}')
+          TAG_TYPE="alpha"
           if [ "${{ github.ref_name }}" = "main" ]; then
-            TAG_TYPE="prod"
-          else
-            TAG_TYPE="rc"
+            TAG_TYPE="stable"
+          elif [ "${{ github.ref_name }}" = "staging" ]; then
+            TAG_TYPE="beta"
           fi
-          VERSION="v1.0.0-${TAG_TYPE}.${{ github.run_number }}"
+          VERSION="v${PACKAGE_JSON_VERSION}-${TAG_TYPE}.${{ github.run_number }}"
           echo "tag_version=$VERSION" >> $GITHUB_OUTPUT
-      - name: Create Git tag
+      - name: Configure git author
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+      - name: Create immutable tag
+        run: |
           git tag ${{ steps.set_version.outputs.tag_version }}
           git push origin ${{ steps.set_version.outputs.tag_version }}
         shell: bash
+      - name: Create channel alias tag
+        if:
+          ${{ github.ref_name == 'develop' || github.ref_name == 'staging' ||
+          github.ref_name == 'main' }}
+        shell: bash
+        id: create_channel_alias
+        run: |
+          case "${{ github.ref_name }}" in
+            develop) CHANNEL_ALIAS="alpha-latest" ;;
+            staging) CHANNEL_ALIAS="beta-latest" ;;
+            main)    CHANNEL_ALIAS="stable-latest" ;;
+          esac
+          git tag -fa "$CHANNEL_ALIAS" -m "Update $CHANNEL_ALIAS -> $GITHUB_SHA"
+          git push -f origin "$CHANNEL_ALIAS"
+          echo "channel_alias=$CHANNEL_ALIAS" >> $GITHUB_OUTPUT
 
   build-desktop-app:
-    runs-on: windows-latest
-    needs: create-tag-and-dispatch
+    runs-on: windows-2022
+    needs: create-tags
     steps:
       - uses: actions/checkout@v4
       - name: Add msbuild to PATH
@@ -58,24 +78,52 @@ jobs:
         run: |
           nuget restore ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
 
-      - name: Build backend service
-        run:
-          msbuild ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
-          /p:Configuration=Release
+      - name: Run UI tests
+        run: yarn test-browser
+        continue-on-error: false
 
       - name: Build installer
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
         run: npm run package
 
-      - name: Upload Release APK to GitHub Release
+      - name: Create manifest file
+        run: node ./packager/createManifest.js
+
+      - name: Grab last commit message
+        run: git log -1 --pretty=%B > RELEASE_BODY.txt
+
+      - name: Upload installer to GitHub Release (immutable tag)
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ needs.create-tag-and-dispatch.outputs.tag_version }}
-          files: ./dist/YoutubeMediaControllerInstaller.exe
+          draft: false
+          prerelease: false
+          tag_name: ${{ needs.create-tags.outputs.tag_version }}
+          body_path: RELEASE_BODY.txt
+          files: |
+            ./dist/YoutubeMediaControllerInstaller.exe
+            ./dist/manifest.json
+      - name: Ensure channel alias release exists
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "${{ needs.create-tags.outputs.channel_alias }}" >/dev/null 2>&1 \
+          || gh release create "${{ needs.create-tags.outputs.channel_alias }}" --title "${{ needs.create-tags.outputs.channel_alias }}" --prerelease
+      - name: Upload (overwrite) assets to channel alias
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ needs.create-tags.outputs.channel_alias }}" \
+            "./dist/YoutubeMediaControllerInstaller.exe" \
+            "./dist/manifest.json" \
+            --clobber
 
   build-android-app:
-    needs: create-tag-and-dispatch
+    needs: create-tags
     name: Build android APK
     runs-on: ubuntu-latest
     steps:
@@ -109,10 +157,59 @@ jobs:
           ./gradlew clean
           ./gradlew assembleRelease
 
-      - name: Upload Release APK to GitHub Release
+      - name: Upload Release APK to GitHub Release (immutable tag)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.create-tag-and-dispatch.outputs.tag_version }}
+          tag_name: ${{ needs.create-tags.outputs.tag_version }}
           files: ./mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure channel alias release exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "${{ needs.create-tags.outputs.channel_alias }}" >/dev/null 2>&1 \
+          || gh release create "${{ needs.create-tags.outputs.channel_alias }}" --title "${{ needs.create-tags.outputs.channel_alias }}" --prerelease
+      - name: Upload (overwrite) assets to channel alias
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ needs.create-tags.outputs.channel_alias }}" \
+            "./mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk" \
+            --clobber
+
+  cleanup-on-failure:
+    needs: [create-tags, build-desktop-app, build-android-app]
+    if: ${{ always() && failure() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cleanup tag via script
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x scripts/cleanup-tag.sh
+          bash scripts/cleanup-tag.sh '${{ needs.create-tags.outputs.tag_version }}'
+
+  update-channels-manifest:
+    needs: [build-desktop-app, create-tags]
+    if: ${{ success() }}
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify GH CLI
+        shell: pwsh
+        run: gh --version
+      - name: Update channels manifest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: >
+          ./scripts/Update-ChannelsManifest.ps1 -Tag '${{
+          needs.create-tags.outputs.tag_version }}' -Branch '${{ github.ref_name
+          }}' -Repo '${{ github.repository }}' -MetaBranch 'update-metadata'

@@ -4,6 +4,7 @@ import { FaPlay } from 'react-icons/fa';
 import { FaPause } from 'react-icons/fa';
 import { FaMaximize } from 'react-icons/fa6';
 import { TbArrowsMinimize } from 'react-icons/tb';
+import { useEffect } from 'react';
 
 const ControlBarContainer = styled.div({
   backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -47,6 +48,10 @@ const formatTime = (seconds: number) => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
+const toggleCursor = (show: boolean) => {
+  document.body.style.cursor = show ? 'default' : 'none';
+};
+
 export const VideoPlayerControlBar = (props: VideoPlayerControlBarProps) => {
   const {
     togglePlay,
@@ -58,6 +63,10 @@ export const VideoPlayerControlBar = (props: VideoPlayerControlBarProps) => {
     isFullscreen,
     show,
   } = props;
+
+  useEffect(() => {
+    toggleCursor(show);
+  }, [show]);
 
   return (
     <ControlBarContainer style={{ display: show ? 'flex' : 'none' }}>

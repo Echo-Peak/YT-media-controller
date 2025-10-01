@@ -1,0 +1,32 @@
+@startuml
+title Updater high-level
+:On service start;
+:Delete updateTask in task scheduler;
+:Check for update on service start;
+detach
+
+repeat
+:Check for update;
+if (Update is available) then (yes)
+:Get manifest.json file from GH release;
+:Download installerComponent;
+:Verify installerComponent integrity;
+if (checksum match) then (yes)
+:Execute update orchestrator;
+if (updateTask is NOT pressent) then (yes)
+:Schedule update task with Windows Task Scheduler Apis;
+else (no)
+:Do nothing;
+stop
+end if
+else (no)
+:Terminate update;
+:Skip interval;
+end if
+else (no)
+:Skip interval;
+end if
+
+repeat while (4 hours has elapsed)
+
+@enduml

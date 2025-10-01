@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using YTMediaControllerSrv.Logging;
 
 namespace YTMediaControllerSrv.Server
 {
@@ -12,9 +13,12 @@ namespace YTMediaControllerSrv.Server
         private HttpListener listener = new HttpListener();
         public delegate void OnRequestHandler(HttpListenerContext context, HttpListenerRequest request, HttpListenerResponse response);
         public event OnRequestHandler OnRequest;
+        private readonly ILogger Logger;
 
-        public CreateHttpServer(string url)
+
+        public CreateHttpServer(string url, ILogger logger)
         {
+            Logger = logger;
             listener.Prefixes.Add(url);
             listener.Start();
             Task.Run(() => HandleRequests(listener));

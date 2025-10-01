@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as child_process from "child_process";
-import path from "path";
-import { writeFile } from "fs/promises";
+import * as packageJson from "../../package.json";
 
 const msBuildPaths = [
   [
@@ -22,17 +21,13 @@ const msBuildPaths = [
   ],
 ];
 
-const createBackendSettings = async (destPath: string): Promise<void> => {
-  const settings = {
-    BackendServerPort: 60166,
-    UISocketServerPort: 52000,
-  };
-  try {
-    await writeFile(destPath, JSON.stringify(settings, null, 2));
-    console.log(`Settings file created at ${destPath}`);
-  } catch (error: any) {
-    console.error(`Error creating settings file: ${(error as Error).message}`);
-  }
+const buildNumber = process.env.BUILD_NUMBER || "0";
+const branch = process.env.GITHUB_HEAD_REF || "Develop";
+
+const selectBuildEnv = () => {
+  if (branch === "main") return "Stable";
+  if (branch === "staging") return "Beta";
+  return "Alpha";
 };
 
 const validateFile = (path: string, errorMessage: string) => {
@@ -72,12 +67,12 @@ const buildExec = async (args: string[]): Promise<void> => {
 };
 
 (async () => {
-  const backendSettingsPath = path.resolve(__dirname, "../settings.json");
   const execArgs = [
     "backend\\YTMediaControllerSrv\\YTMediaControllerSrv.sln",
-    "/p:Configuration=Release",
+    `/p:Configuration=${selectBuildEnv()}`,
+    `/p:BUILD_NUMBER=${buildNumber}`,
+    `/p:VERSION_PREFIX=${packageJson.version}`,
   ];
 
-  await createBackendSettings(backendSettingsPath);
   await buildExec(execArgs);
 })();

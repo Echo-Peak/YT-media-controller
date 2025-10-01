@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using YTMediaControllerSrv.Logging;
 
 namespace YTMediaControllerSrv.Server.Middleware
 {
@@ -14,8 +15,10 @@ namespace YTMediaControllerSrv.Server.Middleware
     {
         private string Endpoint { get; set; }
         private HttpClient Http { get; set; }
-        public HLSMiddleware(HttpClient http, string endpoint)
+        private readonly ILogger Logger;
+        public HLSMiddleware(HttpClient http, string endpoint, ILogger logger)
         {
+            Logger = logger;
             Endpoint = endpoint;
             Http = http;
         }

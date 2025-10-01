@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using YTMediaControllerSrv.Logging;
 using YTMediaControllerSrv.Server;
 using YTMediaControllerSrv.Settings;
 using YTMediaControllerSrv.Types;
@@ -12,26 +13,29 @@ namespace YTMediaControllerSrv
     {
         private UISocketServer uiSocketServer;
         private BackendServer backendServer;
+        public ILogger defaultLogger = new Logger();
+        private FirewallManager firewallManager;
 
         public AppContainer() {
-            string settingsFile = PathResolver.GetSettingsFilePath();
+            var appSettings = new AppSettings(defaultLogger);
+            firewallManager = new FirewallManager(defaultLogger);
+            firewallManager.Update("YTMediaControllerBackendServerRule", appSettings.BackendServerPort);
+
             GlobalFFOptions.Configure(opt => opt.BinaryFolder = PathResolver.GetFFMpegDir());
 
             string deviceIP = DeviceInfo.GetLocalIPAddress();
-            var appSettings = new AppSettings(settingsFile);
-            var settingsJson = appSettings.Load();
 
-            uiSocketServer = new UISocketServer("localhost", settingsJson.UISocketServerPort, settingsJson.BackendServerPort);
-            backendServer = new BackendServer(deviceIP, settingsJson.BackendServerPort, uiSocketServer);
+            uiSocketServer = new UISocketServer("localhost", appSettings, defaultLogger);
+            backendServer = new BackendServer(deviceIP, appSettings.BackendServerPort, uiSocketServer, defaultLogger);
 
 
 
 #if DEBUG
             Console.CancelKeyPress += (sender, e) =>
             {
-                Logger.Info("SIGINT received. Cleaning up resources...");
+                defaultLogger.Info("SIGINT received. Cleaning up resources...");
                 Stop();
-                Logger.Info("Cleanup complete. Exiting application.");
+                defaultLogger.Info("Cleanup complete. Exiting application.");
             };
 #endif
         }
@@ -43,6 +47,7 @@ namespace YTMediaControllerSrv
 
         public void Stop()
         {
+            firewallManager.Remove("YTMediaControllerBackendServerRule");
             uiSocketServer.Stop();
             backendServer.Stop();
         }

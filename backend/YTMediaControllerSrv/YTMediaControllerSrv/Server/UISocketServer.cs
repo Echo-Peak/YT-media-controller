@@ -1,7 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Runtime;
 using System.Threading.Tasks;
 using YTMediaControllerSrv.Controller;
+using YTMediaControllerSrv.Logging;
+using YTMediaControllerSrv.Settings;
 using YTMediaControllerSrv.Types;
 
 
@@ -11,16 +14,20 @@ namespace YTMediaControllerSrv.Server
     {
         public WebSocketConnectionManager wsManager;
         private int backendServerPort;
-        public UISocketServer(string host, int port, int backendServerPort)
+        private ILogger Logger;
+        private readonly AppSettings appSettings;
+        public UISocketServer(string host, AppSettings settings, ILogger logger)
         {
-            this.backendServerPort = backendServerPort;
-            string endpoint = $"http://{host}:{port}/";
+            this.backendServerPort = settings.BackendServerPort;
+            this.appSettings = settings;
+            this.Logger = logger;
+            string endpoint = $"http://{host}:{settings.UISocketServerPort}/";
 
-            wsManager = new WebSocketConnectionManager(endpoint);
+            wsManager = new WebSocketConnectionManager(endpoint, logger);
 
-            wsManager.OnMessage += OnMessage;
-            wsManager.OnConnect += OnConnected;
-            wsManager.OnDisconnect += OnDisconnected;
+            wsManager.OnMessageNs += OnMessage;
+            wsManager.OnConnectNs += OnConnected;
+            wsManager.OnDisconnectNs += OnDisconnected;
         }
 
         public void Start()
@@ -36,42 +43,56 @@ namespace YTMediaControllerSrv.Server
             wsManager.Stop();
         }
 
-        private void OnConnected()
+        private void OnConnected(WSNamespace ns)
         {
-            Console.WriteLine($"Client connected");
+            Logger.Info($"Client connected in namespace: \"{ns.Value}\"");
         }
 
-        private void OnDisconnected()
+        private void OnDisconnected(WSNamespace ns)
         {
-            Console.WriteLine($"Client disconnected");
+            Logger.Info($"Client disconnected from namespace: \"{ns.Value}\"");
         }
 
-        public async Task Send(object jsonObject)
+        public async Task Send(WSNamespace ns, object jsonObject)
         {
             if (wsManager.IsConnected())
             {
-                await wsManager.SendAsync(jsonObject);
+                await wsManager.SendAsync(ns, jsonObject);
             }
             else
             {
-                Console.Error.WriteLine("[ControlServer] Cannot send: No client is connected.");
+                Logger.Warn($"[ControlServer] Cannot send: No client is connected in the namespace \"{ns.Value}\"");
             }
         }
 
-        public void SendSync(object jsonObject)
+        public void SendSync(WSNamespace ns, object jsonObject)
         {
             Task.Run(async () =>
             {
-                await Send(jsonObject);
+                await Send(ns, jsonObject);
             });
         }
 
-        public void OnMessage(string jsonString)
+        public void OnMessage(WSNamespace ns, string jsonString)
         {
             var obj = JsonConvert.DeserializeObject<UISocketMessage>(jsonString);
 
             switch (obj.Action)
             {
+                case "getBackendSettings":
+                    {
+                        SendSync(ns, new
+                        {
+                            Action = "backendSettings",
+                            Data = new
+                            {
+                                DeviceNetworkIp = DeviceInfo.GetLocalIPAddress(),
+                                appSettings.BackendServerPort,
+                                appSettings.UISocketServerPort
+                            }
+                        });
+                        break;
+                    }
                 case "webPlaybackStarted":
                     {
                         SystemController.TriggerYoutubeFullsceen();

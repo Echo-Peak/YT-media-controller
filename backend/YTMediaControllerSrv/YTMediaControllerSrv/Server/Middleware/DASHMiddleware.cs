@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using YTMediaControllerSrv.Logging;
 using YTMediaControllerSrv.YTDLP;
 
 namespace YTMediaControllerSrv.Server.Middleware
@@ -12,8 +13,10 @@ namespace YTMediaControllerSrv.Server.Middleware
     {
         private HttpClient HttpClient { get; set; }
         private VideoCache Cache { get; set; }
-        public DASHMiddleware(HttpClient httpClient, VideoCache cache)
+        private readonly ILogger Logger;
+        public DASHMiddleware(HttpClient httpClient, VideoCache cache, ILogger logger)
         {
+            Logger = logger;
             HttpClient = httpClient;
             Cache = cache;
         }

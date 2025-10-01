@@ -10,16 +10,11 @@ export class BackendService {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingMessages: Record<string, unknown>[] = [];
 
-  private constructor(port: string | number | undefined) {
-    this.port = port;
+  async init(): Promise<void> {
+    const { uiSocketServerPort } = await getChromeStorageKeys();
+    this.port = uiSocketServerPort || process.env.REACT_APP_API_SERVER_PORT;
     this.connect();
     chrome.runtime.onMessage.addListener(this.relayMessageToBackend);
-  }
-
-  static async init(): Promise<BackendService> {
-    const { uiSocketServerPort } = await getChromeStorageKeys();
-    const port = uiSocketServerPort || process.env.REACT_APP_API_SERVER_PORT;
-    return new BackendService(port);
   }
 
   private relayMessageToBackend = (
@@ -37,7 +32,7 @@ export class BackendService {
 
   private connect() {
     if (!this.port) return;
-    this.socket = new WebSocket(`ws://localhost:${this.port}`);
+    this.socket = new WebSocket(`ws://localhost:${this.port}/externalViewer`);
 
     this.socket.addEventListener('open', () => {
       if (this.reconnectTimer) {

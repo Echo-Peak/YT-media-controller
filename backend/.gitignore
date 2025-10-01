@@ -47,3 +47,4 @@ packages
 # generated
 settings.json
 externalBins
+versionInfo.g.cs
