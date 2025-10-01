@@ -26,6 +26,10 @@
 
 [Latest stable build](https://github.com/Echo-Peak/YT-media-controller/releases/download/stable-latest/YoutubeMediaControllerInstaller.exe)
 
+## Preview
+
+[![YTMediaController showcase](https://echo-peak.github.io/YT-media-controller/showcase-preview.png)](https://echo-peak.github.io/YT-media-controller/showcase.mp4)
+
 ## What this project does
 
 Playing YT videos via the website/app is quite frustrating to say the least.
