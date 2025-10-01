@@ -4,9 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.youtube.media.controller.helpers.StorePref
 import com.youtube.media.controller.helpers.StoreService
 import com.youtube.media.controller.helpers.Validate
+import com.youtube.media.controller.work.RequestWorker
 
 
 class PlayVideoActivity : AppCompatActivity() {
@@ -35,8 +39,13 @@ class PlayVideoActivity : AppCompatActivity() {
             }
             val backendUrl = store.getKey(StorePref.BACKEND_SERVER_URL)
             if (backendUrl != null) {
-                val httpHelper = HttpHelper(backendUrl)
-                httpHelper.sendPlayEvent(ytUrl)
+                val data = workDataOf(
+                    "base" to backendUrl,
+                    "url" to ytUrl,
+                    "path" to "/playVideo"
+                )
+                WorkManager.getInstance(this)
+                    .enqueue(OneTimeWorkRequestBuilder<RequestWorker>().setInputData(data).build())
                 Log.d(logTag, "Sent play event for: $ytUrl")
             } else {
                 Log.e(logTag, "Host URL not configured")
