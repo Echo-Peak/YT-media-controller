@@ -1,7 +1,7 @@
 {
   "alpha": {
-    "installerUrl": "https://github.com/Echo-Peak/YT-media-controller/releases/download/v1.0.0-alpha.60/YoutubeMediaControllerInstaller.exe",
-    "checksum": "adadf46c5db24271ea71f99c95db1b26fd691206529c5afd7e28230b2677570f",
-    "version": "1.0.0-alpha.60"
+    "installerUrl": "https://github.com/Echo-Peak/YT-media-controller/releases/download/v1.0.0-alpha.61/YoutubeMediaControllerInstaller.exe",
+    "checksum": "14d6bc5e1918304d16a635333fdd0e2e48e28b98484dd4232aa91dc235079d25",
+    "version": "1.0.0-alpha.61"
   }
 }
