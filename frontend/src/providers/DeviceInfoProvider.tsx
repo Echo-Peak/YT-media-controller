@@ -57,7 +57,7 @@ export const DeviceInfoProvider: React.FC<DeviceInfoProviderProps> = ({
         console.log('Fetched app settings:', result);
         setDeviceInfo({
           deviceIp: result.deviceIp as string,
-          devicePort: convertToInt(result.devicePort),
+          devicePort: convertToInt(result.backendServerPort),
           uiSocketServerPort: convertToInt(result.uiSocketServerPort),
           connectionError: undefined,
         });
@@ -70,6 +70,22 @@ export const DeviceInfoProvider: React.FC<DeviceInfoProviderProps> = ({
           uiSocketServerPort: undefined,
           connectionError: 'Failed to connect to backend',
         });
+      });
+
+    invokeApi
+      .getDeviceIp()
+      .then((ip) => {
+        setDeviceInfo((prev) => ({
+          ...prev,
+          deviceIp: ip,
+        }));
+      })
+      .catch((err) => {
+        console.error('Failed to fetch device IP:', err);
+        setDeviceInfo((prev) => ({
+          ...prev,
+          deviceIp: undefined,
+        }));
       });
   }, []);
 

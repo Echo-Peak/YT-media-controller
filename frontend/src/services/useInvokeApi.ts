@@ -34,5 +34,12 @@ export const useInvokeApi = () => {
     exitFullscreen: async (): Promise<void> => {
       return await tryInvoke('exit_fullscreen');
     },
+    openMobileConfigWindow: async (): Promise<void> => {
+      return await tryInvoke('open_mobile_config_window');
+    },
+    getDeviceIp: async (): Promise<string> => {
+      const result = await tryInvoke<{ ip: string }>('get_local_ip');
+      return result.ip;
+    },
   };
 };

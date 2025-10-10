@@ -27,3 +27,4 @@ base64 = "0.22"
 regex = "1"
 url = "2"
 uuid = { version = "1.18.1", features = ["v4"] }
+local-ip-address = "0.5"

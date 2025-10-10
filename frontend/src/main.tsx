@@ -56,9 +56,10 @@ const createVideoPlayerApp = async () => {
 };
 
 (async () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const isMobilePluginSetup = urlParams.get('deviceIp') !== null;
-  if (isMobilePluginSetup) {
+  const pathParts = new URL(window.location.href).pathname.split('/');
+  const isMobile = pathParts.includes('mobile');
+
+  if (isMobile) {
     await createMobilePluginApp();
   } else {
     await createVideoPlayerApp();
