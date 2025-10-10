@@ -1,8 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Runtime;
 using System.Threading.Tasks;
-using YTMediaControllerSrv.Controller;
 using YTMediaControllerSrv.Logging;
 using YTMediaControllerSrv.Settings;
 using YTMediaControllerSrv.Types;
@@ -91,16 +88,6 @@ namespace YTMediaControllerSrv.Server
                                 appSettings.UISocketServerPort
                             }
                         });
-                        break;
-                    }
-                case "webPlaybackStarted":
-                    {
-                        SystemController.TriggerYoutubeFullsceen();
-                        break;
-                    }
-                case "enforcementDialogRemoved":
-                    {
-                        SystemController.TriggerYoutubePlay();
                         break;
                     }
             }
