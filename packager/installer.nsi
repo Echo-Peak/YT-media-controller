@@ -7,7 +7,7 @@ Name "Youtube Media Controller installer"
 !endif
 
 !ifndef APP_VERSION_STR
-  !define APP_VERSION_STR "1.0.0-dev.0"
+  !define APP_VERSION_STR "1.0.0-alpha.0"
 !endif
 
 VIProductVersion "${APP_VERSION_NUM}"
@@ -60,12 +60,11 @@ Section "Info" Info
   File "..\backend\YTMediaControllerSrv\YTMediaControllerSrv\bin\${INSTALLER_BUILD_ENV}\YTMediaControllerSrv.exe"
   File "..\backend\YTMediaControllerSrv\YTMediaControllerUpdaterSrv\bin\${INSTALLER_BUILD_ENV}\YTMediaControllerUpdaterSrv.exe"
   File "..\dist\YoutubeMediaControllerUninstaller.exe"
+  File "..\frontend\src-tauri\target\release\ytmc_frontend.exe"
 
   SetOutPath "$INSTDIR\bin"
   File /r "..\backend\externalBins\*.exe"
 
-  SetOutPath "$INSTDIR\BrowserExtension"
-  File /r "..\dist\browser-extension-unpacked\*"
   call InstallCoreService
   call InstallUpdaterService
 SectionEnd
