@@ -28,22 +28,6 @@ export const HLSPlayer = ({
   };
   const { loadStream, cleanupStream } = useHlsStreamer(onFatalError);
 
-  const onPlayHandler = () => {
-    if (!playerRef.current) {
-      return;
-    }
-
-    try {
-      if (document.fullscreenElement !== playerRef.current) {
-        if (playerRef.current?.requestFullscreen) {
-          playerRef.current.requestFullscreen().catch(console.warn);
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to enter fullscreen:', e);
-    }
-  };
-
   useEffect(() => {
     if (!sourceUrl || !playerRef.current) {
       console.warn('No source URL or player reference available');
@@ -53,14 +37,8 @@ export const HLSPlayer = ({
     console.log('Loading HLS manifest from:', sourceUrl);
     loadStream(sourceUrl, playerRef.current);
 
-    if (playerRef.current) {
-      playerRef.current.addEventListener('playing', onPlayHandler);
-    }
     return () => {
       cleanupStream();
-      if (playerRef.current) {
-        playerRef.current.removeEventListener('playing', onPlayHandler);
-      }
     };
   }, [playerRef, sourceUrl]);
 

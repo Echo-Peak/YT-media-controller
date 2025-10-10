@@ -4,10 +4,12 @@ import React, {
   forwardRef,
   useRef,
   useImperativeHandle,
+  useCallback,
 } from 'react';
 import { VideoPlayerControlBar } from './VideoPlayerControlBar';
 import { VideoPlayerTitleBar } from './VideoPlayerTitleBar';
 import styled from '@emotion/styled';
+import { useInvokeApi } from '../../services/useInvokeApi';
 
 type VideoPlayerProps = {
   ref: React.RefObject<HTMLVideoElement>;
@@ -43,12 +45,46 @@ export type VideoPlayerRef = HTMLVideoElement | null;
 
 export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
   ({ videoData, onError, onEnd }, ref) => {
+    const { enterFullscreen, exitFullscreen } = useInvokeApi();
     const internalVideoRef = useRef<HTMLVideoElement>(null);
+    const parentNodeRef = useRef<HTMLDivElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [hideUI, setHideUI] = useState(false);
+
+    const togglingRef = useRef(false);
+
+    const toggleFullscreen = useCallback(async () => {
+      if (togglingRef.current) return;
+      togglingRef.current = true;
+      try {
+        if (isFullscreen) {
+          await exitFullscreen();
+          setIsFullscreen(false);
+        } else {
+          await enterFullscreen();
+          setIsFullscreen(true);
+        }
+      } finally {
+        togglingRef.current = false;
+      }
+    }, [isFullscreen, enterFullscreen, exitFullscreen]);
+
+    useEffect(() => {
+      const parent = parentNodeRef.current;
+      if (!parent) return;
+      const onDblClick = (e: MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleFullscreen();
+      };
+      parent.addEventListener('dblclick', onDblClick, { passive: false });
+      return () => {
+        parent.removeEventListener('dblclick', onDblClick);
+      };
+    }, [toggleFullscreen]);
 
     useEffect(() => {
       const video = internalVideoRef.current;
@@ -56,49 +92,24 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
       const handleTimeUpdate = () => setCurrentTime(video.currentTime);
       const handleLoadedMetadata = () => setDuration(video.duration);
-      const handleVideoPlayEvent = () => {
-        setIsPlaying(true);
-        if (!hasEnteredFullscreen && document.fullscreenElement !== video) {
-          video.requestFullscreen().catch(console.error);
-          setIsFullscreen(true);
-          hasEnteredFullscreen = true;
-        }
-      };
+      const handleVideoPlayEvent = () => setIsPlaying(true);
       const handleVideoEndEvent = () => {
         setIsPlaying(false);
         onEnd();
       };
-      const handleVideoPauseEvent = () => {
-        setIsPlaying(false);
-      };
+      const handleVideoPauseEvent = () => setIsPlaying(false);
       const handleVideoErrorEvent = () => {
-        if (typeof onError === 'function') {
+        if (typeof onError === 'function')
           onError(new Error('Unable to play video'));
-        }
       };
-      const handleDoubleClick = () => {
-        if (document.fullscreenElement) {
-          document.exitFullscreen().catch(console.error);
-          setIsFullscreen(false);
-        } else {
-          video.requestFullscreen().catch(console.error);
-          setIsFullscreen(true);
-        }
-      };
-
       const handleSeekOperation = () => {
-        const video = internalVideoRef.current;
-        if (video) {
-          video.blur();
-        }
+        const v = internalVideoRef.current;
+        if (v) v.blur();
       };
 
       video.addEventListener('timeupdate', handleTimeUpdate);
       video.addEventListener('seeked', handleSeekOperation);
       video.addEventListener('loadedmetadata', handleLoadedMetadata);
-      video.addEventListener('dblclick', handleDoubleClick);
-
-      let hasEnteredFullscreen = false;
       video.addEventListener('play', handleVideoPlayEvent);
       video.addEventListener('pause', handleVideoPauseEvent);
       video.addEventListener('ended', handleVideoEndEvent);
@@ -109,11 +120,11 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         video.removeEventListener('seeked', handleSeekOperation);
         video.removeEventListener('loadedmetadata', handleLoadedMetadata);
         video.removeEventListener('play', handleVideoPlayEvent);
-        video.removeEventListener('end', handleVideoEndEvent);
         video.removeEventListener('pause', handleVideoPauseEvent);
-        video.removeEventListener('dblclick', handleDoubleClick);
+        video.removeEventListener('ended', handleVideoEndEvent);
+        video.removeEventListener('error', handleVideoErrorEvent);
       };
-    }, []);
+    }, [onEnd, onError]);
 
     useImperativeHandle(
       ref,
@@ -123,30 +134,8 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const togglePlay = () => {
       const video = internalVideoRef.current;
       if (!video) return;
-
-      if (video.paused) {
-        video.play();
-      } else {
-        video.pause();
-      }
-    };
-
-    const toggleFullscreen = () => {
-      const video = internalVideoRef.current;
-      if (!video) return;
-
-      if (!document.fullscreenElement) {
-        document.documentElement
-          .requestFullscreen()
-          .then(() => {
-            video.blur();
-          })
-          .catch(console.error);
-        setIsFullscreen(true);
-      } else {
-        document.exitFullscreen().catch(console.error);
-        setIsFullscreen(false);
-      }
+      if (video.paused) video.play();
+      else video.pause();
     };
 
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,24 +149,17 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
     useEffect(() => {
       let hideUITimeout: NodeJS.Timeout;
-
       const handleMouseMove = () => {
         if (isPlaying) {
           setHideUI(false);
           clearTimeout(hideUITimeout);
-          hideUITimeout = setTimeout(() => {
-            setHideUI(true);
-          }, 3000);
+          hideUITimeout = setTimeout(() => setHideUI(true), 3000);
         }
       };
-
       if (isPlaying) {
         window.addEventListener('mousemove', handleMouseMove);
-        hideUITimeout = setTimeout(() => {
-          setHideUI(true);
-        }, 3000);
+        hideUITimeout = setTimeout(() => setHideUI(true), 3000);
       }
-
       return () => {
         window.removeEventListener('mousemove', handleMouseMove);
         clearTimeout(hideUITimeout);
@@ -194,7 +176,6 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           isPlaying ? player.pause() : player.play();
         }
       };
-
       const handleSeekReverse = () => {
         const player = internalVideoRef.current;
         if (player) {
@@ -202,7 +183,6 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           setCurrentTime(player.currentTime);
         }
       };
-
       const handleSeekForward = () => {
         const player = internalVideoRef.current;
         if (player) {
@@ -213,36 +193,31 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           setCurrentTime(player.currentTime);
         }
       };
-
       const handleKeyDown = (event: KeyboardEvent) => {
+        event.preventDefault();
         const activeTag = document.activeElement?.tagName.toLowerCase();
         if (
           activeTag === 'input' ||
           activeTag === 'textarea' ||
           activeTag === 'button'
-        ) {
+        )
           return;
-        }
-
         switch (event.code) {
           case 'Space':
-            event.preventDefault();
             handleSpacebarToggle();
             break;
+          case 'F11':
+          case 'Escape':
           case 'KeyF':
-            event.preventDefault();
             toggleFullscreen();
             break;
           case 'ArrowLeft':
-            event.preventDefault();
             handleSeekReverse();
             break;
           case 'ArrowRight':
-            event.preventDefault();
             handleSeekForward();
             break;
           default:
-            // Do nothing for other keys
             break;
         }
       };
@@ -250,14 +225,12 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
       };
-    }, [isPlaying, internalVideoRef]);
+    }, [isPlaying, toggleFullscreen]);
 
     return (
-      <PlayerContainer>
+      <PlayerContainer ref={parentNodeRef}>
         <VideoPlayerTitleBar videoData={videoData} show={!hideUI} />
-
         <Video ref={internalVideoRef} autoPlay />
-
         <VideoPlayerControlBar
           show={!hideUI}
           togglePlay={togglePlay}
