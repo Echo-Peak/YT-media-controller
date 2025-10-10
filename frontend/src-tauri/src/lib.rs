@@ -17,7 +17,8 @@ pub fn run() {
             app_settings::get_app_settings_from_registry,
             app_settings::update_app_setting_in_registry,
             youtube_window_manager::open_youtube_in_window,
-            window_controls::toggle_fullscreen,
+            window_controls::enter_fullscreen,
+            window_controls::exit_fullscreen,
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -28,5 +28,11 @@ export const useInvokeApi = () => {
     openInExternalWindow: async (url: string): Promise<void> => {
       return await tryInvoke('open_youtube_in_window', { raw: url });
     },
+    enterFullscreen: async (): Promise<void> => {
+      return await tryInvoke('enter_fullscreen');
+    },
+    exitFullscreen: async (): Promise<void> => {
+      return await tryInvoke('exit_fullscreen');
+    },
   };
 };
