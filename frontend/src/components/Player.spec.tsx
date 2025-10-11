@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { Player } from './Player';
 
