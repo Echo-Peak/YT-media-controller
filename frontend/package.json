@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "test:ui": "jest --config jest.config.js --watch",
+    "test:ui": "jest",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
