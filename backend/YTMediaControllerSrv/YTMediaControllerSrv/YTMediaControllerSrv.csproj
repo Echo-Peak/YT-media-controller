@@ -97,9 +97,6 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml" />
-    <Reference Include="WindowsInput, Version=1.0.4.0, Culture=neutral, PublicKeyToken=9b287f7dc5073cad, processorArchitecture=MSIL">
-      <HintPath>..\packages\InputSimulator.1.0.4.0\lib\net20\WindowsInput.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppRegistry.cs" />
@@ -128,7 +125,6 @@
     <Compile Include="YTDLP\VideoCache.cs" />
     <Compile Include="Server\WebSocketConnectionManager.cs" />
     <Compile Include="Settings\AppSettings.cs" />
-    <Compile Include="Controller\SystemController.cs" />
     <Compile Include="DeviceInfo.cs" />
     <Compile Include="Server\BackendServer.cs" />
     <Compile Include="Server\UISocketServer.cs" />

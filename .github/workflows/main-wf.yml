@@ -70,8 +70,16 @@ jobs:
           node-version: "22.12.0"
           cache: "yarn"
 
-      - name: Install NPM modules
+      - name: Install project NPM modules
         run: yarn
+        shell: bash
+
+      - name: Install frontend NPM modules
+        run: cd frontend && yarn
+        shell: bash
+
+      - name: Install frontend cargo modules
+        run: cd frontend/src-tauri && cargo fetch
         shell: bash
 
       - name: Restore NuGet packages
@@ -79,7 +87,7 @@ jobs:
           nuget restore ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
 
       - name: Run UI tests
-        run: yarn test-browser
+        run: cd frontend && yarn test
         continue-on-error: false
 
       - name: Build installer
