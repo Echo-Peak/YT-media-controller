@@ -87,7 +87,7 @@ jobs:
           nuget restore ./backend/YTMediaControllerSrv/YTMediaControllerSrv.sln
 
       - name: Run UI tests
-        run: cd frontend && yarn test
+        run: cd frontend && yarn test:ui
         continue-on-error: false
 
       - name: Build installer
