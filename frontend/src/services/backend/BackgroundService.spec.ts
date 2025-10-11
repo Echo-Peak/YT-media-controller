@@ -1,189 +1,190 @@
-// /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-// /* eslint-disable @typescript-eslint/no-unsafe-call */
-// /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-// /* eslint-disable @typescript-eslint/unbound-method */
-// jest.useFakeTimers();
-// import {
-//   MockWebSocket,
-//   wsInstances,
-//   wsCtorCalls,
-//   resetWSMock,
-// } from './mocks/MockWebSocket';
+import { BackendService } from './BackendService';
 
-// const origWebSocket = global.WebSocket as any;
+class MockWebSocket extends EventTarget {
+  static instances: MockWebSocket[] = [];
+  static CONNECTING = 0;
+  static OPEN = 1;
+  static CLOSING = 2;
+  static CLOSED = 3;
 
-// beforeEach(() => {
-//   resetWSMock();
-//   jest.clearAllMocks();
-//   delete process.env.VITE_API_SERVER_PORT;
-// });
+  url: string;
+  readyState = MockWebSocket.CONNECTING;
+  sent: string[] = [];
 
-// afterEach(() => {
-//   jest.restoreAllMocks();
-// });
+  constructor(url: string) {
+    super();
+    this.url = url;
+    MockWebSocket.instances.push(this);
+  }
 
-// beforeAll(() => {
-//   Object.defineProperty(global, 'WebSocket', {
-//     value: MockWebSocket,
-//     writable: true,
-//   });
-// });
+  send(data: string) {
+    this.sent.push(data);
+  }
 
-// afterAll(() => {
-//   Object.defineProperty(global, 'WebSocket', { value: origWebSocket });
-// });
+  open() {
+    this.readyState = MockWebSocket.OPEN;
+    this.dispatchEvent(new Event('open'));
+  }
 
-// jest.mock('../helpers/getChromeStorageKeys', () => ({
-//   getChromeStorageKeys: jest.fn(),
-// }));
+  close() {
+    this.readyState = MockWebSocket.CLOSED;
+    this.dispatchEvent(new Event('close'));
+  }
 
-// const { getChromeStorageKeys } = jest.requireMock(
-//   '../helpers/getChromeStorageKeys',
-// );
-// const componentNamespace = 'externalViewer';
+  error() {
+    this.dispatchEvent(new Event('error'));
+  }
 
-// describe('BackendService (original API)', () => {
-//   test('init uses uiSocketServerPort from chrome storage and connects', async () => {
-//     getChromeStorageKeys.mockResolvedValue({ uiSocketServerPort: 8081 });
-//     const addListenerSpy = jest.spyOn(chrome.runtime.onMessage, 'addListener');
+  message(data: string) {
+    const ev = new Event('message') as any;
+    ev.data = data;
+    this.dispatchEvent(ev);
+  }
 
-//     const { BackendService } = await import('./BackendService');
-//     const svc = new BackendService(5000);
-//     svc.init();
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject) {
+    return super.addEventListener(type, listener);
+  }
+}
 
-//     expect(wsCtorCalls[0]).toBe(`ws://localhost:8081/${componentNamespace}`);
-//     expect(addListenerSpy).toHaveBeenCalledTimes(1);
-//   });
+describe('BackendService', () => {
+  const realWS = global.WebSocket;
 
-//   test('sendData queues before socket open, then flushes on open', async () => {
-//     getChromeStorageKeys.mockResolvedValue({ uiSocketServerPort: 9001 });
-//     const { BackendService } = await import('./BackendService');
-//     const svc = new BackendService();
-//     await svc.init();
+  beforeAll(() => {
+    global.WebSocket = MockWebSocket as unknown as typeof WebSocket;
+  });
 
-//     const ws = wsInstances[0];
-//     svc.sendData({ a: 1 });
-//     svc.sendData({ b: 2 });
-//     expect(ws.sends).toHaveLength(0);
+  afterAll(() => {
+    global.WebSocket = realWS;
+  });
 
-//     ws.open();
-//     expect(ws.sends.map((s) => JSON.parse(s))).toEqual([{ a: 1 }, { b: 2 }]);
-//   });
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    MockWebSocket.instances = [];
+    jest.clearAllTimers();
+    jest.clearAllMocks();
+  });
 
-//   test('chrome.runtime messages are queued, then flushed on open', async () => {
-//     getChromeStorageKeys.mockResolvedValue({ uiSocketServerPort: 9100 });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
 
-//     const addListenerSpy = jest.spyOn(chrome.runtime.onMessage, 'addListener');
+  test('does not connect when port is falsy', () => {
+    const svc = new BackendService(0 as unknown as number);
+    svc.init();
+    expect(MockWebSocket.instances.length).toBe(0);
+  });
 
-//     const { BackendService } = await import('./BackendService');
-//     const svc = new BackendService();
-//     await svc.init();
+  test('connects to expected URL', () => {
+    const svc = new BackendService(1234);
+    svc.init();
+    expect(MockWebSocket.instances.length).toBe(1);
+    expect(MockWebSocket.instances[0].url).toBe(
+      'ws://localhost:1234/externalViewer',
+    );
+  });
 
-//     const relay = addListenerSpy.mock.calls[0][0];
-//     const ws = wsInstances[0];
+  test('queues messages until socket opens and then flushes', () => {
+    const svc = new BackendService(3000);
+    svc.init();
+    const ws = MockWebSocket.instances[0];
 
-//     relay({ action: 'ping', data: { x: 1 } }, {} as any, () => {});
-//     expect(ws.sends).toHaveLength(0);
+    svc.sendMessage({ action: 'ping', data: { x: 1 } });
+    expect(console.warn).toHaveBeenCalled();
+    expect(ws.sent).toHaveLength(0);
 
-//     ws.open();
-//     expect(JSON.parse(ws.sends[0])).toEqual({ action: 'ping', data: { x: 1 } });
-//   });
+    ws.open();
+    expect(ws.sent).toEqual([
+      JSON.stringify({ action: 'ping', data: { x: 1 } }),
+    ]);
+  });
 
-//   test('onData listeners receive parsed messages; offData stops them', async () => {
-//     getChromeStorageKeys.mockResolvedValue({ uiSocketServerPort: 9200 });
+  test('sends immediately when socket is already open', () => {
+    const svc = new BackendService(3001);
+    svc.init();
+    const ws = MockWebSocket.instances[0];
+    ws.open();
 
-//     const { BackendService } = await import('./BackendService');
-//     const svc = new BackendService();
-//     await svc.init();
+    svc.sendMessage({ action: 'hello' });
+    expect(ws.sent).toEqual([JSON.stringify({ action: 'hello' })]);
+  });
 
-//     const ws = wsInstances[0];
-//     ws.open();
+  test('forwards parsed message data to listeners', () => {
+    const svc = new BackendService(3002);
+    const cb = jest.fn();
+    svc.onData(cb);
+    svc.init();
+    const ws = MockWebSocket.instances[0];
+    ws.open();
 
-//     const cb = jest.fn();
-//     svc.onData(cb);
+    ws.message(JSON.stringify({ a: 1, b: 'x' }));
+    expect(cb).toHaveBeenCalledWith({ a: 1, b: 'x' });
+  });
 
-//     ws.message(JSON.stringify({ hello: 'world' }));
-//     expect(cb).toHaveBeenCalledWith({ hello: 'world' });
+  test('ignores invalid JSON messages', () => {
+    const svc = new BackendService(3003);
+    const cb = jest.fn();
+    svc.onData(cb);
+    svc.init();
+    const ws = MockWebSocket.instances[0];
+    ws.open();
 
-//     cb.mockClear();
-//     svc.offData(cb);
-//     ws.message(JSON.stringify({ again: true }));
-//     expect(cb).not.toHaveBeenCalled();
-//   });
+    ws.message('not-json');
+    expect(cb).not.toHaveBeenCalled();
+  });
 
-//   test('close triggers reconnect after 5s (single reconnect)', async () => {
-//     getChromeStorageKeys.mockResolvedValue({ uiSocketServerPort: 9300 });
+  test('offData unsubscribes a listener', () => {
+    const svc = new BackendService(3004);
+    const cb1 = jest.fn();
+    const cb2 = jest.fn();
+    svc.onData(cb1);
+    svc.onData(cb2);
+    svc.offData(cb1);
 
-//     const { BackendService } = await import('./BackendService');
-//     const svc = new BackendService();
-//     await svc.init();
+    svc.init();
+    const ws = MockWebSocket.instances[0];
+    ws.open();
 
-//     expect(wsCtorCalls).toHaveLength(1);
-//     wsInstances[0].close();
+    ws.message(JSON.stringify({ z: 9 }));
+    expect(cb1).not.toHaveBeenCalled();
+    expect(cb2).toHaveBeenCalledWith({ z: 9 });
+  });
 
-//     jest.advanceTimersByTime(4999);
-//     expect(wsCtorCalls).toHaveLength(1);
+  test('schedules reconnect on close', () => {
+    const svc = new BackendService(3005);
+    svc.init();
+    const first = MockWebSocket.instances[0];
+    first.close();
 
-//     jest.advanceTimersByTime(1);
-//     expect(wsCtorCalls).toHaveLength(2);
-//     expect(wsCtorCalls[1]).toBe(`ws://localhost:9300/${componentNamespace}`);
-//   });
+    expect(MockWebSocket.instances.length).toBe(1);
+    jest.advanceTimersByTime(4999);
+    expect(MockWebSocket.instances.length).toBe(1);
+    jest.advanceTimersByTime(1);
+    expect(MockWebSocket.instances.length).toBe(2);
+  });
 
-//   test('error triggers reconnect after 5s', async () => {
-//     getChromeStorageKeys.mockResolvedValue({ uiSocketServerPort: 9400 });
+  test('schedules reconnect on error', () => {
+    const svc = new BackendService(3006);
+    svc.init();
+    const first = MockWebSocket.instances[0];
+    first.error();
 
-//     const { BackendService } = await import('./BackendService');
-//     const svc = new BackendService();
-//     await svc.init();
+    jest.advanceTimersByTime(5000);
+    expect(MockWebSocket.instances.length).toBe(2);
+  });
 
-//     wsInstances[0].error();
-//     jest.advanceTimersByTime(5000);
-//     expect(wsCtorCalls).toHaveLength(2);
-//   });
+  test('flushes queued messages after reconnect opens', () => {
+    const svc = new BackendService(3007);
+    svc.init();
+    const ws1 = MockWebSocket.instances[0];
 
-//   test('multiple close/error before timer elapses → only one reconnect', async () => {
-//     getChromeStorageKeys.mockResolvedValue({ uiSocketServerPort: 9500 });
+    svc.sendMessage({ action: 'a' });
+    ws1.error();
+    jest.advanceTimersByTime(5000);
 
-//     const { BackendService } = await import('./BackendService');
-//     const svc = new BackendService();
-//     await svc.init();
-
-//     const ws = wsInstances[0];
-//     ws.close();
-//     ws.error();
-//     ws.close();
-
-//     jest.advanceTimersByTime(5000);
-//     expect(wsCtorCalls).toHaveLength(2);
-//   });
-
-//   test('pending buffer flushed exactly once on open', async () => {
-//     getChromeStorageKeys.mockResolvedValue({ uiSocketServerPort: 9600 });
-
-//     const { BackendService } = await import('./BackendService');
-//     const svc = new BackendService();
-//     await svc.init();
-
-//     const ws = wsInstances[0];
-//     svc.sendData({ a: 1 });
-//     svc.sendData({ b: 2 });
-
-//     ws.open();
-//     expect(ws.sends.map((s) => JSON.parse(s))).toEqual([{ a: 1 }, { b: 2 }]);
-
-//     ws.open();
-//     expect(ws.sends.map((s) => JSON.parse(s))).toEqual([{ a: 1 }, { b: 2 }]);
-//   });
-
-//   test('sendData sends immediately when socket is OPEN', async () => {
-//     getChromeStorageKeys.mockResolvedValue({ uiSocketServerPort: 9700 });
-//     const { BackendService } = await import('./BackendService');
-//     const svc = new (BackendService as any)();
-//     await svc.init();
-
-//     const ws = wsInstances[0];
-//     ws.open();
-//     svc.sendData({ z: 9 });
-//     expect(JSON.parse(ws.sends[0])).toEqual({ z: 9 });
-//   });
-// });
+    const ws2 = MockWebSocket.instances[1];
+    expect(ws2.sent).toHaveLength(0);
+    ws2.open();
+    expect(ws2.sent).toEqual([JSON.stringify({ action: 'a' })]);
+  });
+});
