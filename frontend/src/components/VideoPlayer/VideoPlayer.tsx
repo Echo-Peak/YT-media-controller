@@ -147,24 +147,34 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       }
     };
 
+    const hideControlBar = () => {
+      setHideUI(true);
+      document.body.style.cursor = 'none';
+    };
+
+    const showControlBar = () => {
+      setHideUI(false);
+      document.body.style.cursor = 'auto';
+    };
+
     useEffect(() => {
       let hideUITimeout: NodeJS.Timeout;
       const handleMouseMove = () => {
         if (isPlaying) {
-          setHideUI(false);
+          showControlBar();
           clearTimeout(hideUITimeout);
-          hideUITimeout = setTimeout(() => setHideUI(true), 3000);
+          hideUITimeout = setTimeout(hideControlBar, 3000);
         }
       };
       if (isPlaying) {
         window.addEventListener('mousemove', handleMouseMove);
-        hideUITimeout = setTimeout(() => setHideUI(true), 3000);
+        hideUITimeout = setTimeout(hideControlBar, 3000);
       }
       return () => {
         window.removeEventListener('mousemove', handleMouseMove);
         clearTimeout(hideUITimeout);
       };
-    }, [isPlaying]);
+    }, [isPlaying, setHideUI]);
 
     useEffect(() => {
       const handleSpacebarToggle = () => {
