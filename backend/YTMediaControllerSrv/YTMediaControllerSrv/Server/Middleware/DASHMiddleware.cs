@@ -11,13 +11,11 @@ namespace YTMediaControllerSrv.Server.Middleware
 {
     internal class DASHMiddleware : IHttpMiddleware
     {
-        private HttpClient HttpClient { get; set; }
         private VideoCache Cache { get; set; }
         private readonly ILogger Logger;
-        public DASHMiddleware(HttpClient httpClient, VideoCache cache, ILogger logger)
+        public DASHMiddleware(VideoCache cache, ILogger logger)
         {
             Logger = logger;
-            HttpClient = httpClient;
             Cache = cache;
         }
         public async Task Invoke(HttpListenerContext context, Func<Task> next)

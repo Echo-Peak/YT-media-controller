@@ -101,6 +101,7 @@
   <ItemGroup>
     <Compile Include="AppRegistry.cs" />
     <Compile Include="FirewallManager.cs" />
+    <Compile Include="HLSHttpClient.cs" />
     <Compile Include="I18n.cs" />
     <Compile Include="Logging\ConsoleLogger.cs" />
     <Compile Include="Logging\FileLogger.cs" />
