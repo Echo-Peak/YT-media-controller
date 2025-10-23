@@ -44,7 +44,6 @@ android phone to send any Youtube video URL from any app to a computer
 
 - Android 13+
 - Windows 11
-- Chromium based browser
 
 ## Component overview
 
@@ -71,32 +70,32 @@ permissions. It hosts two servers:
 
 - An HTTP server for communication with external devices (e.g., the Android
   app).
-- A WebSocket control server for internal communication with the browser
-  extension.
+- A WebSocket control server for internal communication with the Taruri app
+  frontend.
 
 The Android app interacts with the HTTP server by sending a `playVideo` request
 that includes the original YouTube URL from the `SHARE_INTENT` action.
 
-**The external viewer (UI / browser extension)**
+**The Tauri frontend**
 
-The browser extension is a 3-part component that allows communication with an
-external C# HTTP server and WebSocket server so that the mobile app can send a
-YT link and have it play within the UI.
+The app 2-part component that allows communication with an external C# HTTP
+server and WebSocket server so that the mobile app can send a YT link and have
+it play within the UI.
 
 The parts are as follows:
 
-- **The external viewer**
+- **The player UI**
   - This is the UI that can play HLS, DASH, and YouTube iframe videos.
   - This viewer communicates with the C# backend server via a local WebSocket
     connection.
 
-- **The mobile setup**
+- **The mobile setup UI**
   - This is a UI that renders a QR code containing the device's local network IP
     and the port of the C# HTTP server.
 
-These three components are designed to enable seamless sending of YouTube video
-URLs from an Android device—via a "long-press" on video content. The idea is to
-send a YouTube video to a designated PC, like an HTPC, without the analytics
+These 2 components are designed to enable seamless sending of YouTube video URLs
+from an Android device—via a "long-press" on video content. The idea is to send
+a YouTube video to a designated PC, like an HTPC, without the analytics
 gathering that occurs during casting or affecting the YouTube recommendation
 feed of your personal account.
 
@@ -151,31 +150,11 @@ SDK environment, you can use `adb` to install the app.
   the path of the .apk file downloaded and replace <apk path\> with it. e.g:
   `abd install C:\downloads\app-release-unsigned.apk`
 
-**Installing the browser extension**
-
-- After the app is installed. There is one more step that is needed.
-- In your browser of choice, must be chromium based, go to Settings >
-  Extensions > Manage extensions and enable Developer mode
-- Click on "Load unpacked" and navigate to
-  `C:\Program Files (x86)\YTMediaController\BrowserExtension` and click Select
-  folder.
-
-**Linking mobile to host**
-
-- On the computer/host, Right-click on extension icon and select Configure
-  Mobile plugin option
-- On your android phone, open the YTMediaController app and tap on the camera
-  view-box to load the QR code scanner.
-- Point camera at the QR code thats displayed on the computer to link your
-  phone.
-
 **Testing**
 
 - When all previous steps have been done, you should now be able to play/send
   any youtube link on your android device to the computer to be played without
   any ads / interruptions / tracking.
-- Open a browser and find a youtube video you want to try. Hold tap on the video
-  to open the context menu and select share.
 - You should see YTMediaController as an option with the "Play video" as a
   action. Select on "Play video".
 - Watch as the video will be playing on the computer within a couple seconds.
@@ -220,7 +199,6 @@ Like this:
 - C# build environment
 - .NET Framework 4.8
 - NSIS 2.x
-- Chromium based browser (brave, chrome, edge)
 
 **Setup**
 
