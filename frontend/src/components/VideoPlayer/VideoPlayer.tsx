@@ -45,7 +45,7 @@ export type VideoPlayerRef = HTMLVideoElement | null;
 
 export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
   ({ videoData, onError, onEnd }, ref) => {
-    const { enterFullscreen, exitFullscreen } = useInvokeApi();
+    const { enterFullscreen, exitFullscreen, focusWindow } = useInvokeApi();
     const internalVideoRef = useRef<HTMLVideoElement>(null);
     const parentNodeRef = useRef<HTMLDivElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -53,7 +53,6 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     const [duration, setDuration] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [hideUI, setHideUI] = useState(false);
-
     const togglingRef = useRef(false);
 
     const toggleFullscreen = useCallback(async () => {
@@ -236,6 +235,12 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         window.removeEventListener('keydown', handleKeyDown);
       };
     }, [isPlaying, toggleFullscreen]);
+
+    useEffect(() => {
+      if (isPlaying) {
+        focusWindow();
+      }
+    }, [isPlaying]);
 
     return (
       <PlayerContainer ref={parentNodeRef}>

@@ -21,3 +21,16 @@ pub fn exit_fullscreen(app: AppHandle) -> Result<serde_json::Value, String> {
         Err("main window not found".into())
     }
 }
+
+#[tauri::command]
+pub fn focus_window(app: AppHandle) -> Result<(), String> {
+    if let Some(win) = app.get_webview_window("main") {
+        if !win.is_focused().map_err(|e| e.to_string())? {
+            let _ = win.show();
+            let _ = win.set_focus();
+        }
+        Ok(())
+    } else {
+        Err("main window not found".into())
+    }
+}

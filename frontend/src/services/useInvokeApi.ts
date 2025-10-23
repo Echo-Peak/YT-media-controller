@@ -41,5 +41,8 @@ export const useInvokeApi = () => {
       const result = await tryInvoke<{ ip: string }>('get_local_ip');
       return result.ip;
     },
+    focusWindow: async (): Promise<void> => {
+      return await tryInvoke('focus_window');
+    },
   };
 };
