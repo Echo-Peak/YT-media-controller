@@ -12,7 +12,6 @@ namespace YTMediaControllerSrv.Server
         private UISocketServer uiSockerServer { get; set; }
         private YtdlpExec YTDLP { get; set; }
         private string endpoint = string.Empty;
-        private HttpClient httpClient = new HttpClient();
         private VideoCache videoCache = new VideoCache();
         private readonly ILogger Logger;
 
@@ -33,8 +32,8 @@ namespace YTMediaControllerSrv.Server
             pipeline.Use(new LoggingMiddleware(networkLogger).Invoke);
             pipeline.Use(new CORSMiddleware().Invoke);
             pipeline.Use(new MobileRouterMiddleware(uiSockerServer, YTDLP, endpoint, networkLogger).Invoke);
-            pipeline.Use(new HLSMiddleware(httpClient, this.endpoint, networkLogger).Invoke);
-            pipeline.Use(new DASHMiddleware(httpClient, videoCache, networkLogger).Invoke);
+            pipeline.Use(new HLSMiddleware(new HLSHttpClient(), this.endpoint, networkLogger).Invoke);
+            pipeline.Use(new DASHMiddleware(videoCache, networkLogger).Invoke);
             pipeline.Use(new BaseMiddleware().Invoke);
 
             var middlewarePipeline = pipeline.Build();

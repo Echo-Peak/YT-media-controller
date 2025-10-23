@@ -14,9 +14,9 @@ namespace YTMediaControllerSrv.Server.Middleware
     internal class HLSMiddleware : IHttpMiddleware
     {
         private string Endpoint { get; set; }
-        private HttpClient Http { get; set; }
+        private HLSHttpClient Http;
         private readonly ILogger Logger;
-        public HLSMiddleware(HttpClient http, string endpoint, ILogger logger)
+        public HLSMiddleware(HLSHttpClient http, string endpoint, ILogger logger)
         {
             Logger = logger;
             Endpoint = endpoint;
@@ -84,7 +84,7 @@ namespace YTMediaControllerSrv.Server.Middleware
             {
 
 
-                var originResponse = await Http.SendAsync(new HttpRequestMessage(HttpMethod.Get, masterPlaylistUrl));
+                var originResponse = await Http.Get(masterPlaylistUrl);
                 var content = await originResponse.Content.ReadAsStringAsync();
 
 
@@ -130,9 +130,9 @@ namespace YTMediaControllerSrv.Server.Middleware
 
             try
             {
-                var request = CreateSegmentRequest(segmentUrl);
+                var requestFactory = new Func<HttpRequestMessage>(() => CreateSegmentRequest(segmentUrl));
 
-                using (var segmentResponse = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+                using (var segmentResponse = await Http.Send(requestFactory, HttpCompletionOption.ResponseHeadersRead))
                 {
                     if(segmentResponse.StatusCode != HttpStatusCode.OK)
                     {
@@ -235,7 +235,6 @@ namespace YTMediaControllerSrv.Server.Middleware
                 }
                 else
                 {
-                    // Keep as-is, just trim trailing whitespace to preserve `#`
                     rewritten.AppendLine(trimmed);
                 }
             }
