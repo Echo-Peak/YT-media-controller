@@ -22,7 +22,7 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Stable'">
     <DefineConstants>TRACE</DefineConstants>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Stable\</OutputPath>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
   </PropertyGroup>

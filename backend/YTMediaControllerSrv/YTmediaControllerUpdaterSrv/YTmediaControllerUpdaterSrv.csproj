@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -21,7 +21,7 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Stable'">
     <DefineConstants>STABLE;</DefineConstants>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Stable\</OutputPath>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
   </PropertyGroup>
