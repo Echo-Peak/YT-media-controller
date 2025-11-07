@@ -5,8 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
-using System.Web.UI.WebControls;
 
 namespace YTMediaControllerSrv.Logging
 {
@@ -52,23 +50,9 @@ namespace YTMediaControllerSrv.Logging
             }
         }
 
-        private EventLogEntryType GetEventLogType(string logLevel)
-        {
-            switch (logLevel.ToLowerInvariant())
-            {
-                case "info": return EventLogEntryType.Information;
-                case "warn": return EventLogEntryType.Warning;
-                case "error": return EventLogEntryType.Error;
-                default: return EventLogEntryType.Information;
-            }
-        }
-
         private void WriteEventProfilerLog(string logLevel, string entry, Exception err)
         {
-            if (!EventLog.SourceExists(eventSourceName))
-            {
-                EventLog.CreateEventSource(eventSourceName, "Application");
-            }
+            SystemConsole.CreateEventLogSource(eventSourceName, "Application");
 
             var content = new StringBuilder();
             content.AppendLine(entry);
@@ -78,8 +62,7 @@ namespace YTMediaControllerSrv.Logging
                 content.AppendLine($"\n ERROR: {err.ToString()} \n {err.StackTrace}");
             }
 
-
-            EventLog.WriteEntry(eventSourceName, content.ToString(), GetEventLogType(logLevel));
+            SystemConsole.WriteEventLogEntry(eventSourceName, content.ToString(), SystemConsole.GetEventLogType(logLevel));
         }
 
         private string CreateLogFilePath()

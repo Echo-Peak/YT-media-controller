@@ -1,6 +1,4 @@
-﻿using M3U8Parser.Attributes.Name;
-using NetFwTypeLib;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,40 +9,49 @@ namespace YTMediaControllerSrv
 {
     internal class FirewallManager
     {
-        private INetFwPolicy2 Policy => (INetFwPolicy2)Activator.CreateInstance(System.Type.GetTypeFromProgID("HNetCfg.FwPolicy2"));
+        // Constants for Windows Firewall COM interface
+        private const int NET_FW_RULE_DIR_IN = 1;
+        private const int NET_FW_ACTION_ALLOW = 1;
+        private const int NET_FW_IP_PROTOCOL_TCP = 6;
+        private const int NET_FW_PROFILE2_ALL = 0x7FFFFFFF;
+
+        private dynamic Policy => Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwPolicy2"));
         private readonly ILogger logger;
+        
         public FirewallManager(ILogger Logger) {
                logger = Logger;
         }
-        private INetFwRule FindExact(string name, NET_FW_IP_PROTOCOL_ proto)
+        
+        private dynamic FindExact(string name, int protocol)
         {
-            foreach (INetFwRule r in Policy.Rules)
+            foreach (dynamic r in Policy.Rules)
                 if (string.Equals(r.Name, name, StringComparison.OrdinalIgnoreCase)
-                    && r.Direction == NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_IN
-                    && r.Protocol == (int)proto)
+                    && r.Direction == NET_FW_RULE_DIR_IN
+                    && r.Protocol == protocol)
                     return r;
             return null;
         }
+        
         public void Update(string ruleName, int port)
         {
-            var rule = FindExact(ruleName, NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP);
+            var rule = FindExact(ruleName, NET_FW_IP_PROTOCOL_TCP);
             if (rule == null)
             {
                 logger.Info($"Creating inbound FW rule \"{ruleName}\" to use port {port}");
-                rule = (INetFwRule)Activator.CreateInstance(System.Type.GetTypeFromProgID("HNetCfg.FWRule"));
+                rule = Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FWRule"));
                 rule.Name = ruleName;
-                rule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_IN;
-                rule.Action = NET_FW_ACTION_.NET_FW_ACTION_ALLOW;
+                rule.Direction = NET_FW_RULE_DIR_IN;
+                rule.Action = NET_FW_ACTION_ALLOW;
                 rule.Enabled = true;
-                rule.Profiles = (int)NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_ALL;
-                rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP;
+                rule.Profiles = NET_FW_PROFILE2_ALL;
+                rule.Protocol = NET_FW_IP_PROTOCOL_TCP;
                 rule.LocalPorts = port.ToString();
                 Policy.Rules.Add(rule);
             }
             else
             {
-                logger.Info($"Updateing FW rule \"{ruleName}\" to use port {port}");
-                rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP;
+                logger.Info($"Updating FW rule \"{ruleName}\" to use port {port}");
+                rule.Protocol = NET_FW_IP_PROTOCOL_TCP;
                 rule.LocalPorts = port.ToString();
                 rule.Enabled = true;
             }
@@ -52,7 +59,7 @@ namespace YTMediaControllerSrv
 
         public void Remove(string ruleName)
         {
-            var rule = FindExact(ruleName, NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP);
+            var rule = FindExact(ruleName, NET_FW_IP_PROTOCOL_TCP);
             if(rule != null)
             {
                 logger.Info($"Removing FW rule \"{ruleName}\"");

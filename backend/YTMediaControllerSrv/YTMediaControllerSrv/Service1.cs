@@ -1,37 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.ServiceProcess;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using YTMediaControllerSrv.Logging;
 
 namespace YTMediaControllerSrv
 {
-    public partial class Service1 : ServiceBase
+    public partial class Service1 : BackgroundService
     {
         private AppContainer app;
         private ILogger Logger;
+        
         public Service1()
         {
             app = new AppContainer();
             Logger = app.defaultLogger;
-            InitializeComponent();
         }
 
-        protected override void OnStart(string[] args)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             Logger.Info("Service starting");
             app.Start();
+            return Task.CompletedTask;
         }
 
-        protected override void OnStop()
+        public override Task StopAsync(CancellationToken cancellationToken)
         {
             Logger.Info("Service stopping");
             app.Stop();
+            return base.StopAsync(cancellationToken);
         }
     }
 }
