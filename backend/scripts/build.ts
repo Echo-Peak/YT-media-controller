@@ -74,7 +74,7 @@ const projects = ["YTMediaControllerSrv", "YTMediaControllerUpdaterSrv"];
       "publish",
       `backend\\YTMediaControllerSrv\\${project}\\${project}.csproj`,
       `-c ${selectBuildEnv()}`,
-      "-r win-x64",
+      "-r win-x86",
       `-p:BUILD_NUMBER=${buildNumber}`,
       `-p:VERSION_PREFIX=${packageJson.version}`,
       "-p:PublishTrimmed=True",
