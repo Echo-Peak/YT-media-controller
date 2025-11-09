@@ -2,22 +2,10 @@ import * as fs from "fs";
 import * as child_process from "child_process";
 import * as packageJson from "../../package.json";
 
-const msBuildPaths = [
+const dotnetPaths = [
   [
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe",
-    "Unable to check if 'user installed' 2019 MSBuild was found",
-  ],
-  [
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe",
-    "Unable to check if 'choco installed' 2019 MSBuild was found",
-  ],
-  [
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe",
-    "Unable to check if 'user installed' 2022 MSBuild was found",
-  ],
-  [
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe",
-    "Unable to check if 'choco installed' 2022 MSBuild was found",
+    "C:\\Program Files\\dotnet\\dotnet.exe",
+    "Unable to check if 'dotnet' was found",
   ],
 ];
 
@@ -40,39 +28,58 @@ const validateFile = (path: string, errorMessage: string) => {
   return false;
 };
 
-const selectMSBuild = () => {
-  for (const [path, errorMessage] of msBuildPaths) {
+const selectDotnet = () => {
+  for (const [path, errorMessage] of dotnetPaths) {
     if (validateFile(path, errorMessage)) {
       return path;
     }
   }
-  return "msbuild";
+  return "dotnet";
 };
 
-const buildExec = async (args: string[]): Promise<void> => {
+const buildExec = async (command: string): Promise<void> => {
   return new Promise((resolve, reject) => {
-    const proc = child_process.spawn(selectMSBuild(), args, {
-      stdio: "inherit",
-    });
-
-    proc.on("close", (code) => {
-      console.log(`child process exited with code ${code}`);
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Build process failed with code ${code}`));
+    const childProcess = child_process.exec(
+      command,
+      (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing command: ${error.message}`);
+          reject(error);
+        } else {
+          resolve();
+        }
       }
-    });
+    );
+
+    if (childProcess.stdout) {
+      childProcess.stdout.on("data", (data) => {
+        process.stdout.write(data);
+      });
+    }
+
+    if (childProcess.stderr) {
+      childProcess.stderr.on("data", (data) => {
+        process.stderr.write(data);
+      });
+    }
   });
 };
 
-(async () => {
-  const execArgs = [
-    "backend\\YTMediaControllerSrv\\YTMediaControllerSrv.sln",
-    `/p:Configuration=${selectBuildEnv()}`,
-    `/p:BUILD_NUMBER=${buildNumber}`,
-    `/p:VERSION_PREFIX=${packageJson.version}`,
-  ];
+const projects = ["YTMediaControllerSrv", "YTMediaControllerUpdaterSrv"];
 
-  await buildExec(execArgs);
+(async () => {
+  for (const project of projects) {
+    const execCommand = [
+      `"${selectDotnet()}"`,
+      "publish",
+      `backend\\YTMediaControllerSrv\\${project}\\${project}.csproj`,
+      `-c ${selectBuildEnv()}`,
+      "-r win-x86",
+      `-p:BUILD_NUMBER=${buildNumber}`,
+      `-p:VERSION_PREFIX=${packageJson.version}`,
+      "-p:PublishTrimmed=True",
+    ].join(" ");
+
+    await buildExec(execCommand);
+  }
 })();

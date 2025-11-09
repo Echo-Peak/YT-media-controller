@@ -6,10 +6,10 @@
   "private": true,
   "scripts": {
     "build-service": "ts-node backend/scripts/build.ts",
-    "package-ui": "cd frontend && yarn && yarn package",
-    "package": "yarn build-service && yarn package-ui && node packager/build.js",
+    "package-ui": "cd frontend && yarn && pnpm run package",
+    "package": "pnpm run build-service && pnpm run package-ui && node packager/build.js",
     "install-android": "abd install -r .\\mobile\\android\\app\\build\\outputs\\debug\\app-debug.apk",
-    "test-browser": "yarn workspace @yt-media-controller/ui run test --watchAll=false && yarn workspace @yt-media-controller/extension run test --watchAll=false"
+    "test-browser": "pnpm workspace @yt-media-controller/ui run test --watchAll=false && pnpm workspace @yt-media-controller/extension run test --watchAll=false"
   },
   "keywords": [],
   "author": "",

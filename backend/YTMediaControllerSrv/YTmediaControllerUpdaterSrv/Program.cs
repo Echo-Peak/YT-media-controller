@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.ServiceProcess;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using YTMediaControllerSrv;
 
 namespace YTMediaControllerUpdaterSrv
@@ -13,14 +11,25 @@ namespace YTMediaControllerUpdaterSrv
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        static void Main()
+        static void Main(string[] args)
         {
+            var builder = Host.CreateApplicationBuilder(args);
+            builder.Services.AddWindowsService(options =>
+            {
+                options.ServiceName = "YTMediaControllerUpdaterService";
+            });
+            builder.Services.AddHostedService<Service1>();
+
+            var host = builder.Build();
+
 #if DEBUG
             StartCliApp();
 #else
-            StartServiceApp();
+            // Run as Windows Service in release mode
+            host.Run();
 #endif
         }
+        
         static void StartCliApp()
         {
             var logger = new Logger("AUTO_UPDATER");
@@ -31,22 +40,6 @@ namespace YTMediaControllerUpdaterSrv
             {
                 await updater.CheckForUpdate();
             }).Wait();
-        }
-
-        static void StartServiceApp()
-        {
-            try
-            {
-                ServiceBase.Run(new ServiceBase[] { new Service1() });
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.EventLog.WriteEntry(
-                    "Application",
-                    $"[AutoUpdaterSvc] Fatal error before connecting to SCM:\r\n{ex}",
-                    System.Diagnostics.EventLogEntryType.Error);
-                throw;
-            }
         }
     }
 }

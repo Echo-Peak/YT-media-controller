@@ -1,25 +1,22 @@
-﻿using Octokit;
-using System;
-using System.Diagnostics;
-using System.ServiceProcess;
-using System.Text;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using YTMediaControllerSrv;
+using YTMediaControllerSrv.Logging;
 
 namespace YTMediaControllerUpdaterSrv
 {
-    public partial class Service1 : ServiceBase
+    public partial class Service1 : BackgroundService
     {
         private Updater updater;
         private  TimeSpan defaultUpdateInterval = TimeSpan.FromHours(4);
         private TaskManager checkForUpdatePeriodicTask;
         private  Logger logger;
         private UpdaterApi updaterApi;
+        
         public Service1()
         {
-            InitializeComponent();
-            this.ServiceName = "YTMediaControllerUpdaterService";
         }
 
         private TimeSpan GetUpdateInterval()
@@ -33,12 +30,12 @@ namespace YTMediaControllerUpdaterSrv
                 }
             }
             catch (Exception err) {
-                logger.Warn("Unable to get update interval from registry. Using default update interval");
+                logger?.Warn("Unable to get update interval from registry. Using default update interval");
             }
             return defaultUpdateInterval;
         }
 
-        protected override void OnStart(string[] args)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             try
             {
@@ -59,13 +56,18 @@ namespace YTMediaControllerUpdaterSrv
                 );
 
                 checkForUpdatePeriodicTask.Start();
+
+                // Keep the service running until cancellation is requested
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    await Task.Delay(1000, stoppingToken);
+                }
             }
             catch (Exception ex)
             {
-                EventLog.WriteEntry(
+                SystemConsole.WriteEventLogError(
                     "Application",
-                    $"[{ServiceName}] Fatal error in OnStart:\r\n{ex}",
-                    EventLogEntryType.Error);
+                    $"[YTMediaControllerUpdaterService] Fatal error in ExecuteAsync:\r\n{ex}");
 
                 throw;
             }
@@ -73,7 +75,7 @@ namespace YTMediaControllerUpdaterSrv
 
         private void HandleTaskError(Exception err)
         {
-            logger.Error("Unable to execute checkForUpdate task", err);
+            logger?.Error("Unable to execute checkForUpdate task", err);
         }
 
         private async Task CheckForUpdatePeriodicTask(CancellationToken token)
@@ -81,14 +83,20 @@ namespace YTMediaControllerUpdaterSrv
             await updater.CheckForUpdate();
         }
 
-
-        protected override void OnStop()
+        public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            logger.Info("Stopping service");
-            Task.Run(updater.Cleanup);
-            checkForUpdatePeriodicTask?.StopAsync().GetAwaiter().GetResult();
-            checkForUpdatePeriodicTask?.Dispose();
-            checkForUpdatePeriodicTask = null;
+            logger?.Info("Stopping service");
+            if (updater != null)
+            {
+                Task.Run(updater.Cleanup);
+            }
+            if (checkForUpdatePeriodicTask != null)
+            {
+                await checkForUpdatePeriodicTask.StopAsync();
+                checkForUpdatePeriodicTask?.Dispose();
+                checkForUpdatePeriodicTask = null;
+            }
+            await base.StopAsync(cancellationToken);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration.Install;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -19,7 +18,7 @@ namespace YTMediaControllerSrv
 
         private static string GetProjectRoot()
         {
-            return Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.Parent.Parent.FullName;
+            return Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.Parent.Parent.Parent.FullName;
         }
 
 

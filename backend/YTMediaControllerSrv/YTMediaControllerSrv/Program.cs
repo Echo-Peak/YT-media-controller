@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime;
-using System.ServiceProcess;
-using System.Text;
-using System.Threading.Tasks;
-using YTMediaControllerSrv.Server;
-using YTMediaControllerSrv.Settings;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace YTMediaControllerSrv
 {
@@ -16,31 +9,27 @@ namespace YTMediaControllerSrv
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        static void Main()
+        static void Main(string[] args)
         {
 #if DEBUG
-            RunAsConsoleApp();
-            Console.ReadKey();
-#else
-            RunAsService();
-#endif
-        }
-        static void RunAsConsoleApp()
-        {
-            // This requires app to be running as admin to bind port
-
+            // Run as console app in debug mode
             var app = new AppContainer();
             app.Start();
-        }
-
-        static void RunAsService()
-        {
-            ServiceBase[] ServicesToRun;
-            ServicesToRun = new ServiceBase[]
+            Console.WriteLine("Press any key to stop...");
+            Console.ReadKey();
+            app.Stop();
+#else
+            // Run as Windows Service in release mode
+            var builder = Host.CreateApplicationBuilder(args);
+            builder.Services.AddWindowsService(options =>
             {
-                new Service1()
-            };
-            ServiceBase.Run(ServicesToRun);
+                options.ServiceName = "YTMediaControllerService";
+            });
+            builder.Services.AddHostedService<Service1>();
+
+            var host = builder.Build();
+            host.Run();
+#endif
         }
     }
 }

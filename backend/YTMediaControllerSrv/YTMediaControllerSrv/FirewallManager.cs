@@ -1,63 +1,147 @@
-﻿using M3U8Parser.Attributes.Name;
-using NetFwTypeLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks;
 using YTMediaControllerSrv.Logging;
 
 namespace YTMediaControllerSrv
 {
     internal class FirewallManager
     {
-        private INetFwPolicy2 Policy => (INetFwPolicy2)Activator.CreateInstance(System.Type.GetTypeFromProgID("HNetCfg.FwPolicy2"));
         private readonly ILogger logger;
+        
         public FirewallManager(ILogger Logger) {
-               logger = Logger;
+            logger = Logger;
         }
-        private INetFwRule FindExact(string name, NET_FW_IP_PROTOCOL_ proto)
+        
+        private bool RuleExists(string ruleName)
         {
-            foreach (INetFwRule r in Policy.Rules)
-                if (string.Equals(r.Name, name, StringComparison.OrdinalIgnoreCase)
-                    && r.Direction == NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_IN
-                    && r.Protocol == (int)proto)
-                    return r;
-            return null;
+            try
+            {
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c netsh advfirewall firewall show rule name=\"{ruleName}\" >nul 2>&1",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(processInfo))
+                {
+                    if (process != null)
+                    {
+                        process.WaitForExit();
+                        // Exit code 0 means rule exists, non-zero means it doesn't
+                        return process.ExitCode == 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"Error checking if firewall rule exists: {ruleName}", ex);
+            }
+            return false;
         }
+        
+        private bool ExecuteNetshCommand(string arguments, out string output, out string error)
+        {
+            output = string.Empty;
+            error = string.Empty;
+            
+            try
+            {
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c netsh {arguments}",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(processInfo))
+                {
+                    if (process != null)
+                    {
+                        output = process.StandardOutput.ReadToEnd();
+                        error = process.StandardError.ReadToEnd();
+                        process.WaitForExit();
+                        return process.ExitCode == 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+                logger.Error($"Error executing netsh command: {arguments}", ex);
+            }
+            return false;
+        }
+        
         public void Update(string ruleName, int port)
         {
-            var rule = FindExact(ruleName, NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP);
-            if (rule == null)
+            bool exists = RuleExists(ruleName);
+            
+            if (!exists)
             {
                 logger.Info($"Creating inbound FW rule \"{ruleName}\" to use port {port}");
-                rule = (INetFwRule)Activator.CreateInstance(System.Type.GetTypeFromProgID("HNetCfg.FWRule"));
-                rule.Name = ruleName;
-                rule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_IN;
-                rule.Action = NET_FW_ACTION_.NET_FW_ACTION_ALLOW;
-                rule.Enabled = true;
-                rule.Profiles = (int)NET_FW_PROFILE_TYPE2_.NET_FW_PROFILE2_ALL;
-                rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP;
-                rule.LocalPorts = port.ToString();
-                Policy.Rules.Add(rule);
+                
+                // Delete existing rule with same name if it exists (in case of different protocol)
+                ExecuteNetshCommand($"advfirewall firewall delete rule name=\"{ruleName}\"", out _, out _);
+                
+                // Add new rule: inbound, allow, TCP, specific port, all profiles
+                string command = $"advfirewall firewall add rule name=\"{ruleName}\" dir=in action=allow protocol=TCP localport={port} profile=any";
+                bool success = ExecuteNetshCommand(command, out string output, out string error);
+                
+                if (!success)
+                {
+                    logger.Error($"Failed to create firewall rule \"{ruleName}\". Output: {output}, Error: {error}");
+                }
+                else
+                {
+                    logger.Info($"Successfully created firewall rule \"{ruleName}\" for port {port}");
+                }
             }
             else
             {
-                logger.Info($"Updateing FW rule \"{ruleName}\" to use port {port}");
-                rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP;
-                rule.LocalPorts = port.ToString();
-                rule.Enabled = true;
+                logger.Info($"Updating FW rule \"{ruleName}\" to use port {port}");
+                
+                // Delete existing rule
+                ExecuteNetshCommand($"advfirewall firewall delete rule name=\"{ruleName}\"", out _, out _);
+                
+                // Add updated rule with new port
+                string command = $"advfirewall firewall add rule name=\"{ruleName}\" dir=in action=allow protocol=TCP localport={port} profile=any";
+                bool success = ExecuteNetshCommand(command, out string output, out string error);
+                
+                if (!success)
+                {
+                    logger.Error($"Failed to update firewall rule \"{ruleName}\". Output: {output}, Error: {error}");
+                }
+                else
+                {
+                    logger.Info($"Successfully updated firewall rule \"{ruleName}\" to port {port}");
+                }
             }
         }
 
         public void Remove(string ruleName)
         {
-            var rule = FindExact(ruleName, NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP);
-            if(rule != null)
+            if (RuleExists(ruleName))
             {
                 logger.Info($"Removing FW rule \"{ruleName}\"");
-                try { Policy.Rules.Remove(rule.Name); } catch (Exception err) {
-                    logger.Error($"Unable to remove FW rule ({ruleName})", err);
+                
+                string command = $"advfirewall firewall delete rule name=\"{ruleName}\"";
+                bool success = ExecuteNetshCommand(command, out string output, out string error);
+                
+                if (!success)
+                {
+                    logger.Error($"Unable to remove FW rule \"{ruleName}\". Output: {output}, Error: {error}");
+                }
+                else
+                {
+                    logger.Info($"Successfully removed firewall rule \"{ruleName}\"");
                 }
             }
             else

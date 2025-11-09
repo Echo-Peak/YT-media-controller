@@ -57,8 +57,8 @@ FunctionEnd
 Section "Info" Info
 
   SetOutPath "$INSTDIR"
-  File "..\backend\YTMediaControllerSrv\YTMediaControllerSrv\bin\${INSTALLER_BUILD_ENV}\YTMediaControllerSrv.exe"
-  File "..\backend\YTMediaControllerSrv\YTMediaControllerUpdaterSrv\bin\${INSTALLER_BUILD_ENV}\YTMediaControllerUpdaterSrv.exe"
+  File "..\backend\YTMediaControllerSrv\YTMediaControllerSrv\bin\${INSTALLER_BUILD_ENV}\net9.0-windows\win-x86\publish\YTMediaControllerSrv.exe"
+  File "..\backend\YTMediaControllerSrv\YTMediaControllerUpdaterSrv\bin\${INSTALLER_BUILD_ENV}\net9.0-windows\win-x86\publish\YTMediaControllerUpdaterSrv.exe"
   File "..\dist\YoutubeMediaControllerUninstaller.exe"
   File "..\frontend\src-tauri\target\release\ytmc_frontend.exe"
 
