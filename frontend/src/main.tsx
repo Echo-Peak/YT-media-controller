@@ -4,6 +4,7 @@ import App from './App';
 import { VideoSourceProvider } from './providers/VideoSourceProvider';
 import { initBackendService } from './services/backend/useSocketService';
 import { DeviceInfoProvider } from './providers/DeviceInfoProvider';
+import { FullScreenProvider } from './providers/FullScreenProvider';
 import { MobilePluginApp } from './MobilePluginApp';
 import {
   ChakraProvider,
@@ -45,11 +46,13 @@ const createVideoPlayerApp = async () => {
   root.render(
     <React.StrictMode>
       <ChakraProvider value={createSystem(defaultConfig, config)}>
-        <VideoSourceProvider>
-          <DeviceInfoProvider>
-            <App />
-          </DeviceInfoProvider>
-        </VideoSourceProvider>
+        <FullScreenProvider>
+          <VideoSourceProvider>
+            <DeviceInfoProvider>
+              <App />
+            </DeviceInfoProvider>
+          </VideoSourceProvider>
+        </FullScreenProvider>
       </ChakraProvider>
     </React.StrictMode>,
   );
