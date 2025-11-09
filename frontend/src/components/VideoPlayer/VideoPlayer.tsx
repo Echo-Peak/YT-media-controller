@@ -10,6 +10,7 @@ import { VideoPlayerControlBar } from './VideoPlayerControlBar';
 import { VideoPlayerTitleBar } from './VideoPlayerTitleBar';
 import styled from '@emotion/styled';
 import { useInvokeApi } from '../../services/useInvokeApi';
+import { useFullScreen } from '../../providers/FullScreenProvider';
 
 type VideoPlayerProps = {
   ref: React.RefObject<HTMLVideoElement>;
@@ -45,31 +46,14 @@ export type VideoPlayerRef = HTMLVideoElement | null;
 
 export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
   ({ videoData, onError, onEnd }, ref) => {
-    const { enterFullscreen, exitFullscreen, focusWindow } = useInvokeApi();
+    const { focusWindow } = useInvokeApi();
+    const { isFullscreen, toggleFullscreen } = useFullScreen();
     const internalVideoRef = useRef<HTMLVideoElement>(null);
     const parentNodeRef = useRef<HTMLDivElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    const [isFullscreen, setIsFullscreen] = useState(false);
     const [hideUI, setHideUI] = useState(false);
-    const togglingRef = useRef(false);
-
-    const toggleFullscreen = useCallback(async () => {
-      if (togglingRef.current) return;
-      togglingRef.current = true;
-      try {
-        if (isFullscreen) {
-          await exitFullscreen();
-          setIsFullscreen(false);
-        } else {
-          await enterFullscreen();
-          setIsFullscreen(true);
-        }
-      } finally {
-        togglingRef.current = false;
-      }
-    }, [isFullscreen, enterFullscreen, exitFullscreen]);
 
     useEffect(() => {
       const parent = parentNodeRef.current;
@@ -94,6 +78,9 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       const handleVideoPlayEvent = () => setIsPlaying(true);
       const handleVideoEndEvent = () => {
         setIsPlaying(false);
+        // Always show control bar and cursor when video ends
+        setHideUI(false);
+        document.body.style.cursor = 'auto';
         onEnd();
       };
       const handleVideoPauseEvent = () => setIsPlaying(false);
@@ -146,15 +133,15 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       }
     };
 
-    const hideControlBar = () => {
+    const hideControlBar = useCallback(() => {
       setHideUI(true);
       document.body.style.cursor = 'none';
-    };
+    }, []);
 
-    const showControlBar = () => {
+    const showControlBar = useCallback(() => {
       setHideUI(false);
       document.body.style.cursor = 'auto';
-    };
+    }, []);
 
     useEffect(() => {
       let hideUITimeout: NodeJS.Timeout;
@@ -163,17 +150,27 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           showControlBar();
           clearTimeout(hideUITimeout);
           hideUITimeout = setTimeout(hideControlBar, 3000);
+        } else {
+          // When not playing, always show control bar on mouse move
+          showControlBar();
         }
       };
+
+      // Always listen to mouse move, but only auto-hide when playing
+      window.addEventListener('mousemove', handleMouseMove);
+
       if (isPlaying) {
-        window.addEventListener('mousemove', handleMouseMove);
         hideUITimeout = setTimeout(hideControlBar, 3000);
+      } else {
+        // When video is not playing, ensure control bar is visible
+        showControlBar();
       }
+
       return () => {
         window.removeEventListener('mousemove', handleMouseMove);
         clearTimeout(hideUITimeout);
       };
-    }, [isPlaying, setHideUI]);
+    }, [isPlaying, showControlBar, hideControlBar]);
 
     useEffect(() => {
       const handleSpacebarToggle = () => {
@@ -182,7 +179,11 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           player !== null &&
           document.activeElement !== internalVideoRef.current
         ) {
-          isPlaying ? player.pause() : player.play();
+          if (isPlaying) {
+            player.pause();
+          } else {
+            player.play();
+          }
         }
       };
       const handleSeekReverse = () => {
@@ -203,7 +204,6 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
         }
       };
       const handleKeyDown = (event: KeyboardEvent) => {
-        event.preventDefault();
         const activeTag = document.activeElement?.tagName.toLowerCase();
         if (
           activeTag === 'input' ||
@@ -211,6 +211,8 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           activeTag === 'button'
         )
           return;
+
+        event.preventDefault();
         switch (event.code) {
           case 'Space':
             handleSpacebarToggle();
@@ -218,7 +220,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           case 'F11':
           case 'Escape':
           case 'KeyF':
-            toggleFullscreen();
+            void toggleFullscreen();
             break;
           case 'ArrowLeft':
             handleSeekReverse();
@@ -253,7 +255,9 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           currentTime={currentTime}
           duration={duration}
           handleSeek={handleSeek}
-          toggleFullscreen={toggleFullscreen}
+          toggleFullscreen={() => {
+            void toggleFullscreen();
+          }}
           isFullscreen={isFullscreen}
         />
       </PlayerContainer>

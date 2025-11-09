@@ -48,8 +48,14 @@ const formatTime = (seconds: number) => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
-const toggleCursor = (show: boolean) => {
-  document.body.style.cursor = show ? 'default' : 'none';
+const toggleCursor = (show: boolean, isPlaying: boolean) => {
+  // Always show cursor when control bar is visible or when video is not playing
+  // This prevents soft-lock when video ends in fullscreen
+  if (show || !isPlaying) {
+    document.body.style.cursor = 'default';
+  } else {
+    document.body.style.cursor = 'none';
+  }
 };
 
 export const VideoPlayerControlBar = (props: VideoPlayerControlBarProps) => {
@@ -65,8 +71,8 @@ export const VideoPlayerControlBar = (props: VideoPlayerControlBarProps) => {
   } = props;
 
   useEffect(() => {
-    toggleCursor(show);
-  }, [show]);
+    toggleCursor(show, isPlaying);
+  }, [show, isPlaying]);
 
   return (
     <ControlBarContainer style={{ display: show ? 'flex' : 'none' }}>
