@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+
+# Remove YT Media Controller services
+
+# Stop services
+systemctl stop ytmediacontroller-updater.service || true
+systemctl stop ytmediacontroller.service || true
+
+# Disable services
+systemctl disable ytmediacontroller-updater.service || true
+systemctl disable ytmediacontroller.service || true
+
+# Remove service files
+rm -f /etc/systemd/system/ytmediacontroller.service
+rm -f /etc/systemd/system/ytmediacontroller-updater.service
+
+# Reload systemd
+systemctl daemon-reload
+
+echo "YT Media Controller services removed"

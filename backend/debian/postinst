@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+# Install YT Media Controller services
+
+# Copy service files
+cp /opt/ytmediacontroller/ytmediacontroller.service /etc/systemd/system/
+cp /opt/ytmediacontroller/ytmediacontroller-updater.service /etc/systemd/system/
+
+# Reload systemd
+systemctl daemon-reload
+
+# Enable and start services
+systemctl enable ytmediacontroller.service
+systemctl start ytmediacontroller.service
+
+systemctl enable ytmediacontroller-updater.service
+systemctl start ytmediacontroller-updater.service
+
+echo "YT Media Controller services installed successfully"

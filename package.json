@@ -6,8 +6,12 @@
   "private": true,
   "scripts": {
     "build-service": "ts-node backend/scripts/build.ts",
+    "build-service:linux": "RUNTIME=linux-x64 pnpm run build-service",
+    "build-service:win": "RUNTIME=win-x86 pnpm run build-service",
     "package-ui": "cd frontend && yarn && pnpm run package",
-    "package": "pnpm run build-service && pnpm run package-ui && node packager/build.js",
+    "package:linux": "cd frontend && pnpm run tauri build",
+    "package:linux:full": "pnpm run build-service:linux && pnpm run package:linux && bash scripts/add-deb-services.sh \"frontend/src-tauri/target/release/bundle/deb/\"*.deb",
+    "package": "pnpm run build-service:win && pnpm run package-ui && node packager/build.js",
     "install-android": "abd install -r .\\mobile\\android\\app\\build\\outputs\\debug\\app-debug.apk",
     "test-browser": "pnpm workspace @yt-media-controller/ui run test --watchAll=false && pnpm workspace @yt-media-controller/extension run test --watchAll=false"
   },

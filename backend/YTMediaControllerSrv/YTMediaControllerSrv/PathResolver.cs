@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,7 +9,11 @@ namespace YTMediaControllerSrv
 {
     public class PathResolver
     {
+#if WINDOWS
         static string installDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "YTMediaController");
+#else
+        static string installDir = "/opt/ytmediacontroller";
+#endif
 
         private static bool IsInstalled()
         {
@@ -26,7 +30,11 @@ namespace YTMediaControllerSrv
         {
             if (!IsInstalled())
             {
+#if WINDOWS
                 return Path.Combine(GetProjectRoot(), "extension\\build");
+#else
+                return Path.Combine(GetProjectRoot(), "extension/build");
+#endif
             }
             return Path.Combine(installDir, "ui");
         }
@@ -36,9 +44,17 @@ namespace YTMediaControllerSrv
             if (!IsInstalled())
             {
                 string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+#if WINDOWS
                 return Path.Combine(GetProjectRoot(), $"backend\\externalBins\\yt-dlp.exe");
+#else
+                return Path.Combine(GetProjectRoot(), "backend/externalBins/yt-dlp");
+#endif
             }
+#if WINDOWS
             return Path.Combine(installDir, "bin/yt-dlp.exe");
+#else
+            return Path.Combine(installDir, "bin/yt-dlp");
+#endif
         }
 
         public static string GetFFMpegDir()
@@ -46,7 +62,11 @@ namespace YTMediaControllerSrv
             if (!IsInstalled())
             {
                 string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+#if WINDOWS
                 return Path.Combine(GetProjectRoot(), $"backend\\externalBins\\ffmpeg");
+#else
+                return Path.Combine(GetProjectRoot(), "backend/externalBins/ffmpeg");
+#endif
             }
             return Path.Combine(installDir, "bin");
         }
@@ -57,9 +77,17 @@ namespace YTMediaControllerSrv
             if (!IsInstalled())
             {
                 string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+#if WINDOWS
                 return Path.Combine(GetProjectRoot(), $"backend\\YTMediaControllerSrv\\{binName}\\bin\\{configuration}\\{binName}.exe");
+#else
+                return Path.Combine(GetProjectRoot(), $"backend/YTMediaControllerSrv/{binName}/bin/{configuration}/{binName}");
+#endif
             }
+#if WINDOWS
             return Path.Combine(installDir, $"{binName}.exe");
+#else
+            return Path.Combine(installDir, binName);
+#endif
         }
 
         public static string GetPublicKey()
@@ -67,11 +95,14 @@ namespace YTMediaControllerSrv
             if (!IsInstalled())
             {
                 string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+#if WINDOWS
                 return Path.Combine(GetProjectRoot(), $"backend\\keys\\updateServerSrv.pub");
+#else
+                return Path.Combine(GetProjectRoot(), "backend/keys/updateServerSrv.pub");
+#endif
             }
 
-            // Convert into embedded asset and use asset streaming
-            return Path.Combine(installDir, $"keys/updateServerSrv.pub");
+            return Path.Combine(installDir, "keys/updateServerSrv.pub");
         }
 
         public static string GetUninstaller() 
@@ -79,14 +110,26 @@ namespace YTMediaControllerSrv
             if (!IsInstalled())
             {
                 string configuration = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Name;
+#if WINDOWS
                 return Path.Combine(GetProjectRoot(), $"dist/YoutubeMediaControllerUninstaller.exe");
+#else
+                return Path.Combine(GetProjectRoot(), "dist/YoutubeMediaControllerUninstaller");
+#endif
             }
 
+#if WINDOWS
             return Path.Combine(installDir, $"YoutubeMediaControllerUninstaller.exe");
+#else
+            return Path.Combine(installDir, "YoutubeMediaControllerUninstaller");
+#endif
         }
         public static string GetLogsDir()
         {
+#if WINDOWS
             return Path.Combine(installDir, "logs");
+#else
+            return "/var/log/ytmediacontroller";
+#endif
         }
     }
 }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "YTMediaControllerFrontend",
+  "productName": "YTMediaController",
   "version": "0.1.0",
   "identifier": "com.mike.ytmc.frontend",
   "build": {
@@ -23,12 +23,26 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis", "deb"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.ico"
-    ]
+    ],
+    "shortDescription": "YouTube Media Controller",
+    "longDescription": "A desktop application for controlling YouTube media playback with backend services.",
+    "linux": {
+      "deb": {
+        "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0", "libappindicator3-1"],
+        "files": {
+          "/opt/ytmediacontroller/ytmediacontroller.service": "linux-staging/opt/ytmediacontroller/ytmediacontroller.service",
+          "/opt/ytmediacontroller/ytmediacontroller-updater.service": "linux-staging/opt/ytmediacontroller/ytmediacontroller-updater.service",
+          "/opt/ytmediacontroller/YTMediaControllerSrv": "linux-staging/opt/ytmediacontroller/YTMediaControllerSrv",
+          "/opt/ytmediacontroller/YTMediaControllerUpdaterSrv": "linux-staging/opt/ytmediacontroller/YTMediaControllerUpdaterSrv",
+          "/opt/ytmediacontroller/appSettings.json": "linux-staging/opt/ytmediacontroller/appSettings.json"
+        }
+      }
+    }
   }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -8,16 +8,18 @@ namespace YTMediaControllerUpdaterSrv
 {
     internal static class Program
     {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
         static void Main(string[] args)
         {
             var builder = Host.CreateApplicationBuilder(args);
+
+#if WINDOWS
             builder.Services.AddWindowsService(options =>
             {
                 options.ServiceName = "YTMediaControllerUpdaterService";
             });
+#else
+            builder.Services.AddSystemd();
+#endif
             builder.Services.AddHostedService<Service1>();
 
             var host = builder.Build();
@@ -25,7 +27,6 @@ namespace YTMediaControllerUpdaterSrv
 #if DEBUG
             StartCliApp();
 #else
-            // Run as Windows Service in release mode
             host.Run();
 #endif
         }

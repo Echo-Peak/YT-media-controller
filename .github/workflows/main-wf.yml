@@ -38,8 +38,7 @@ jobs:
           git push origin ${{ steps.set_version.outputs.tag_version }}
         shell: bash
       - name: Create channel alias tag
-        if:
-          ${{ github.ref_name == 'develop' || github.ref_name == 'staging' ||
+        if: ${{ github.ref_name == 'develop' || github.ref_name == 'staging' ||
           github.ref_name == 'main' }}
         shell: bash
         id: create_channel_alias
@@ -150,8 +149,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key:
-            gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*',
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*',
             '**/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-${{ runner.os }}-
@@ -188,7 +186,7 @@ jobs:
             --clobber
 
   cleanup-on-failure:
-    needs: [create-tags, build-desktop-app, build-android-app]
+    needs: [create-tags, build-desktop-app, build-android-app, build-linux-app]
     if: ${{ always() && failure() }}
     runs-on: ubuntu-latest
     permissions:
@@ -203,7 +201,7 @@ jobs:
           bash scripts/cleanup-tag.sh '${{ needs.create-tags.outputs.tag_version }}'
 
   update-channels-manifest:
-    needs: [build-desktop-app, create-tags]
+    needs: [build-desktop-app, build-linux-app, create-tags]
     if: ${{ success() }}
     runs-on: windows-2022
     permissions:
@@ -221,3 +219,83 @@ jobs:
           ./scripts/Update-ChannelsManifest.ps1 -Tag '${{
           needs.create-tags.outputs.tag_version }}' -Branch '${{ github.ref_name
           }}' -Repo '${{ github.repository }}' -MetaBranch 'update-metadata'
+
+  build-linux-app:
+    needs: create-tags
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-0 libappindicator3-1
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Build backend for Linux
+        env:
+          RUNTIME: linux-x64
+        run: |
+          pnpm run build-service
+
+      - name: Copy backend binaries to staging
+        run: |
+          mkdir -p frontend/src-tauri/linux-staging/opt/ytmediacontroller/
+          cp backend/YTMediaControllerSrv/YTMediaControllerSrv/bin/Alpha/net9.0/linux-x64/publish/YTMediaControllerSrv frontend/src-tauri/linux-staging/opt/ytmediacontroller/YTMediaControllerSrv
+          cp backend/YTMediaControllerSrv/YTMediaControllerUpdaterSrv/bin/Alpha/net9.0/linux-x64/publish/YTMediaControllerUpdaterSrv frontend/src-tauri/linux-staging/opt/ytmediacontroller/YTMediaControllerUpdaterSrv
+          cp backend/systemd/ytmediacontroller.service frontend/src-tauri/linux-staging/opt/ytmediacontroller/
+          cp backend/systemd/ytmediacontroller-updater.service frontend/src-tauri/linux-staging/opt/ytmediacontroller/
+          cp backend/YTMediaControllerSrv/YTMediaControllerSrv/appSettings.json frontend/src-tauri/linux-staging/opt/ytmediacontroller/
+          chmod +x frontend/src-tauri/linux-staging/opt/ytmediacontroller/YTMediaControllerSrv
+          chmod +x frontend/src-tauri/linux-staging/opt/ytmediacontroller/YTMediaControllerUpdaterSrv
+
+      - name: Install frontend dependencies
+        run: cd frontend && pnpm install
+
+      - name: Fetch cargo dependencies
+        run: cd frontend/src-tauri && cargo fetch
+
+      - name: Build DEB
+        run: cd frontend && pnpm run tauri build
+
+      - name: Find DEB file
+        id: deb
+        run: |
+          DEB_FILE=$(find src-tauri/target/release/bundle/deb -name "*.deb" | head -1)
+          echo "deb_file=$DEB_FILE" >> $GITHUB_OUTPUT
+          echo "Found: $DEB_FILE"
+
+      - name: Inject systemd services into DEB
+        run: |
+          bash scripts/add-deb-services.sh "${{ steps.deb.outputs.deb_file }}"
+
+      - name: Upload DEB to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.create-tags.outputs.tag_version }}
+          files: ${{ steps.deb.outputs.deb_file }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to channel alias
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ needs.create-tags.outputs.channel_alias }}" \
+            "${{ steps.deb.outputs.deb_file }}" \
+            --clobber

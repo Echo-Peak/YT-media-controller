@@ -1,0 +1,14 @@
+[Unit]
+Description=YT Media Controller Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/YTMediaControllerSrv
+WorkingDirectory=/opt/ytmediacontroller
+Restart=always
+RestartSec=10
+User=root
+
+[Install]
+WantedBy=multi-user.target

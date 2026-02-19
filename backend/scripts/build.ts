@@ -10,7 +10,9 @@ const dotnetPaths = [
 ];
 
 const buildNumber = process.env.BUILD_NUMBER || "0";
-const branch = process.env.GITHUB_HEAD_REF || "Develop";
+const branch =
+  process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || "Develop";
+const runtime = process.env.RUNTIME || "linux-x64";
 
 const selectBuildEnv = () => {
   if (branch === "main") return "Stable";
@@ -48,7 +50,7 @@ const buildExec = async (command: string): Promise<void> => {
         } else {
           resolve();
         }
-      }
+      },
     );
 
     if (childProcess.stdout) {
@@ -67,19 +69,23 @@ const buildExec = async (command: string): Promise<void> => {
 
 const projects = ["YTMediaControllerSrv", "YTMediaControllerUpdaterSrv"];
 
+const isWindows = runtime.startsWith("win");
+
 (async () => {
   for (const project of projects) {
+    const separator = isWindows ? "\\" : "/";
     const execCommand = [
       `"${selectDotnet()}"`,
       "publish",
-      `backend\\YTMediaControllerSrv\\${project}\\${project}.csproj`,
+      `backend${separator}YTMediaControllerSrv${separator}${project}${separator}${project}.csproj`,
       `-c ${selectBuildEnv()}`,
-      "-r win-x86",
+      `-r ${runtime}`,
       `-p:BUILD_NUMBER=${buildNumber}`,
       `-p:VERSION_PREFIX=${packageJson.version}`,
       "-p:PublishTrimmed=True",
     ].join(" ");
 
+    console.log(`Building ${project} for ${runtime}...`);
     await buildExec(execCommand);
   }
 })();

@@ -1,13 +1,25 @@
-﻿using System;
-using TaskScheduler = Microsoft.Win32.TaskScheduler;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using YTMediaControllerSrv;
+using YTMediaControllerSrv.Logging;
+
+#if WINDOWS
+using TaskScheduler = Microsoft.Win32.TaskScheduler;
 using Microsoft.Win32.TaskScheduler;
-using Task = System.Threading.Tasks.Task;
+#endif
 
 namespace YTMediaControllerUpdaterSrv.Helpers
 {
     internal class UpdateTaskHelper
     {
+#if WINDOWS
         private static readonly string TaskName = @"YTMC_Update";
 
         public static Task CreateTask(string installerPath)
@@ -82,5 +94,16 @@ namespace YTMediaControllerUpdaterSrv.Helpers
             }
             return Task.CompletedTask;
         }
+#else
+        public static Task CreateTask(string installerPath)
+        {
+            return Task.CompletedTask;
+        }
+
+        public static Task Cleanup()
+        {
+            return Task.CompletedTask;
+        }
+#endif
     }
 }
